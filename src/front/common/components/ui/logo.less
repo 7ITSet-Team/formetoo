@@ -1,0 +1,25 @@
+.c--logo, .c--logo:visited, .c--logo:hover, .c--logo:focus {
+	padding: 10px;
+	text-decoration: none;
+	.flex(column);
+	> div {
+		&:first-child {
+			> span {
+				font-size: 26px;
+				font-weight: 500;
+				&:nth-child(1) {
+					color: @var--ui-color-main;
+				}
+				&:nth-child(2) {
+					color: black;
+				}
+				&:nth-child(3) {
+					color: @var--ui-color-second;
+				}
+			}
+		}
+		&:last-child {
+			color: @var--ui-color-second;
+		}
+	}
+}

@@ -1,0 +1,46 @@
+.s--footer {
+	min-height: 250px;
+	height: 250px;
+	max-height: 250px;
+	padding: 10px;
+	margin-top: 30px;
+	background-color: #1e1e1e;
+	.flex(column, space-between, stretch);
+
+	> .links {
+		padding: 0 @var--main-padding-fields-l;
+		.flex(row, space-around, flex-start);
+		> div {
+			max-width: 250px;
+			> h5 {
+				margin: 15px 0;
+				color: @var--ui-color-main;
+				font-size: 22px;
+				line-height: 22px;
+				font-weight: normal;
+			}
+			> div {
+				.flex(column, flex-start, flex-start);
+				> a, a:hover, a:visited, a:focus, span {
+					font-size: 16px;
+					line-height: 25px;
+					vertical-align: middle;
+					text-decoration: none;
+					color: lighten(@var--ui-color-second, 25%);
+				}
+			}
+		}
+	}
+
+	> .rights {
+		.flex();
+		height: 50px;
+		padding: 10px @var--main-padding-fields-l;
+		border-top: 1px solid darken(@var--ui-color-second, 5%);
+		> span {
+			color: lighten(@var--ui-color-second, 15%);
+			font-size: 13px;
+			line-height: 13px;
+		}
+	}
+}

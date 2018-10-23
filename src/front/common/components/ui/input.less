@@ -1,0 +1,42 @@
+.c--input {
+	position: relative;
+	.flex(row, flex-start, stretch);
+	> input, > input:focus {
+		flex: 1 1 auto;
+		padding: 5px;
+		border: none;
+		background-color: inherit;
+		outline: none;
+	}
+	> button {
+		flex: 0 0 auto;
+		.flex();
+		background: inherit;
+		border: none;
+		cursor: pointer;
+	}
+	> .line {
+		position: absolute;
+		right: 50%;
+		left: 50%;
+		bottom: 0;
+		height: 2px;
+		z-index: 100;
+		background-color: @var--main-panel-background;
+		transition: all 500ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+		.focused {
+			right: 0;
+			left: 0;
+		}
+	}
+	> .static-line {
+		position: absolute;
+		right: 0;
+		left: 0;
+		bottom: 0;
+		height: 2px;
+		z-index: 90;
+		background-color: @var--ui-color-second;
+	}
+}
+

@@ -1,0 +1,17 @@
+.c--main-menu {
+	.flex(row, center, stretch);
+	position: relative;
+	a, a:hover, a:visited, a:focus {
+		.flex();
+		padding: 0 25px;
+		text-decoration: none;
+		text-transform: uppercase;
+		color: white;
+		font-size: 14px;
+		line-height: 14px;
+		border-bottom: 2px solid inherit;
+	}
+	a.active {
+		border-bottom: 2px solid white;
+	}
+}

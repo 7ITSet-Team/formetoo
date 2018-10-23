@@ -1,0 +1,26 @@
+
+//Стили иконок и иконочного шрифта. Сгенерированы.
+//Имена стилей - по именам файлов иконок в папке темы.
+//У всех svg-иконок должен быть тег height - относительно него выполняется масштабирование шрифта.
+
+.icon{
+	display: inline-block;
+	font: normal normal normal 14px/1 FontAwesome;
+	font-size: inherit;
+	text-rendering: auto;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	vertical-align: middle;
+	text-align: center;
+	user-select:none;
+	
+	&:before{
+		vertical-align: middle;
+		text-align: center;
+	}
+	
+  &.cart:before {font-icon: url('./icons/cart.svg')}
+  &.gift-box:before {font-icon: url('./icons/gift-box.svg')}
+  &.money:before {font-icon: url('./icons/money.svg')}
+  &.search:before {font-icon: url('./icons/search.svg')}
+}
