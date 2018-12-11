@@ -4,6 +4,7 @@
 	"description": "new formetoo rebuilding",
 	"main": "index.js",
 	"scripts": {
+		"start": "NODE_ENV=development node config/webpack.build.js",
 		"dev": "NODE_ENV=development node config/webpack.build.js",
 		"prod": "node config/webpack.build.js"
 	},
