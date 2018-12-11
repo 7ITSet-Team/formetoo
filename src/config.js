@@ -1,6 +1,6 @@
 export default {
     connection: {
-        port: 8082
+        port: 80//8082
     },
     jwt: {
         secret: 'SYW/:ZIFrxd\')ueR#<Oj,ABzutT]QI({%MekfS9(l|7NM-&m6RTgP@)X44sOGVE',
