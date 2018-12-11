@@ -1,0 +1,123 @@
+
+.c--btn {
+    touch-action: none;
+    //user-select: none;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 17px;
+    background-color: transparent;
+    border: 1px solid transparent;
+    color: @var--ui-color-main;
+    border-radius: 2;
+    line-height: 17px;
+    white-space: nowrap;
+    padding: 10px 16px;
+    margin: 0;
+    display: inline-block;
+    vertical-align: middle;
+    text-align: center;
+
+    &:visited, &:active, &:focus {
+        text-decoration: none;
+        color: @var--ui-color-main;
+    }
+    &:hover {
+        &:not(:disabled) {
+            text-decoration: none;
+            background-color: rgba(0, 0, 0, 0.05);
+            color: @var--ui-color-main;
+        }
+    }
+    &.icon, & .icon {
+        color: @var--ui-color-main;
+    }
+    //===================size classes
+    &--sm {
+        height: 20px;
+        line-height: 13px;
+        padding: 2px;
+    }
+    &--lg {
+        height: 40px;
+        line-height: 20px;
+        padding: 10px 20px;
+    }
+    &--max {
+        height: 100%;
+        .flex();
+        padding: 0;
+    }
+    &:disabled {
+        opacity: 0.3;
+    }
+    //===================main buttons
+    .make-main-buttons(@var--color-ui-buttons);
+    //===================disabled classes
+    &--disabled {
+        background-color: @var--ui-color-second;
+        border-color: @var--ui-color-second;
+        color: white;
+        cursor: not-allowed;
+        &:visited, &:active, &:focus, &:hover {
+            &:not(:disabled) {
+                color: white;
+                background-color: @var--ui-color-second;
+                border-color: @var--ui-color-second;
+            }
+
+        }
+    }
+    &--disabled&--empty {
+        color: @var--ui-color-second;
+        background-color: transparent;
+        &.icon, & .icon {
+            color: @var--ui-color-second;
+        }
+    }
+}
+
+.make-main-buttons( @list) {
+    .iter(length(@list));
+    .iter(@i) when (@i > 0) {
+        .iter(@i - 1);
+        @data: extract(@list, @i);
+        @type: extract(@data, 1);
+        @bd-color: extract(@data, 2);
+        @color: extract(@data, 3);
+
+        &--@{type} {
+            background-color: @bd-color;
+            border-color: @bd-color;
+            color: @color;
+            &:visited, &:active, &:focus {
+                color: @color;
+            }
+            &:hover {
+                &:not(:disabled) {
+                    color: @color;
+                    background-color: darken(@bd-color, 5%);
+                    border-color: darken(@bd-color, 5%);
+                }
+            }
+            &.icon, & .icon {
+                color: @color;
+            }
+        }
+        &--@{type}&--empty {
+            background-color: transparent;
+            color: @bd-color;
+            & .icon{
+                color: @bd-color;
+            }
+            &:hover {
+                &:not(:disabled) {
+                    color: @color;
+                    background-color: darken(@bd-color, 5%);
+                    & .icon{
+                        color: @color;
+                    }
+                }
+            }
+        }
+    }
+}

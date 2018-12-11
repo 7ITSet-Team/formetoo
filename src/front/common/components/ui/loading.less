@@ -1,0 +1,25 @@
+.c--loading {
+	padding: 40px;
+	.flex();
+	>div{
+
+		animation-name: spin;
+		animation-duration: 4000ms;
+		animation-iteration-count: infinite;
+		animation-timing-function: linear;
+
+		>.icon{
+			font-size: 80px;
+			line-height: 80px;
+		}
+	}
+}
+
+@keyframes spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(-360deg);
+	}
+}

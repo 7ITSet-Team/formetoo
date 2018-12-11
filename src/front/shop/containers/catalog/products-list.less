@@ -1,3 +1,44 @@
 .s--products-list {
-	color: red;
+    margin: -20px;
+    .flex(row, space-around, stretch);
+    flex-wrap: wrap;
+
+    > .item {
+        border: 1px solid lighten(@var--ui-color-second, 50%);
+        min-width: 19%;
+        width: 19%;
+        max-width: 19%;
+        .shadow();
+        background-color: white;
+        margin: 20px;
+        .flex(column, space-between, stretch);
+        > div:first-child > img {
+            display: block;
+            width: 100%;
+        }
+        > div:last-child {
+            padding: 20px 0;
+            .flex(column, flex-start, stretch);
+            > * {
+                padding: 5px;
+                max-width: 100%;
+                overflow-x: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+            > a, a:hover, a:visited, a:focus {
+                color: @var--ui-color-main;
+                display: block;
+                width: 100%;
+                background-color: lighten(@var--ui-color-second, 10%);
+                text-decoration: none;
+                font-size: 22px;
+                line-height: 22px;
+                text-align: center;
+            }
+            > div {
+
+            }
+        }
+    }
 }

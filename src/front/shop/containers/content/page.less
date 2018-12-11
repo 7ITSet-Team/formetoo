@@ -1,6 +1,16 @@
 .s--page {
-	border: 1px solid lighten(@var--ui-color-second,50%);
-	.shadow();
-	background-color: white;
-	padding: 20px;
+    .flex(column, flex-start, stretch);
+    border: 1px solid lighten(@var--ui-color-second, 50%);
+    .shadow();
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 40px;
+    > h3 {
+        .flex();
+        font-size: 26px;
+        line-height: 26px;
+    }
+    > div {
+        .flex();
+    }
 }

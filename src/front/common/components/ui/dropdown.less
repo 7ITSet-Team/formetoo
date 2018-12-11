@@ -1,0 +1,86 @@
+.c--dropdown {
+    position: relative;
+    display: inline;
+    padding: 0 5px;
+
+    .toggle {
+        .flex(row, space-between, center);
+        //padding: 5px;
+        cursor: pointer;
+        & > div {
+            &:first-child {
+                .flex();
+                flex: 1 1 auto;
+            }
+            &:last-child {
+                font: normal normal normal 14px/1 ITPro;
+                font-style: normal;
+                font-weight: normal;
+                text-rendering: auto;
+                -webkit-font-smoothing: antialiased;
+                transition: all 0.4s;
+                &.open {
+                    transform: rotate(-180deg);
+                }
+            }
+        }
+    }
+
+    .content {
+        position: absolute;
+        z-index: 1000;
+        .flex(column, flex-start, stretch);
+        padding: 5px 0;
+        border-radius: 4px;
+        border: 1px solid #e0e0e0;
+        background-color: white;
+
+        & > * {
+            .flex(row, flex-start, center);
+
+            //display: block;
+            padding: 5px 15px;
+            font-size: 16px;
+            line-height: 25px;
+            cursor: pointer;
+            color: #373737;
+            text-decoration: none;
+            &:hover {
+                background-color: #f2f2f2;
+            }
+        }
+        & > .separator, & > .divider, & > .splitter {
+            height: 1px;
+            border-bottom: 1px solid #e0e0e0;
+            margin: 5px 0;
+            padding: 0;
+            content: none;
+            cursor: none;
+        }
+    }
+}
+
+.iac--dropdown__mini-list {
+    & > .iac--dropdown__toggle {
+
+    }
+    & > .content {
+        z-index: 1000;
+        border-radius: 5px;
+        border: 1px solid darken(@var--main-background, 15%);
+        background-color: @var--main-background;
+        .shadow();
+        &:after {
+            content: "";
+            width: 0;
+            height: 0;
+            position: absolute;
+            //left: 30px;
+            left: 50%;
+            top: -8px;
+            border-width: 0 8px 8px 8px;
+            border-style: solid;
+            border-color: white transparent;
+        }
+    }
+}

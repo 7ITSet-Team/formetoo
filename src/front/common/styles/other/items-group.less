@@ -1,0 +1,16 @@
+.c--items-group {
+    .flex(row, flex-start, stretch);
+    & > * {
+        height: auto;
+        &:not(:first-child) {
+            border-left: 1px solid rgba(240, 240, 240, 0.15);
+            border-bottom-left-radius: 0;
+            border-top-left-radius: 0;
+        }
+        &:not(:last-child) {
+            border-right: 1px solid rgba(240, 240, 240, 0.15);
+            border-bottom-right-radius: 0;
+            border-top-right-radius: 0;
+        }
+    }
+}

@@ -14,8 +14,8 @@ export default class CatalogLayout extends React.Component {
 		return (
 			<Switch>
 				<Route exact path="/catalog" component={CategoryList}/>
-				<Route exact path="/catalog/:categoryName" component={ProductsList}/>
-				<Route exact path="/catalog/product/:productName" component={Product}/>
+				<Route exact path="/catalog/:slug" component={ProductsList}/>
+				<Route exact path="/catalog/product/:slug" component={Product}/>
 			</Switch>
 		);
 	};
