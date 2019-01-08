@@ -7,6 +7,6 @@ export default async (db, req, res, data) => {
 
     await db.user.activateById(id);
     const token = jwt.sign({id}, Config.jwt.secret);
-    res.cookie('JWT', token, {maxAge: Config.jwt.lifetime, httpOnly: true});
+    res.cookie('JWT', token, {maxAge: Config.jwt.lifetime, httpOnly: false});
     return;
 };

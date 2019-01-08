@@ -5,26 +5,31 @@ import Config from '@project/config';
 import registrationTemplate from '@server/templates/registration';
 
 export default async (db, req, res, data) => {
-    const {password, phone, email, name, lastname} = data;
+    let {password, phone, email, name, lastname} = data;
+    email=email.toLowerCase();
     const user = await db.user.getByEmail(email);
     if (user)
-        return {result: undefined, error: 'this email address is busy'};
+        return {result: undefined, error: 'этот email уже занят'};
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser = new db.user({
+    const newUser = await new db.user({
         email,
         phone,
         password: hashedPassword,
         name,
         lastname,
-        visibility: ['shop'],
+        role: 'client',
         isActive: false
     }).save();
 
+    if(req.cookies.orderJWT){
+        await db.order.setLinkOnUser(req.cookies.orderJWT,newUser);
+    }
+
     const transporter = nodemailer.createTransport(Config.nodemailer);
-    const baseURL = req.protocol + '://' + req.host;
+    const baseURL = req.protocol + '://' + req.hostname;
     const link = `${baseURL}/account/verify/${newUser._id}`;
     const mailOptions = {
         from: Config.contacts.support.mail,

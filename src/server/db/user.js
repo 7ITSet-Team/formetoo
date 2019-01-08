@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 
 import Config from '@project/config';
+import Routes from '@server/core/routes';
 
 const __modelName = 'user';
 export default db => {
@@ -28,7 +29,6 @@ export default db => {
             type: String,
             required: true
         },
-        visibility: [String],
         isActive: {
             type: Boolean,
             required: true
@@ -46,13 +46,38 @@ export default db => {
         return await this.findOne({_id: new mongoose.Types.ObjectId(payload.id)});
     };
 
+    schema.statics.getByID = async function (id) {
+        return await this.findOne({_id: new mongoose.Types.ObjectId(id)});
+    };
+
     schema.statics.getByEmail = async function (email) {
-        email = email.toLocaleLowerCase();
+        email = email.toLowerCase();
         return await this.findOne({email});
     };
 
-    schema.methods.activateById = async function (id) {
+    schema.statics.getByPhone = async function (phone) {
+        return await this.findOne({phone});
+    };
+
+    schema.statics.activateById = async function (id) {
         await this.update({_id: new mongoose.Types.ObjectId(id)}, {$set: {isActive: true}});
+    };
+
+    schema.methods.getPermissions = async function () {
+        if (!this.role)
+            return [];
+
+        if (this.role==='root'){
+            const rootPermissions = Object.keys(Routes);
+            rootPermissions.splice(rootPermissions.indexOf('quest'), 1);
+            return rootPermissions;
+        }
+
+        const role = await db.role.getByName(this.role);
+        if (!role)
+            return [];
+
+        return role.permissions || [];
     };
 
     schema.set('autoIndex', false);

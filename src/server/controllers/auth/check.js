@@ -1,26 +1,18 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-
-import Config from '@project/config';
-
 export default async (db, req, res, data) => {
-    const {email, password} = data;
-    const user = await db.user.getByEmail(email);
-    const incorrectAnswer = {result: undefined, error: 'incorrect login-password pair'};
-    if (!user)
-        return incorrectAnswer;
+    const result = {
+        authorised: !!data.userByToken,
+        permissions: [],
+        user: {}
+    };
+    if (!result.authorised)
+        return {result};
 
-    if (!user.isActive)
-        return {result: undefined, error: 'need to activate account'};
-
-    const isChecked = await bcrypt.compare(password, user.password);
-
-    if (isChecked) {
-        const permissions = this.user.getPermissions();
-        const token = jwt.sign({id: user._id}, Config.jwt.secret);
-        res.cookie('JWT', token, {maxAge: Config.jwt.lifetime, httpOnly: true});
-        return {result: {permissions}};
-    } else {
-        return incorrectAnswer;
-    }
+    result.permissions = await data.userByToken.getPermissions();
+    result.user = {
+        email: data.userByToken.email,
+        phone: data.userByToken.phone,
+        name: data.userByToken.name,
+        lastname: data.userByToken.lastname
+    };
+    return {result};
 };

@@ -9,7 +9,8 @@ const fs = require("fs");
 
 export default (req, res, next) => {
 	console.log('===render===',req.url);
-	const filePath = path.resolve('build', 'public', 'index.html');
+	//const filePath = path.resolve('build', 'public', 'index.html');
+    const filePath = path.resolve('build', 'index.html');
 
 	fs.readFile(filePath, 'utf8', (err, htmlData) => {
 		if (err) {

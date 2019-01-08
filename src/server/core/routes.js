@@ -7,27 +7,74 @@ import login from '@server/controllers/auth/login';
 import logout from '@server/controllers/auth/logout';
 import registration from '@server/controllers/auth/registration';
 import verify from '@server/controllers/auth/verify';
+import check from '@server/controllers/auth/check';
+import forgot from '@server/controllers/auth/forgot';
+import changePassword from '@server/controllers/auth/change-password';
 import cartInfo from '@server/controllers/cart/info';
-import order from '@server/controllers/cart/order';
+import placingOrders from '@server/controllers/cart/placing-orders';
+import putInOrder from '@server/controllers/cart/put-in-order';
 
 export default {
-    catalog: {
-        'categories': {handler: categories, visibility: ['quest']},
-        'category': {handler: category, visibility: ['quest']},
-        'product': {handler: product, visibility: ['quest']}
+    quest:{
+        catalog: {
+            'categories': categories,
+            'category': category,
+            'product': product
+        },
+        cart:{
+            'info': cartInfo,
+            'put-in-order':putInOrder
+        },
+        content: {
+            'page': page,
+            'main-menu':mainMenu
+        },
+        auth: {
+            'login': login,
+            'logout': logout,
+            'registration': registration,
+            'verify': verify,
+            'check':check,
+            'forgot':forgot,
+            'change-password':changePassword
+        }
     },
-    cart:{
-        'info': {handler: cartInfo, visibility: ['quest']},
-        'order':{handler: order, visibility: ['shop']}
+    client:{
+        cart:{
+            'placing-orders':placingOrders
+        }
     },
-    content: {
-        'page': {handler: page, visibility: ['quest']},
-        'main-menu': {handler: mainMenu, visibility: ['quest']}
+    media:{
+
     },
-    auth: {
-        'login': {handler: login, visibility: ['quest']},
-        'logout': {handler: logout, visibility: ['quest']},
-        'registration': {handler: registration, visibility: ['quest']},
-        'verify': {handler: verify, visibility: ['quest']}//permission=''
+    tabs:{
+
+    },
+    attributes:{
+
+    },
+    orders:{
+
+    },
+    users:{
+
+    },
+    roles:{
+
+    },
+    categories:{
+
+    },
+    products:{
+
+    },
+    pages:{
+
+    },
+    settings:{
+
+    },
+    logs:{
+
     }
 };

@@ -6,7 +6,7 @@ import orderTemplate from '@server/templates/order';
 export default async (db, req, res, data) => {
     const {userByToken: user} = data;
 
-    const order = db.order.getByUserOrOrderToken(user, req.cookies.orderJWT);
+    const order = await db.order.getByUserOrOrderToken(user, req.cookies.orderJWT);
     if (!order)
         return;
 
