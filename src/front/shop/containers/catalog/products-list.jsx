@@ -1,8 +1,8 @@
 import React from 'react';
-import {Link} from 'react-router-dom';
 
-import API from '@shop/core/api';
+import API from '@common/core/api';
 import Loading from '@components/ui/loading';
+import ProductItem from '@shop/containers/catalog/product-item';
 
 export default class ProductsList extends React.Component {
     constructor(props) {
@@ -33,29 +33,17 @@ export default class ProductsList extends React.Component {
     };
 
     render() {
-        const {productList, loading} = this.state;
+        const {productList = [], loading} = this.state;
+
+        if (loading)
+            return (<Loading/>);
 
         return (
             <div className='s--products-list'>
-                {loading ? (
-                    <Loading/>
-                ) : (
-                    (productList && productList.length > 0) ? productList.map((item, key) => (
-                        <div key={key} className='item'>
-                            <div>
-                                <img alt={item.name} src={item.media[0]}/>
-                            </div>
-                            <div>
-                                <Link to={`/catalog/product/${item.slug}`}>{item.name}</Link>
-                                <div>Артикул:{item.code}</div>
-                                <div>Цена:{item.price}</div>
-                                {
-                                    item.props.slice(0, 2).map((item, key) => <div>{`${item.name}:${item.value}`}</div>)
-                                }
-                            </div>
-                        </div>
-                    )) : 'nothing to show'
-                )}
+                {(productList.length > 0) ?
+                    productList.map((item, key) => (<ProductItem key={key} item={item}/>))
+                    : 'nothing to show'
+                }
             </div>
         );
     };

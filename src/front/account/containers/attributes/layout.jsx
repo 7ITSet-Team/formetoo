@@ -10,7 +10,7 @@ export default class Layout extends React.Component {
     render() {
         return (
             <div>
-                Страница табов\nНе готово.
+                Страница атрибутов\nНе готово.
             </div>
         );
     };

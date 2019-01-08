@@ -1,25 +1,51 @@
 import React from 'react';
-import {Route, Switch} from 'react-router-dom';
+import {NavLink} from 'react-router-dom';
 
-import Page from '@shop/containers/content/page';
-import CatalogLayout from '@shop/containers/catalog/catalog-layout';
+import UserModel from '@models/user';
 
-export default class Main extends React.Component {
+export default class Sections extends React.Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            permissions: UserModel.permissions
+        };
+
+        this.update = user => this.setState({permissions: user.permissions});
+        this.translate = {
+            client: 'Текущий пользователь',
+            media: 'Медиа',
+            tabs: 'Табы',
+            attributes: 'Атрибуты',
+            orders: 'Заказы',
+            users: 'Пользователи',
+            roles: 'Роли',
+            categories: 'Категории',
+            products: 'Продукты',
+            pages: 'Страницы',
+            settings: 'Настройки',
+            logs: 'Логи'
+        };
+    };
+
+    componentWillMount() {
+        UserModel.listeners.add(this.update);
+    };
+
+    componentWillUnmount() {
+        UserModel.listeners.delete(this.update);
     };
 
     render() {
+        const {permissions} = this.state;
         return (
-            <main className='s--main'>
-                <Switch>
-                    <Route exact path="/:slug" component={Page}/>
-                    <Route exact path="/" component={Page}/>
-                </Switch>
-                <Switch>
-                    <Route path="/catalog" component={CatalogLayout}/>
-                </Switch>
-            </main>
+            <div className='a--sections'>
+                {permissions.map((permission, key) => (
+                    <NavLink to={`/account/${permission}`} key={key}>
+                        {this.translate[permission] || permission}
+                    </NavLink>
+                ))}
+            </div>
         );
     };
 };

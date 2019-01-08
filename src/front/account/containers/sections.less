@@ -1,4 +1,22 @@
-.s--main {
-	background-color: inherit;
-	padding: 0 @var--main-padding-fields-l;
+.a--sections {
+    width: 200px;
+    border-right: 1px solid @var--ui-color-main;
+    .shadow();
+    .flex(column, flex-start, stretch);
+    > a {
+        display: block;
+        color: darken(@var--ui-color-second, 20%);
+        text-decoration: none;
+        cursor: pointer;
+        &:link, &:visited, &:active {
+            color: darken(@var--ui-color-second, 20%);
+            text-decoration: none;
+        }
+        &:hover {
+            color: @var--ui-color-second;
+        }
+        &.active {
+            color: @var--ui-color-main;
+        }
+    }
 }

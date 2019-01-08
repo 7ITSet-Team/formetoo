@@ -1,27 +1,66 @@
 import React from 'react';
+import {Link, Redirect} from 'react-router-dom';
 
-import Header from '@shop/containers/header';
-import Main from '@shop/containers/main';
-import Footer from '@shop/containers/footer';
+import Loading from '@components/ui/loading';
+import Header from '@account/containers/header';
+import Main from '@account/containers/main';
+import UserModel from '@models/user';
 
 export default class Layout extends React.Component {
-	constructor(props) {
-		super(props);
-	};
+    constructor(props) {
+        super(props);
+        this.state = {
+            checked: false,
+            authorised: false,
+            permissions: [],
+            redirectByTimeout: false
+        };
 
-	componentDidUpdate(prevProps) {
-		if (this.props.location !== prevProps.location) {
-			window.scrollTo(0, 0)
-		}
-	};
+        const timeoutID = setTimeout(() => this.setState({redirectByTimeout: true}), 5000);
+        this.update = user => {
+            clearTimeout(timeoutID);
+            this.setState({checked: true, authorised: user.authorised, permissions: user.permissions || []});
+        };
+        this.redirect = (<Redirect to={{pathname: '/'}}/>);
+    };
 
-	render() {
-		return (
-			<>
-			<Header/>
-			<Main/>
-			<Footer/>
-			</>
-		);
-	};
+    componentWillMount() {
+        UserModel.listeners.add(this.update);
+        UserModel.check();
+
+    };
+
+    componentWillUnmount() {
+        UserModel.listeners.delete(this.update);
+    };
+
+    componentDidUpdate(prevProps) {
+        if (this.props.location !== prevProps.location) {
+            window.scrollTo(0, 0)
+        }
+    };
+
+    render() {
+        const {checked, authorised, permissions, redirectByTimeout} = this.state;
+
+
+        if (redirectByTimeout)
+            return this.redirect;
+
+        if (!checked)
+            return (<Loading/>);
+
+        if (!authorised)
+            return this.redirect;
+
+        if (permissions.length === 0)
+            return this.redirect;
+
+        return (
+            <>
+            <Header/>
+            <Main/>
+            </>
+        );
+    };
 };

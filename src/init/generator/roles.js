@@ -1,19 +1,17 @@
-import routes from '../../src/server/core/routes';
+import routes from '../../server/core/routes';
 
-const permissions = [];
-
-Object.keys(routes).forEach(controllerName => {
-    const controller = routes[controllerName];
-    Object.keys(controller).forEach(actionName => {
-        const action = controller[actionName];
-        action.permission && permissions.push(action.permission);
-    });
-});
+const rootPermissions = Object.keys(routes);
+rootPermissions.splice(rootPermissions.indexOf('quest'), 1);
 
 export default [
-    {
+    /*{
         name: 'root',
         alias: 'Суперпользователь',
-        permissions
+        permissions: rootPermissions
+    },*/
+    {
+        name: 'client',
+        alias: 'Клиент',
+        permissions: ['client']
     }
 ];

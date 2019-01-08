@@ -3,8 +3,8 @@ import mongoose from 'mongoose';
 import JSSHA from 'jssha';
 
 import DBGenerator from './generator/db-generator.js'
-import Config from '../src/config.js';
-import * as models from '../src/server/db/index.js';
+import Config from '../config.js';
+import * as models from '../server/db/index.js';
 
 (async () => {
     mongoose.connect(Config.db.url, {autoIndex: false});
@@ -41,8 +41,8 @@ import * as models from '../src/server/db/index.js';
         password: hashedPassword,
         name: newUserData.name,
         lastname: newUserData.lastname,
-        visibility: ['shop', 'admin'],
         role:'root',
         isActive: true
     }).save();
+    console.log('=========THE END=========')
 })();

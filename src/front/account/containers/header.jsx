@@ -1,56 +1,40 @@
 import React from 'react';
+import {Link} from 'react-router-dom';
 
 import Logo from '@components/ui/logo';
-import Search from '@components/search';
-import Cart from '@components/cart';
-import MainMenu from '@components/main-menu';
-import Registration from '@shop/containers/account/registration';
-import Login from '@shop/containers/account/login';
+import UserModel from '@models/user';
 
 export default class Header extends React.Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            about: UserModel.about || {}
+        };
+
+        this.update = user => this.setState({about: user.about});
+        this.logout = e => UserModel.logout();
     };
 
-    data = {
-        userLocation: 'Москва',
-        address: '127000, Москва, ул.Ленинградская, д.157, этаж 3, оф.378',
-        phone: '+7-(495)-378-92-96',
-        count: 7,
-        cost: 130000
+    componentWillMount() {
+        UserModel.listeners.add(this.update);
+    };
+
+    componentWillUnmount() {
+        UserModel.listeners.delete(this.update);
     };
 
     render() {
-        const {userLocation, address, phone, count, cost} = this.data;
+        const {about} = this.state;
         return (
-            <header className='s--header'>
-                <div className='actions'>
-                    <div>
-						<span>
-							Ваш город:
-						</span>
-                        <span>
-							{` ${userLocation}`}
-						</span>
-                    </div>
-                    <div>
-                        {address}
-                    </div>
-                    <div>
-                        {phone}
-                    </div>
-                    <div>
-                        <Registration/>
-                        <Login/>
-                    </div>
-                </div>
-                <div className='search'>
+            <header className='a--header'>
+                <div className='info'>
                     <Logo/>
-                    <Search/>
-                    <Cart count={count} cost={cost}/>
+                    <div className='about'>{`${about.name} ${about.lastname}`}</div>
                 </div>
-                <div className='menu'>
-                    <MainMenu/>
+                <div className='actions'>
+                    <Link to='/'>на главную</Link>
+                    <button className='c--btn c--btn--danger' onClick={this.logout}>Выход</button>
                 </div>
             </header>
         );

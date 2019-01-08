@@ -7,16 +7,10 @@ export default class Layout extends React.Component {
         super(props);
     };
 
-    componentDidUpdate(prevProps) {
-        if (this.props.location !== prevProps.location) {
-            window.scrollTo(0, 0)
-        }
-    };
-
     render() {
         return (
             <div>
-                Страница медиа-файлов\nНе готово.
+                Страница табов\nНе готово.
             </div>
         );
     };

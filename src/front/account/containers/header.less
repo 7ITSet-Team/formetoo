@@ -1,54 +1,16 @@
-.s--header {
-    min-height: 190px;
-    height: 190px;
-    max-height: 190px;
-    margin-bottom: 30px;
-    .flex(column, flex-start, stretch);
+.a--header {
+    min-height: 80px;
+    height: 80px;
+    max-height: 80px;
+    padding: 10px;
+    margin: 0;
+    .flex(row, space-between, center);
+
+    >.info{
+        .flex();
+    }
 
     > .actions {
-        height: 40px;
-        background-color: @var--second-panel-background;
-        border-bottom: 1px solid darken(@var--second-panel-background, 3%);
-        .flex(row, space-between, center);
-        padding: 0 @var--main-padding-fields-l;
-        color: black;
-        > div {
-            &:nth-child(1) > span {
-                &:last-child {
-                    font-weight: bold;
-                    color: @var--ui-color-main;
-                    vertical-align: middle;
-                    cursor: pointer;
-                }
-            }
-            &:nth-child(4) {
-                color: @var--ui-color-main;
-                .flex();
-            }
-        }
-        a, a:hover, a:visited, a:focus {
-            padding: 0 5px;
-            color: @var--ui-color-main;
-            text-decoration: none;
-        }
-    }
-
-    > .search {
-        height: 100px;
-        .flex(row, space-between, center);
-        padding: 0 @var--main-padding-fields-l;
-        & > *:nth-child(2) {
-            min-width: 40%;
-        }
-    }
-
-    > .menu {
-        height: 50px;
-        .flex(row, center, stretch);
-        padding: 0 @var--main-padding-fields-l;
-        background-color: @var--main-panel-background;
-        border-bottom: 1px solid darken(@var--main-panel-background, 3%);
-        border-top: 1px solid darken(@var--main-panel-background, 3%);
-        .shadow();
+        .flex();
     }
 }

@@ -7,16 +7,10 @@ export default class Layout extends React.Component {
         super(props);
     };
 
-    componentDidUpdate(prevProps) {
-        if (this.props.location !== prevProps.location) {
-            window.scrollTo(0, 0)
-        }
-    };
-
     render() {
         return (
             <div>
-                Страница текущего пользователя (для клиентов отображается только она, без боковой панели и в ней вся работа с заказами и прочим)\nНе готово.
+                Страница медиа-файлов\nНе готово.
             </div>
         );
     };

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import API from '@shop/core/api';
+import API from '@common/core/api';
 import Loading from '@components/ui/loading';
 
 export default class Page extends React.Component {
