@@ -1,0 +1,80 @@
+.s--products-list {
+    margin: -20px;
+    .flex(row, space-around, stretch);
+    flex-wrap: wrap;
+
+    > .item {
+        border: 1px solid lighten(@var--ui-color-second, 50%);
+        border-radius: @var--ui-border-radius;
+        min-width: 19%;
+        width: 19%;
+        max-width: 19%;
+        .shadow();
+        background-color: white;
+        margin: 20px;
+        .flex(column, space-between, stretch);
+        > div:first-child {
+            position: relative;
+            color: @var--ui-color-main;
+            > .code {
+                position: absolute;
+                left: 10px;
+                top: 10px;
+                font-size: 18px;
+            }
+            > .price {
+                position: absolute;
+                left: 10px;
+                bottom: 10px;
+                font-size: 18px;
+            }
+            > .in-cart {
+                position: absolute;
+                right: 10px;
+                top: 10px;
+                margin-top: -2px;
+                cursor: pointer;
+                > .icon {
+                    font-size: 26px;
+                    line-height: 26px;
+                    vertical-align: top;
+                }
+                &:hover {
+                    color: lighten(@var--ui-color-main, 20%);
+                }
+            }
+            > a {
+                display: block;
+                width: 100%;
+                > img {
+                    display: block;
+                    width: 100%;
+                }
+            }
+        }
+        > div:last-child {
+            padding: 0 0 10px 0;
+            .flex(column, flex-start, stretch);
+            > * {
+                padding: 5px;
+                max-width: 100%;
+                overflow-x: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+            > a, a:hover, a:visited, a:focus {
+                color: @var--ui-color-main;
+                display: block;
+                width: 100%;
+                background-color: lighten(@var--ui-color-second, 10%);
+                text-decoration: none;
+                font-size: 22px;
+                line-height: 22px;
+                text-align: center;
+            }
+            > div {
+
+            }
+        }
+    }
+}

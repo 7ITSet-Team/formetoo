@@ -1,0 +1,41 @@
+.c--message {
+    position: absolute;
+    right: 20px;
+    bottom: 0;
+    width: 250px;
+    //height: 100%;
+    .flex(column, flex-end, stretch);
+    z-index: 2000;
+    overflow: hidden;
+    > div {
+        margin: 0 0 10px 0;
+        padding: 10px;
+        background-color: @var--main-background;
+        border-radius: @var--ui-border-radius;
+
+        animation-name: blur;
+        animation-duration: 8100ms;
+        animation-iteration-count: 1;
+        animation-timing-function: linear;
+
+        .flex();
+        &.success {
+            background-color: @var--color-ui-success;
+        }
+        &.danger {
+            background-color: @var--color-ui-danger;
+        }
+        &.info {
+            background-color: @var--color-ui-info;
+        }
+    }
+}
+
+@keyframes blur {
+    0%, 75% {
+        opacity: 1
+    }
+    100% {
+        opacity: 0
+    }
+}

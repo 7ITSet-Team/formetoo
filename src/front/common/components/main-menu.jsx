@@ -1,6 +1,6 @@
 import React from 'react';
 
-import API from '@shop/core/api';
+import API from '@common/core/api';
 import {NavLink} from 'react-router-dom';
 
 export default class MainMenu extends React.Component {

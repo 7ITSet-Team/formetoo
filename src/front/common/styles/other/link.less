@@ -1,0 +1,12 @@
+.c--link {
+    color: @var--ui-color-main;
+    text-decoration: underline;
+    cursor: pointer;
+    &:link, &:visited, &:active {
+        color: @var--ui-color-main;
+        text-decoration: underline;
+    }
+    &:hover {
+        color: lighten(@var--ui-color-main, 20%);
+    }
+}

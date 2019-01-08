@@ -1,0 +1,71 @@
+.c--modal {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    overflow-x: hidden;
+    overflow-y: auto;
+    > .wrap {
+        position: relative;
+        min-height: 100%;
+        min-width: 100%;
+        width: 100%;
+        max-width: 100%;
+        padding: 50px 10vw;
+        .flex();
+        .background {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background-color: #242424;
+            opacity: .8;
+            z-index: 1100;
+        }
+        > .form {
+            z-index: 1200;
+            width: 40%;
+            .flex(column, flex-start, stretch);
+            background-color: @var--main-background;
+            border-radius: @var--ui-border-radius;
+            .shadow();
+            > .header {
+                min-height: 60px;
+                padding: 10px;
+                .flex();
+                font-size: 20px;
+                line-height: 20px;
+                border-bottom: 2px solid @var--ui-color-main;
+                background-color: #cecece;
+                border-top-right-radius: @var--ui-border-radius;
+                border-top-left-radius: @var--ui-border-radius;
+            }
+            > .content {
+                padding: 10px;
+                .flex(column, center, center);
+                font-size: 16px;
+                line-height: 16px;
+                min-height: 300px;
+                /*flex: 1 1 auto;
+                overflow-y: auto;*/
+            }
+            > .footer {
+                min-height: 60px;
+                padding: 10px;
+                .flex(row, flex-end, center);
+                font-size: 16px;
+                line-height: 16px;
+                border-top: 2px solid @var--ui-color-main;
+                background-color: #cecece;
+                border-bottom-right-radius: @var--ui-border-radius;
+                border-bottom-left-radius: @var--ui-border-radius;
+                > * {
+                    //margin-left: 10px;
+                }
+            }
+        }
+    }
+}

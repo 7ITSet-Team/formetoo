@@ -92,8 +92,8 @@ export default class Dropdown extends React.Component {
         contentStyles[vertical] = '100%';
 
         return (
-            <div className={`c--dropdown ${className}`} style={style} onClick={e => this.toggleOpen()}>
-                <div className='toggle'>
+            <div className={`c--dropdown ${className}`} style={style}>
+                <div className='toggle' onClick={e => this.toggleOpen()}>
                     <div>
                         {toggle}
                     </div>

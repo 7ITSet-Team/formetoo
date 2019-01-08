@@ -8,7 +8,6 @@ export default class API {
 
 	static async request(controller = '', action = '', data = {}) {
 		try {
-			//console.log('controller,action,data=======', controller, action, data);
 			const response = await axios.post('/api', {
 				controller,
 				action,

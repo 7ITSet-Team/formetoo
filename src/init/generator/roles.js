@@ -1,4 +1,4 @@
-import routes from '@server/core/routes';
+import routes from '../../src/server/core/routes';
 
 const permissions = [];
 

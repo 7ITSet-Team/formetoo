@@ -8,8 +8,9 @@
         border: none;
         background-color: inherit;
         outline: none;
+        min-width: 250px;
     }
-    > button {
+    > .button {
         flex: 0 0 auto;
         .flex();
         background: inherit;
@@ -24,7 +25,7 @@
         height: 2px;
         z-index: 100;
         background-color: @var--main-panel-background;
-        transition: all 500ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+        transition: all 1000ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
         &.focused {
             right: 0;
             left: 0;
@@ -37,7 +38,7 @@
         bottom: 0;
         height: 2px;
         z-index: 90;
-        background-color: @var--ui-color-second;
+        background-color: lighten(@var--ui-color-second, 10%);
     }
 }
 
