@@ -9,7 +9,7 @@ module.exports = _path => {
 		`\n//Стили иконок и иконочного шрифта. Сгенерированы.\n//Имена стилей - по именам файлов иконок в папке темы.
 //У всех svg-иконок должен быть тег height - относительно него выполняется масштабирование шрифта.\n\n.icon{
 	display: inline-block;
-	font: normal normal normal 14px/1 FontAwesome;
+	//font: normal normal normal 14px/1 FontAwesome;
 	font-size: inherit;
 	text-rendering: auto;
 	-webkit-font-smoothing: antialiased;

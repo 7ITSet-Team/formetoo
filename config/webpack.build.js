@@ -19,15 +19,17 @@ const _front = path.join(_project, '/front');
 const _server = path.join(_project, '/server');
 
 const _shop = path.join(_front, '/shop');
-const _admin = path.join(_front, '/admin');
+const _account = path.join(_front, '/account');
 const _common = path.join(_front, '/common');
 
 const _frontEntry = path.join(_front, '/launcher.js');
 const _serverEntry = path.join(_server, '/launcher.js');
+const _initEntry = path.join(_project, '/init/init.js');
 const _htmlTemplate = path.join(_front, '/index.ejs');
 
 const _assets = path.join(_common, '/assets');
 const _components = path.join(_common, '/components');
+const _models = path.join(_common, '/models');
 const _commonStyles = path.join(_common, '/styles');
 
 const _build = path.join(_root, '/build');
@@ -36,9 +38,10 @@ const _output = path.join(_build, '/public');
 const aliases = {
 	'@assets': _assets,
 	'@shop': _shop,
-	'@admin': _admin,
+	'@account': _account,
 	'@common': _common,
 	"@components": _components,
+    "@models": _models,
 	"@front": _front,
 	"@server": _server,
 	"@project": _project
@@ -126,7 +129,7 @@ const config = {
 	},
 	plugins: [
 		new HtmlWebpackPlugin({
-			filename: _output + '/index.html',
+			filename: _build + '/index.html',
 			template: '!!ejs-compiled-loader!' + _htmlTemplate,
 			//favicon: 'favicon.png',
 		}),
@@ -178,10 +181,13 @@ const serverConfig = {
 	name: 'server',
 	target: 'node',
 	externals: [nodeExternals()],
-	entry: _serverEntry,
+	entry: {
+		server:_serverEntry,
+		init:_initEntry
+    },
 	output: {
 		path: _build,
-		filename: 'server.js',
+		filename: '[name].js',
 		publicPath: 'public/',
 	},
 	module: {
@@ -222,8 +228,8 @@ const serverConfig = {
 	},
 };
 
-let nodemonIsLaunched = false;
 //=============Run build
+let nodemonIsLaunched = false;
 const compiler = webpack([config, serverConfig]);
 const statsHandler = (err, stats) => {
 	if (err) {

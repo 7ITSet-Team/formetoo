@@ -4,9 +4,11 @@
   "description": "new formetoo rebuilding",
   "main": "index.js",
   "scripts": {
+    "pm2": "pm2 delete new-formetoo && pm2 start build/server.js --name new-formetoo",
     "start": "node build/server.js",
     "dev": "NODE_ENV=development node config/webpack.build.js",
-    "prod": "node config/webpack.build.js"
+    "prod": "node config/webpack.build.js",
+    "init": "node build/init.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +21,7 @@
   },
   "homepage": "https://github.com/7ITSet-Team/formetoo#readme",
   "devDependencies": {
+    "@babel/cli": "^7.2.3",
     "@babel/core": "7.1.2",
     "@babel/plugin-proposal-class-properties": "7.1.0",
     "@babel/plugin-proposal-decorators": "7.1.2",
@@ -32,7 +35,6 @@
     "@babel/runtime": "7.1.2",
     "alias-resolve-loader": "2.0.4",
     "autoprefixer": "9.1.5",
-    "babel-cli": "6.26.0",
     "babel-loader": "8.0.4",
     "babel-polyfill": "6.26.0",
     "copy-webpack-plugin": "4.5.4",
@@ -53,7 +55,7 @@
     "webpack": "4.20.2",
     "webpack-bundle-analyzer": "3.0.3",
     "webpack-cli": "3.1.2",
-    "webpack-dev-server": "3.1.9",
+    "webpack-dev-server": "^3.1.14",
     "webpack-node-externals": "1.7.2"
   },
   "dependencies": {
@@ -63,6 +65,7 @@
     "cookie-parser": "^1.4.3",
     "express": "4.16.3",
     "jsonwebtoken": "^8.4.0",
+    "jssha": "^2.3.1",
     "mongodb": "^3.1.10",
     "mongoose": "^5.3.1",
     "nodemailer": "^4.7.0",
