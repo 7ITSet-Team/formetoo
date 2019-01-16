@@ -24,12 +24,11 @@ export default class List extends React.Component {
     };
 
     render() {
-        const {loading,rolesList}=this.state;
-
-        if(loading)
+        const {loading, rolesList} = this.state;
+        if (loading)
             return (<Loading/>);
 
-        return rolesList.map((role,key)=>(
+        return rolesList.map((role, key) => (
             <div className='c--list-item' key={key}>
                 <div>{role.name}</div>
                 <div className='icon'></div>

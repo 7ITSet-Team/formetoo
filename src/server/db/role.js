@@ -16,6 +16,10 @@ export default db => {
         return await this.findOne({name});
     };
 
+    schema.statics.getAll = async function () {
+        return await this.find({}, {_id: 0, __v: 0});
+    };
+
     schema.set('autoIndex', false);
     db[__modelName] = mongoose.model(__modelName, schema);
 };
