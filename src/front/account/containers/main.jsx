@@ -37,10 +37,8 @@ export default class Main extends React.Component {
 
     render() {
         const {permissions} = this.state;
-        const {params}=this.props.match.params;
         return (
             <main className='a--main'>
-                {params.map((item,key)=><div>{item.title}</div>)}
                 {(permissions.length > 1) ? (<Sections/>) : null}
                 <Switch>
                     <Route path="/account/client" component={Client}/>

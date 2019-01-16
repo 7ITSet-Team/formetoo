@@ -11,8 +11,6 @@ export default class CategoryList extends React.Component {
             loading: true,
             categoryList: []
         };
-        //одноименный provider, который на сервере регистрирует и потом собирает состояния, а на клиенте раздает их.
-        //а лучше пусть модели собирает и раздает
     };
 
     componentWillMount() {
