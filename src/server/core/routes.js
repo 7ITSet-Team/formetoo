@@ -13,7 +13,8 @@ import changePassword from '@server/controllers/auth/change-password';
 import cartInfo from '@server/controllers/cart/info';
 import placingOrders from '@server/controllers/cart/placing-orders';
 import putInOrder from '@server/controllers/cart/put-in-order';
-import list from '@server/controllers/roles/list';
+import rolesList from '@server/controllers/roles/list';
+import rolesUpdate from '@server/controllers/roles/update';
 
 export default {
     quest:{
@@ -43,9 +44,6 @@ export default {
     client:{
         cart:{
             'placing-orders':placingOrders
-        },
-        roles: {
-            'list': list
         }
     },
     media:{
@@ -64,7 +62,10 @@ export default {
 
     },
     roles:{
-
+        roles: {
+            'list': rolesList,
+            'update': rolesUpdate
+        }
     },
     categories:{
 

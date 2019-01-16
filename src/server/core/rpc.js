@@ -53,6 +53,12 @@ export default class RPC {
         console.log('===rpc===', req.url, req.body);
         try {
             const {controller, action, data} = req.body;
+            if (controller === "permissions" && action === "list") { /////////////////////////// ПОМЕНЯТЬ
+                return res.send({
+                    error: false,
+                    result: Object.keys(Routes)
+                })
+            }
             const {user, handler} = await RPC.getRoute(req.cookies.JWT, controller, action);
             data.userByToken = user;
             if (handler)

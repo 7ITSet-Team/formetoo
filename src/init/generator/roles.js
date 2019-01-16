@@ -13,5 +13,9 @@ export default [
         name: 'client',
         alias: 'Клиент',
         permissions: ['client']
+    }, {
+        name: 'banned',
+        alias: 'Заблокированный пользователь',
+        permissions: ['banned']
     }
 ];

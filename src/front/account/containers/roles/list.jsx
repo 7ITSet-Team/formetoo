@@ -2,14 +2,69 @@ import React from 'react';
 
 import API from '@common/core/api';
 import Loading from '@components/ui/loading';
+import Modal from '@components/ui/modal';
 
 export default class List extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             loading: true,
-            rolesList: []
+            rolesList: [],
+            currentRole: undefined
         };
+        this.show = async role => this.setState({show: true, currentRole: role});
+        this.close = () => this.setState({show: false, currentRole: undefined});
+        this.handleCheck = e => {
+            const isChecked = e.target.checked;
+            const permission = e.target.name;
+            const {permissions} = this.state.currentRole;
+
+            const index = permissions.indexOf(permission);
+            if (!isChecked && index !== -1)
+                this.setState({
+                    currentRole: {
+                        ...this.state.currentRole,
+                        permissions: [...permissions.slice(0, index), ...permissions.slice(index + 1)]
+                    }
+                });
+            if (isChecked && index === -1)
+                this.setState({
+                    currentRole: {
+                        ...this.state.currentRole,
+                        permissions: [...permissions, permission]
+                    }
+                });
+        };
+        this.isPermissionExist = permission => {
+            let result = false;
+            this.state.currentRole.permissions.forEach(rolePermission =>
+                permission === rolePermission
+                    ? result = true
+                    : null
+            );
+            return result;
+        };
+        this.updateRolesList = async () => {
+            const rolesList = await API.request('roles', 'list');
+            if (!rolesList.error)
+                this.setState({
+                    loading: false,
+                    rolesList: rolesList.data
+                });
+        };
+        this.saveChanges = () => {
+            const {err, result} = API.request('roles', 'update', this.state.currentRole);
+            this.close();
+            this.setState({loading: true});
+            this.updateRolesList();
+        };
+        this.buttons = [
+            {
+                name: 'сохранить',
+                types: 'primary',
+                handler: () => this.saveChanges()
+            }
+        ];
     };
 
     componentWillMount() {
@@ -17,22 +72,44 @@ export default class List extends React.Component {
     };
 
     async getInitialDataFromSrv() {
-        const {error, data: rolesList} = await API.request('roles', 'list');
-        if (!error) {
-            this.setState({loading: false, rolesList});
-        }
+        const rolesList = await API.request('roles', 'list');
+        const permissions = await API.request('permissions', 'list');
+        if (!rolesList.error)
+            this.setState({
+                loading: false,
+                rolesList: rolesList.data,
+                permissionList: permissions.data
+            });
     };
 
     render() {
-        const {loading, rolesList} = this.state;
+        const {loading, show, rolesList, permissionList, currentRole} = this.state;
         if (loading)
             return (<Loading/>);
 
-        return rolesList.map((role, key) => (
-            <div className='c--list-item' key={key}>
-                <div>{role.name}</div>
-                <div className='icon'></div>
-            </div>
-        ));
+        return (
+            <>
+                {rolesList.map((role, key) => (
+                    <div className='c--list-item' key={key}>
+                        <div>{role.name}</div>
+                        <div onClick={() => this.show(role)} className='icon'>EDITICON</div>
+                    </div>
+                ))}
+                <Modal title='Редактирование' show={show} buttons={this.buttons} onClose={this.close}>
+                    <div>
+                        {currentRole && permissionList.map((permission, key) => {
+                            const isPermissionExist = this.isPermissionExist(permission);
+                            return (
+                                <div key={key}>
+                                    {permission}
+                                    <input type="checkbox" disabled={permission === "client"} name={permission}
+                                           defaultChecked={isPermissionExist} onChange={this.handleCheck}/>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </Modal>
+            </>
+        )
     };
 };
