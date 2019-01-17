@@ -17,11 +17,11 @@ export default db => {
     };
 
     schema.statics.getAll = async function () {
-        return await this.find({}, {_id: 0, __v: 0});
+        return await this.find({}, {__v: 0});
     };
 
     schema.statics.update = async function (role) {
-        const {ok} = await this.updateOne({name: role.name}, role, {upsert: true});
+        const {ok} = await this.updateOne({_id: role._id}, {$set: role.changes});
         return ok === 1;
     };
 

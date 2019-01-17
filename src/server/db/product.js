@@ -44,6 +44,15 @@ export default db => {
         return await this.find({categoryID: new mongoose.Types.ObjectId(categoryID)}, {__v: 0});
     };
 
+    schema.statics.getAll = async function () {
+        return await this.find({}, {__v: 0})
+    };
+
+    schema.statics.update = async function (product) {
+        const {ok} = await this.updateOne({_id: product._id}, {$set: product.changes});
+        return ok === 1;
+    };
+
     schema.set('autoIndex', false);
     db[__modelName] = mongoose.model(__modelName, schema);
 };

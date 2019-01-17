@@ -11,34 +11,48 @@ export default class List extends React.Component {
         this.state = {
             loading: true,
             rolesList: [],
-            currentRole: undefined
+            currentRole: undefined,
+            changes: undefined
         };
         this.show = async role => this.setState({show: true, currentRole: role});
         this.close = () => this.setState({show: false, currentRole: undefined});
         this.handleCheck = e => {
             const isChecked = e.target.checked;
             const permission = e.target.name;
-            const {permissions} = this.state.currentRole;
+            const {currentRole, changes} = this.state;
+            const {permissions} = currentRole;
 
             const index = permissions.indexOf(permission);
-            if (!isChecked && index !== -1)
+            if (!isChecked && index !== -1) {
+                const newPermissions = [...permissions.slice(0, index), ...permissions.slice(index + 1)];
                 this.setState({
                     currentRole: {
-                        ...this.state.currentRole,
-                        permissions: [...permissions.slice(0, index), ...permissions.slice(index + 1)]
+                        ...currentRole,
+                        permissions: newPermissions
+                    },
+                    changes: {
+                        ...changes,
+                        permissions: newPermissions
                     }
                 });
-            if (isChecked && index === -1)
+            }
+            if (isChecked && index === -1) {
+                const newPermissions = [...permissions, permission];
                 this.setState({
                     currentRole: {
-                        ...this.state.currentRole,
-                        permissions: [...permissions, permission]
+                        ...currentRole,
+                        permissions: newPermissions
+                    },
+                    changes: {
+                        ...changes,
+                        permissions: newPermissions
                     }
                 });
+            }
         };
         this.isPermissionExist = permission => {
-            //  СМОТРИМ, ЕСТЬ И У ТЕКУЩЕЙ РОЛИ ДАННОЕ РАЗРЕШЕНИЕ, ЧТОБЫ ПОТОМ УСТАНОВИТЬ ЗНАЧЕНИЯ
-            //  ЧЕКБОКСОВ НА TRUE
+            //  СМОТРИМ, ЕСТЬ ЛИ У ТЕКУЩЕЙ РОЛИ ДАННОЕ РАЗРЕШЕНИЕ, ЧТОБЫ ПОТОМ УСТАНОВИТЬ ЗНАЧЕНИЯ
+            //  ЧЕКБОКСОВ В МОДАЛЬНОМ ОКНЕ НА TRUE
             let result = false;
             this.state.currentRole.permissions.forEach(rolePermission =>
                 permission === rolePermission
@@ -56,7 +70,8 @@ export default class List extends React.Component {
                 });
         };
         this.saveChanges = async () => {
-            const {error} = await API.request('roles', 'update', this.state.currentRole);
+            const {changes, currentRole} = this.state;
+            const {error} = await API.request('roles', 'update', {_id: currentRole._id, changes});
             if (error) {
                 Message.send('ошибка при редактировании роли, повторите попытку позже', Message.type.danger);
                 this.close();
