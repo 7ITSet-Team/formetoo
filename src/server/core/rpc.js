@@ -22,7 +22,7 @@ export default class RPC {
 
     static async getRoute(token, controller, action) {
         const {permissions, user} = await RPC.auth(token);
-        permissions.unshift('quest');
+        permissions.unshift('guest');
         let handler;
         permissions.forEach(permission => handler = ((Routes[permission] || {})[controller] || {})[action] || handler);
         return {user, handler};
@@ -53,12 +53,6 @@ export default class RPC {
         console.log('===rpc===', req.url, req.body);
         try {
             const {controller, action, data} = req.body;
-            if (controller === "permissions" && action === "list") { /////////////////////////// ПОМЕНЯТЬ
-                return res.send({
-                    error: false,
-                    result: Object.keys(Routes)
-                })
-            }
             const {user, handler} = await RPC.getRoute(req.cookies.JWT, controller, action);
             data.userByToken = user;
             if (handler)

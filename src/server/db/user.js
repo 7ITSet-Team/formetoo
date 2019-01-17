@@ -69,7 +69,7 @@ export default db => {
 
         if (this.role==='root'){
             const rootPermissions = Object.keys(Routes);
-            rootPermissions.splice(rootPermissions.indexOf('quest'), 1);
+            rootPermissions.splice(rootPermissions.indexOf('guest'), 1);
             return rootPermissions;
         }
 

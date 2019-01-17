@@ -15,9 +15,10 @@ import placingOrders from '@server/controllers/cart/placing-orders';
 import putInOrder from '@server/controllers/cart/put-in-order';
 import rolesList from '@server/controllers/roles/list';
 import rolesUpdate from '@server/controllers/roles/update';
+import permissionsList from '@server/controllers/roles/permissions-list';
 
 export default {
-    quest:{
+    guest:{
         catalog: {
             'categories': categories,
             'category': category,
@@ -65,6 +66,9 @@ export default {
         roles: {
             'list': rolesList,
             'update': rolesUpdate
+        },
+        permissions: {
+            'list': permissionsList
         }
     },
     categories:{

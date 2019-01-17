@@ -21,8 +21,8 @@ export default db => {
     };
 
     schema.statics.update = async function (role) {
-        await this.updateOne({name: role.name}, role, {upsert: true});
-        return;
+        const {ok} = await this.updateOne({name: role.name}, role, {upsert: true});
+        return ok === 1;
     };
 
     schema.set('autoIndex', false);

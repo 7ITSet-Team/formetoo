@@ -3,6 +3,7 @@ import React from 'react';
 import API from '@common/core/api';
 import Loading from '@components/ui/loading';
 import Modal from '@components/ui/modal';
+import Message from '@components/ui/message';
 
 export default class List extends React.Component {
     constructor(props) {
@@ -36,6 +37,8 @@ export default class List extends React.Component {
                 });
         };
         this.isPermissionExist = permission => {
+            //  СМОТРИМ, ЕСТЬ И У ТЕКУЩЕЙ РОЛИ ДАННОЕ РАЗРЕШЕНИЕ, ЧТОБЫ ПОТОМ УСТАНОВИТЬ ЗНАЧЕНИЯ
+            //  ЧЕКБОКСОВ НА TRUE
             let result = false;
             this.state.currentRole.permissions.forEach(rolePermission =>
                 permission === rolePermission
@@ -52,11 +55,17 @@ export default class List extends React.Component {
                     rolesList: rolesList.data
                 });
         };
-        this.saveChanges = () => {
-            const {err, result} = API.request('roles', 'update', this.state.currentRole);
-            this.close();
-            this.setState({loading: true});
-            this.updateRolesList();
+        this.saveChanges = async () => {
+            const {error} = await API.request('roles', 'update', this.state.currentRole);
+            if (error) {
+                Message.send('ошибка при редактировании роли, повторите попытку позже', Message.type.danger);
+                this.close();
+            } else {
+                Message.send('роль успешно изменена', Message.type.success);
+                this.close();
+                this.setState({loading: true});
+                this.updateRolesList();
+            }
         };
         this.buttons = [
             {
@@ -90,9 +99,9 @@ export default class List extends React.Component {
         return (
             <>
                 {rolesList.map((role, key) => (
-                    <div className='c--list-item' key={key}>
-                        <div>{role.name}</div>
-                        <div onClick={() => this.show(role)} className='icon'>EDITICON</div>
+                    <div className='a--list-item' key={key}>
+                        <span>{role.name}</span>
+                        <span onClick={() => this.show(role)} className='icon pencil'/>
                     </div>
                 ))}
                 <Modal title='Редактирование' show={show} buttons={this.buttons} onClose={this.close}>
