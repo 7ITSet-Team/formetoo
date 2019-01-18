@@ -82,7 +82,7 @@ export default class List extends React.Component {
                                         ? currentProduct[prop].map((image, key) => (
                                             <div key={key}>
                                                 <img src={image}/>
-                                                <div className="icon delete" onClick={() => {
+                                                <div className="icon remove-button" onClick={() => {
                                                     const media = [...currentProduct.media];
                                                     media.splice(media.indexOf(image), 1);
                                                     this.setState({
