@@ -16,6 +16,15 @@ export default db => {
         return await this.findOne({name});
     };
 
+    schema.statics.getAll = async function () {
+        return await this.find({}, {__v: 0});
+    };
+
+    schema.statics.update = async function (role) {
+        const {ok} = await this.updateOne({_id: role._id}, {$set: role.changes});
+        return ok === 1;
+    };
+
     schema.set('autoIndex', false);
     db[__modelName] = mongoose.model(__modelName, schema);
 };

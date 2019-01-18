@@ -13,9 +13,14 @@ import changePassword from '@server/controllers/auth/change-password';
 import cartInfo from '@server/controllers/cart/info';
 import placingOrders from '@server/controllers/cart/placing-orders';
 import putInOrder from '@server/controllers/cart/put-in-order';
+import rolesList from '@server/controllers/roles/list';
+import rolesUpdate from '@server/controllers/roles/update';
+import permissionsList from '@server/controllers/roles/permissions-list';
+import productsList from '@server/controllers/products/list';
+import productsUpdate from '@server/controllers/products/update';
 
 export default {
-    quest:{
+    guest:{
         catalog: {
             'categories': categories,
             'category': category,
@@ -60,13 +65,22 @@ export default {
 
     },
     roles:{
-
+        roles: {
+            'list': rolesList,
+            'update': rolesUpdate
+        },
+        permissions: {
+            'list': permissionsList
+        }
     },
     categories:{
 
     },
     products:{
-
+        products: {
+            'list': productsList,
+            'update': productsUpdate
+        }
     },
     pages:{
 

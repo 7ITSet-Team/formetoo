@@ -22,7 +22,7 @@ export default class RPC {
 
     static async getRoute(token, controller, action) {
         const {permissions, user} = await RPC.auth(token);
-        permissions.unshift('quest');
+        permissions.unshift('guest');
         let handler;
         permissions.forEach(permission => handler = ((Routes[permission] || {})[controller] || {})[action] || handler);
         return {user, handler};

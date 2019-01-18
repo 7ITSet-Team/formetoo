@@ -1,7 +1,7 @@
 import routes from '../../server/core/routes';
 
 const rootPermissions = Object.keys(routes);
-rootPermissions.splice(rootPermissions.indexOf('quest'), 1);
+rootPermissions.splice(rootPermissions.indexOf('guest'), 1);
 
 export default [
     /*{
@@ -13,5 +13,9 @@ export default [
         name: 'client',
         alias: 'Клиент',
         permissions: ['client']
+    }, {
+        name: 'banned',
+        alias: 'Заблокированный пользователь',
+        permissions: ['banned']
     }
 ];
