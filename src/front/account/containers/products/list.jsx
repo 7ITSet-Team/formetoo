@@ -15,19 +15,16 @@ export default class List extends React.Component {
             currentProduct: undefined,
             changes: undefined
         };
-        this.show = async product => this.setState({show: true, currentProduct: product});
+        this.show = currentProduct => this.setState({show: true, currentProduct});
         this.close = () => this.setState({show: false, currentProduct: undefined, changes: undefined});
         this.updateProductsList = async () => {
-            const productsList = await API.request('products', 'list');
-            if (!productsList.error)
-                this.setState({
-                    loading: false,
-                    productsList: productsList.data
-                });
+            const {error, data: productsList} = await API.request('products', 'list');
+            if (!error)
+                this.setState({loading: false, productsList});
         };
         this.saveChanges = async () => {
             const {currentProduct, changes} = this.state;
-            const {error} = await API.request('products', 'update', {_id: currentProduct._id, changes});
+            const {error} = await API.request('products', 'update', {_id: currentProduct._id, changes: changes || {}});
             if (error) {
                 Message.send('ошибка при редактировании продукта, повторите попытку позже', Message.type.danger);
                 this.close();
@@ -42,7 +39,12 @@ export default class List extends React.Component {
             {
                 name: 'сохранить',
                 types: 'primary',
-                handler: () => this.saveChanges()
+                handler: this.saveChanges
+            },
+            {
+                name: 'закрыть',
+                types: 'secondary',
+                handler: this.close
             }
         ];
     };
@@ -52,97 +54,88 @@ export default class List extends React.Component {
     };
 
     async getInitialDataFromSrv() {
-        const productsList = await API.request('products', 'list');
-        if (!productsList.error)
-            this.setState({
-                loading: false,
-                productsList: productsList.data
-            });
+        const {error, data: productsList} = await API.request('products', 'list');
+        if (!error)
+            this.setState({loading: false, productsList});
+    };
+
+    renderPropMedia(prop) {
+        let {currentProduct, changes} = this.state;
+        return ((changes && changes[prop]) || currentProduct[prop]).map((image, key) => (
+            <div key={key}>
+                <img src={image}/>
+                <div className="icon remove-button" onClick={() => {
+                    changes = changes || {};
+                    changes[prop] = [...currentProduct.media];
+                    changes[prop].splice(key, 1);
+                    this.setState({changes})
+                }}/>
+            </div>
+        ));
+    };
+
+    renderPropList(prop) {
+        let {currentProduct, changes} = this.state;
+        return ((changes && changes[prop]) || currentProduct[prop]).map((field, key) => (
+            <div key={key}>
+                <span>{field.name}</span>
+                <Input value={field.value} onChange={value => {
+                    changes = changes || {};
+                    changes[prop] = [...currentProduct[prop]];
+                    changes[prop][key] = value;
+                    this.setState({changes});
+                }}/>
+            </div>
+        ));
+    };
+
+    renderProp(prop) {
+        let {currentProduct, changes} = this.state;
+        return (
+            <>
+            <span>{prop}</span>
+            <Input value={(changes && changes[prop]) || currentProduct[prop]} onChange={value => {
+                changes = changes || {};
+                changes[prop] = value;
+                this.setState({changes});
+            }}/>
+            </>
+        )
     };
 
     render() {
         const {loading, productsList, show, currentProduct, changes} = this.state;
+
         if (loading)
             return (<Loading/>);
+
         return (
             <>
-                {productsList.map((product, key) => (
-                    <div key={key}>
-                        <span>{product.name}</span>
-                        <span onClick={() => this.show(product)} className='icon pencil'/>
-                    </div>
-                ))}
-                <Modal title='Редактирование' show={show} buttons={this.buttons} onClose={this.close}>
-                    <div>
-                        {currentProduct && Object.keys(currentProduct).map((prop, key) => (
-                            <div key={key}>
-                                {
-                                    currentProduct[prop] instanceof Array
-                                        ? prop === 'media'
-                                        ? currentProduct[prop].map((image, key) => (
-                                            <div key={key}>
-                                                <img src={image}/>
-                                                <div className="icon remove-button" onClick={() => {
-                                                    const media = [...currentProduct.media];
-                                                    media.splice(media.indexOf(image), 1);
-                                                    this.setState({
-                                                        currentProduct: {
-                                                            ...currentProduct,
-                                                            media
-                                                        },
-                                                        changes: {
-                                                            ...changes,
-                                                            media
-                                                        }
-                                                    })
-                                                }}/>
-                                            </div>
-                                        ))
-                                        : currentProduct[prop].map((field, key) => (
-                                            <div key={key}>
-                                                <span>{field.name}</span>
-                                                <Input value={field.value} onChange={value => {
-                                                    const props = [...currentProduct.props];
-                                                    props[key].value = value;
-                                                    this.setState({
-                                                        currentProduct: {
-                                                            ...currentProduct,
-                                                            props
-                                                        },
-                                                        changes: {
-                                                            ...changes,
-                                                            props
-                                                        }
-                                                    })
-                                                }}/>
-                                            </div>
-                                        ))
-                                        : prop !== '_id'
-                                        ? (
-                                            <>
-                                                <span>{prop}</span>
-                                                <Input value={currentProduct[prop]} key={key}
-                                                       onChange={value => {
-                                                           this.setState({
-                                                               currentProduct: {
-                                                                   ...currentProduct,
-                                                                   [prop]: value
-                                                               },
-                                                               changes: {
-                                                                   ...changes,
-                                                                   [prop]: value
-                                                               }
-                                                           })
-                                                       }}/>
-                                            </>
-                                        )
-                                        : null
-                                }
-                            </div>
-                        ))}
-                    </div>
-                </Modal>
+            <div className='c--items-group'>
+                <button className='c--btn c--btn--primary'>add new</button>
+            </div>
+            {productsList.map((product, key) => (
+                <div key={key}>
+                    <span>{product.name}</span>
+                    <span onClick={() => this.show(product)} className='icon pencil'/>
+                </div>
+            ))}
+            <Modal title='Редактирование' show={show} buttons={this.buttons} onClose={this.close}>
+                <div>
+                    {currentProduct && Object.keys(currentProduct).map((prop, key) => (
+                        <div key={key}>
+                            {
+                                Array.isArray(currentProduct) ? (
+                                    (prop === 'media') ? this.renderPropMedia(prop) : this.renderPropList(prop)
+                                ) : (
+                                    (prop !== '_id') ? this.renderProp(prop) : null
+                                )
+                            }
+                        </div>
+                    ))}
+                </div>
+            </Modal>
             </>
-        )
+        );
     };
 };

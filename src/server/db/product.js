@@ -45,12 +45,12 @@ export default db => {
     };
 
     schema.statics.getAll = async function () {
-        return await this.find({}, {__v: 0})
+        return await this.find({}, {__v: 0});
     };
 
-    schema.statics.update = async function (product) {
-        const {ok} = await this.updateOne({_id: product._id}, {$set: product.changes});
-        return ok === 1;
+    schema.statics.update = async function (data) {
+        const {ok} = await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes});
+        return (ok === 1);
     };
 
     schema.set('autoIndex', false);

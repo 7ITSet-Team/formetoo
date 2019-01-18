@@ -10,7 +10,7 @@ export default class Tabs extends React.Component {
         const {links = [], redirect} = this.props;
         return (
             <>
-            {(links.length > 0) ? (
+            {(links.length > 1) ? (
                 <div className='c--tabs-links'>
                     {links.map((link, key) => <Link key={key} to={link.path}>{link.title}</Link>)}
                 </div>) : null

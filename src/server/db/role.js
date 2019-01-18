@@ -20,9 +20,9 @@ export default db => {
         return await this.find({}, {__v: 0});
     };
 
-    schema.statics.update = async function (role) {
-        const {ok} = await this.updateOne({_id: role._id}, {$set: role.changes});
-        return ok === 1;
+    schema.statics.update = async function (data) {
+        const {ok} = await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes});
+        return (ok === 1);
     };
 
     schema.set('autoIndex', false);

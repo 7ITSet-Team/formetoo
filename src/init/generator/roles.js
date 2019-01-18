@@ -16,6 +16,6 @@ export default [
     }, {
         name: 'banned',
         alias: 'Заблокированный пользователь',
-        permissions: ['banned']
+        permissions: []
     }
 ];
