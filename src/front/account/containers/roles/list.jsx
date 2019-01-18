@@ -17,7 +17,7 @@ export default class List extends React.Component {
         this.show = currentRole => this.setState({show: true, currentRole});
         this.close = () => this.setState({show: false, currentRole: undefined, changes: undefined});
         this.handleCheck = e => {
-            const {currentRole, changes} = this.state;
+            let {currentRole, changes} = this.state;
             const isChecked = e.target.checked;
             const permission = e.target.name;
             const permissions = [...currentRole.permissions];
@@ -52,6 +52,9 @@ export default class List extends React.Component {
                 this.updateRolesList();
             }
         };
+        this.deleteRole=async()=>{
+          //удаление
+        };
         this.buttons = [
             {
                 name: 'сохранить',
@@ -82,6 +85,12 @@ export default class List extends React.Component {
 
         if (loading)
             return (<Loading/>);
+
+        const actions = ['root', 'client'].includes(currentRole.name)?this.buttons:[...this.buttons,{
+            name: 'удалить',
+            types: 'danger',
+            handler: this.deleteRole
+        }];
 
         return (
             <>

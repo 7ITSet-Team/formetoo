@@ -27,7 +27,6 @@ export default class ProductsList extends React.Component {
         this.setState({loading: true, productList: []});
         const {slug = ''} = this.props.match.params;
         const {error, data: productList} = await API.request('catalog', 'category', {slug});
-
         if (!error) {
             this.setState({loading: false, productList});
         }
