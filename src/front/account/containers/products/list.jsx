@@ -13,26 +13,59 @@ export default class List extends React.Component {
             loading: true,
             productsList: [],
             currentProduct: undefined,
-            changes: undefined
+            changes: undefined,
+            show: {
+                editPage: false,
+                createPage: false
+            }
         };
-        this.show = currentProduct => this.setState({show: true, currentProduct});
-        this.close = () => this.setState({show: false, currentProduct: undefined, changes: undefined});
+        this.show = (page, currentProduct) => this.setState({
+            show: {[page]: true},
+            currentProduct: (currentProduct || {})
+        });
+        this.close = () => this.setState({
+            show: {editPage: false, createPage: false},
+            currentProduct: undefined,
+            changes: undefined
+        });
         this.updateProductsList = async () => {
             const {error, data: productsList} = await API.request('products', 'list');
             if (!error)
                 this.setState({loading: false, productsList});
+            else Message.send('ошибка при обновлении списка продуктов, повторите попытку позже');
         };
         this.saveChanges = async () => {
-            const {currentProduct, changes} = this.state;
-            const {error} = await API.request('products', 'update', {_id: currentProduct._id, changes: changes || {}});
+            const {currentProduct, changes, show} = this.state;
+
+            let data;
+            show.editPage && (data = {_id: currentProduct._id, changes: changes || {}});
+            show.createPage && (data = currentProduct);
+
+            const {error} = await API.request('products', 'update', data);
+
             if (error) {
-                Message.send('ошибка при редактировании продукта, повторите попытку позже', Message.type.danger);
+                Message.send(`ошибка при ${(show.editPage && 'редактировании') || (show.createPage && 'создании')} продукта, повторите попытку позже`, Message.type.danger);
                 this.close();
             } else {
-                Message.send('продукт успешно изменен', Message.type.success);
+                Message.send(`продукт успешно ${(show.editPage && 'изменен') || (show.createPage && 'создан')}`, Message.type.success);
                 this.close();
                 this.setState({loading: true});
                 this.updateProductsList();
+            }
+        };
+        this.deleteProduct = async productID => {
+            const {currentProduct, productsList} = this.state;
+            productID = productID ? productID : currentProduct._id;
+            const {error} = await API.request('products', 'update', {_id: productID});
+            if (error)
+                Message.send('ошибка при удалении продукта, повторите попытку позже', Message.type.danger);
+            else {
+                const newProductsList = [];
+                productsList.forEach(product => {
+                    if (product._id !== productID) newProductsList.push(product)
+                });
+                this.setState({show: {editPage: false}, productsList: newProductsList});
+                Message.send('продукт успешно удален', Message.type.success);
             }
         };
         this.buttons = [
@@ -89,52 +122,68 @@ export default class List extends React.Component {
         ));
     };
 
-    renderProp(prop) {
-        let {currentProduct, changes} = this.state;
+    renderProp(prop, key) {
+        let {currentProduct, changes, show} = this.state;
         return (
-            <>
-            <span>{prop}</span>
-            <Input value={(changes && changes[prop]) || currentProduct[prop]} onChange={value => {
-                changes = changes || {};
-                changes[prop] = value;
-                this.setState({changes});
-            }}/>
-            </>
+            <div key={key}>
+                <span>{prop}</span>
+                <Input value={show.editPage && ((changes && changes[prop]) || currentProduct[prop])}
+                       onChange={value => {
+                           const {show, currentProduct} = this.state;
+                           changes = changes || {};
+                           changes[prop] = value;
+                           show.editPage && this.setState({changes});
+                           show.createPage && this.setState({currentProduct: {...currentProduct, ...changes}});
+                       }}/>
+            </div>
         )
     };
 
     render() {
-        const {loading, productsList, show, currentProduct, changes} = this.state;
-
+        const {loading, productsList, show, currentProduct} = this.state;
+        console.log(currentProduct);
         if (loading)
             return (<Loading/>);
 
+        let actions = this.buttons;
+        actions = !show.editPage
+            ? actions
+            : [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deleteProduct}];
+
         return (
             <>
-            <div className='c--items-group'>
-                <button className='c--btn c--btn--primary'>add new</button>
-            </div>
-            {productsList.map((product, key) => (
-                <div key={key}>
-                    <span>{product.name}</span>
-                    <span onClick={() => this.show(product)} className='icon pencil'/>
+                <div className='c--items-group'>
+                    <button className='c--btn c--btn--primary' onClick={() => this.show('createPage')}>add new</button>
                 </div>
-            ))}
-            <Modal title='Редактирование' show={show} buttons={this.buttons} onClose={this.close}>
-                <div>
-                    {currentProduct && Object.keys(currentProduct).map((prop, key) => (
-                        <div key={key}>
-                            {
-                                Array.isArray(currentProduct) ? (
-                                    (prop === 'media') ? this.renderPropMedia(prop) : this.renderPropList(prop)
-                                ) : (
-                                    (prop !== '_id') ? this.renderProp(prop) : null
-                                )
-                            }
-                        </div>
-                    ))}
-                </div>
-            </Modal>
+                {productsList.map((product, key) => (
+                    <div key={key}>
+                        <span>{product.name}</span>
+                        <span onClick={() => this.show('editPage', product)} className='icon pencil'/>
+                        <span onClick={() => this.deleteProduct(product._id)} className='icon remove-button'/>
+                    </div>
+                ))}
+                <Modal title='Редактирование' show={show.editPage} buttons={actions} onClose={this.close}>
+                    <div>
+                        {currentProduct && Object.keys(currentProduct).map((prop, key) => (
+                            <div key={key}>
+                                {
+                                    Array.isArray(currentProduct[prop]) ? (
+                                        (prop === 'media') ? this.renderPropMedia(prop) : this.renderPropList(prop)
+                                    ) : (
+                                        (prop !== '_id') ? this.renderProp(prop) : null
+                                    )
+                                }
+                            </div>
+                        ))}
+                    </div>
+                </Modal>
+                <Modal title='Создание' show={show.createPage} buttons={actions} onClose={this.close}>
+                    <div>
+                        {['categoryID', 'code', 'name', 'price', 'slug'].map((prop, key) => this.renderProp(prop, key))}
+                        <button>add image</button>
+                        <button>add prop</button>
+                    </div>
+                </Modal>
             </>
         );
     };
