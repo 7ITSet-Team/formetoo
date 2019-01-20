@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 
+import Parser from '@server/core/csv-json-parser';
+
 const __modelName = 'product';
 export default db => {
     const schema = new mongoose.Schema({
@@ -60,6 +62,25 @@ export default db => {
             ok = 1;
         }
         return (ok === 1);
+    };
+
+    schema.statics.upload = async function (data) {
+        if (data.type === 'csv') {
+            const parsedData = Parser.csv2json(data.content);
+            const validData = [];
+            let errorRows = [];
+            parsedData.forEach((item, index) => {
+                const error = db[__modelName](item).validateSync();
+                if (!error)
+                    validData.push(item);
+                else
+                    errorRows.push(index + 2);
+            });
+            return {
+                error: !(await this.create(validData)),
+                errorRows
+            };
+        }
     };
 
     schema.set('autoIndex', false);

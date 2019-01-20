@@ -18,6 +18,7 @@ import rolesUpdate from '@server/controllers/roles/update';
 import permissionsList from '@server/controllers/permissions/list';
 import productsList from '@server/controllers/products/list';
 import productsUpdate from '@server/controllers/products/update';
+import productsUpload from '@server/controllers/products/upload';
 
 export default {
     guest:{
@@ -79,7 +80,8 @@ export default {
     products:{
         products: {
             'list': productsList,
-            'update': productsUpdate
+            'update': productsUpdate,
+            'upload-data': productsUpload
         }
     },
     pages:{

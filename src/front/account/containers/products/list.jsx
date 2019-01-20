@@ -17,7 +17,8 @@ export default class List extends React.Component {
             show: {
                 editPage: false,
                 createPage: false
-            }
+            },
+            selectedFile: undefined
         };
         this.show = (page, currentProduct) => this.setState({
             show: {[page]: true},
@@ -67,6 +68,27 @@ export default class List extends React.Component {
                 this.setState({show: {editPage: false}, productsList: newProductsList});
                 Message.send('продукт успешно удален', Message.type.success);
             }
+        };
+        this.handleSelectedFile = e => this.setState({selectedFile: e.target.files[0]});
+        this.handleUpload = async () => {
+            const {selectedFile} = this.state;
+
+            const reader = new FileReader();
+            reader.onload = (file => async () => {
+                const content = file.result;
+                const {error, data: errorRows} = await API.request('products', 'upload-data', {type: 'csv', content});
+                // errorRows - массив номеров строк файла, в которых произошла ошибка.
+                if (error)
+                    Message.send('ошибка при добавлении продуктов, повторите попытку позже', Message.type.danger);
+                else if (!error && errorRows.length > 0) {
+                    Message.send(`продукты успешно добавлены, но допущены ошибки в строках: ${errorRows.toString()}`, Message.type.info);
+                    this.updateProductsList();
+                } else {
+                    Message.send('продукты успешно добавлены', Message.type.success);
+                    this.updateProductsList();
+                }
+            })(reader);
+            reader.readAsText(selectedFile);
         };
         this.buttons = [
             {
@@ -141,7 +163,6 @@ export default class List extends React.Component {
 
     render() {
         const {loading, productsList, show, currentProduct} = this.state;
-        console.log(currentProduct);
         if (loading)
             return (<Loading/>);
 
@@ -154,6 +175,10 @@ export default class List extends React.Component {
             <>
                 <div className='c--items-group'>
                     <button className='c--btn c--btn--primary' onClick={() => this.show('createPage')}>add new</button>
+                    <input type="file" onChange={this.handleSelectedFile}/>
+                    <button className='c--btn c--btn--primary' onClick={this.handleUpload}>
+                        import from file
+                    </button>
                 </div>
                 {productsList.map((product, key) => (
                     <div key={key}>
