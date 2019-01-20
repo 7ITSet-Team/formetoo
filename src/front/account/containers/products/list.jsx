@@ -17,8 +17,7 @@ export default class List extends React.Component {
             show: {
                 editPage: false,
                 createPage: false
-            },
-            selectedFile: undefined
+            }
         };
         this.show = (page, currentProduct) => this.setState({
             show: {[page]: true},
@@ -69,9 +68,8 @@ export default class List extends React.Component {
                 Message.send('продукт успешно удален', Message.type.success);
             }
         };
-        this.handleSelectedFile = e => this.setState({selectedFile: e.target.files[0]});
-        this.handleUpload = async () => {
-            const {selectedFile} = this.state;
+        this.handleUpload = async e => {
+            const selectedFile = e.target.files[0];
 
             const reader = new FileReader();
             reader.onload = (file => async () => {
@@ -175,10 +173,8 @@ export default class List extends React.Component {
             <>
                 <div className='c--items-group'>
                     <button className='c--btn c--btn--primary' onClick={() => this.show('createPage')}>add new</button>
-                    <input type="file" onChange={this.handleSelectedFile}/>
-                    <button className='c--btn c--btn--primary' onClick={this.handleUpload}>
-                        import from file
-                    </button>
+                    <span>Импорт  csv</span>
+                    <input type='file' onChange={this.handleUpload}/>
                 </div>
                 {productsList.map((product, key) => (
                     <div key={key}>

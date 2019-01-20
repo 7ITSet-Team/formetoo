@@ -68,7 +68,7 @@ export default db => {
         if (data.type === 'csv') {
             const parsedData = Parser.csv2json(data.content);
             const validData = [];
-            let errorRows = [];
+            const errorRows = [];
             parsedData.forEach((item, index) => {
                 const error = db[__modelName](item).validateSync();
                 if (!error)
