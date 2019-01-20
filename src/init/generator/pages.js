@@ -11,13 +11,15 @@ export default [
         '<p style="text-align:center;"><span style="color: rgb(102,102,102);font-size: 15px;font-family: Arial, " helvetica="" neue",="" helvetica,="" sans-serif;"=""><strong>- Удобная система оплаты</strong></span></p>\n' +
         '<p style="text-align:center;"><span style="color: rgb(102,102,102);font-size: 15px;font-family: Arial, " helvetica="" neue",="" helvetica,="" sans-serif;"=""><strong>- Гибкая система скидок</strong></span></p>\n' +
         '<p style="text-align:center;"><span style="color: rgb(102,102,102);font-size: 15px;font-family: Arial, " helvetica="" neue",="" helvetica,="" sans-serif;"=""><strong>- Склады в Москве и Санкт-Петербурге</strong></span><br></p>\n' +
-        '</span>'
+        '</span>',
+        inMainMenu: true
     },
     {
         slug: 'catalog',
         name: 'Каталог',
         title: '',
-        content: ''
+        content: '',
+        inMainMenu: true
     },
     {
         slug: 'promotion',
@@ -26,7 +28,8 @@ export default [
         content: '<span class="jss252"><p style="text-align:center;"><span style="color: rgb(0,128,0);font-size: 16px;font-family: Times New Roman;"><strong>АКЦИЯ "БЕСПЛАТНАЯ ДОСТАВКА жироуловителей"</strong></span></p>\n' +
         '<p style="text-align:left;"><span style="color: rgb(0,0,0);font-size: 12pt;font-family: times new roman;">Приобретите жироуловитель (пиковый сброс <strong>до 175 л</strong>) в нашем интернет-магазине и мы доставим этот товар ТК "ПЭК"&nbsp;до&nbsp;ближайшего к Вам терминала (</span><a href="http://pecom.ru/contacts/list-filials/" target="_blank"><span style="color: rgb(0,0,0);background-color: transparent;font-size: 12pt;font-family: times new roman;">все терминалы&nbsp;ПЭК</span></a><span style="color: rgb(0,0,0);font-size: 12pt;font-family: times new roman;">)&nbsp;абсолютно</span> <span style="color: rgb(0,0,0);font-size: 12pt;font-family: times new roman;"><strong>бесплатно*</strong>для Вас</span></p>\n' +
         '<p style="text-align:left;"><span style="color: rgb(102,102,102);font-size: 14px;font-family: Times New Roman;">*Акция не распространяется на Дальневосточный и Сибирский ФО, Республику Дагестан, Калининградскую область</span><br><span style="color: rgb(102,102,102);font-size: 14px;font-family: Times New Roman;">*Акция действует до 31.08.2018 года!!!</span><br><span style="color: rgb(102,102,102);font-size: 14px;font-family: Times New Roman;">*Акция распространяется на жироуловители (пиковый сброс до 175 л), биопрепараты</span><br><span style="color: rgb(102,102,102);font-size: 14px;font-family: Times New Roman;">*Акция действует при оплате товара по ценам, указанным на сайте</span><br><span style="color: rgb(102,102,102);font-size: 14px;font-family: Times New Roman;">*Доставка осуществляется не ранее, чем на следующий день&nbsp;</span><br><span style="color: rgb(102,102,102);font-size: 14px;font-family: Times New Roman;">*Доставка в регионы бесплатна при: 100% оплате товара на сумму более 3000 р.</span><br><span style="color: rgb(102,102,102);font-size: 14px;font-family: Times New Roman;">*Доставка по акции в регионы осуществляется ТК "ПЭК"</span><br><span style="color: rgb(102,102,102);font-size: 14px;font-family: Times New Roman;">*Доставка в пределах МКАД бесплатна как при оплате товара курьеру, так и при предоплате</span><br><span style="color: rgb(102,102,102);font-size: 14px;font-family: Times New Roman;">*Доставка в пределах КАД бесплатна как при оплате товара курьеру, так и при предоплате (только из наличия на складе в СПб)</span><br><span style="color: rgb(102,102,102);font-size: 14px;font-family: Times New Roman;">*Доставка за пределы КАД и МКАД оплачивается 30 р/км (расчет ведется согласно данным яндекс.навигатор в одну сторону)</span></p>\n' +
-        '</span>'
+        '</span>',
+        inMainMenu: true
     },
     {
         slug: 'delivery',
@@ -67,13 +70,15 @@ export default [
         '<p style="text-align:left;">&nbsp;</p>\n' +
         '<h2 style="text-align:left;"><span style="color: rgb(51,51,51);font-size: 24px;">О возвратах</span></h2>\n' +
         '<p style="text-align:left;"><span style="color: rgb(102,102,102);font-size: 13px;font-family: Arial, Helvetica, sans-serif;">В случае необходимости возврата товара по любым причинам перевозка до склада Продавца/Поставщика оплачивается Покупателем (стороной, которая возвращает Товар).</span></p>\n' +
-        '</span>'
+        '</span>',
+        inMainMenu: true
     },
     {
         slug: 'about',
         name: 'О компании',
         title: 'О компании',
-        content: 'В то время как космические корабли бороздят...'
+        content: 'В то время как космические корабли бороздят...',
+        inMainMenu: true
     },
     {
         slug: 'contacts',
@@ -84,6 +89,7 @@ export default [
         '<p style="text-align:left;"><span style="color: rgb(51,51,51);font-size: 18px;font-family: Times New Roman;"><strong>написать на почту:&nbsp;</strong></span><a href="mailto:alta-region@mail.ru" target="_self"><span style="color: rgb(51,51,51);background-color: transparent;font-size: 11pt;font-family: Times New Roman;"><strong>alta-region@mail.ru</strong></span></a></p>\n' +
         '<p style="text-align:left;"></p>\n' +
         '<p style="text-align:center;"></p>\n' +
-        '</span>'
+        '</span>',
+        inMainMenu: true
     }
 ];

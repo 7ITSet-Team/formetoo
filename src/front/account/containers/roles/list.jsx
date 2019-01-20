@@ -29,7 +29,7 @@ export default class List extends React.Component {
             changes: undefined
         });
         this.handleCheck = e => {
-            let {currentRole, changes, show} = this.state;
+            let {currentRole, show} = this.state;
             const isChecked = e.target.checked;
             const permission = e.target.name;
             const permissions = (currentRole.permissions && [...currentRole.permissions]) || [];
@@ -73,21 +73,13 @@ export default class List extends React.Component {
             }
         };
         this.deleteRole = async roleID => {
-            const {currentRole, rolesList} = this.state;
+            const {currentRole, show} = this.state;
             roleID = roleID ? roleID : currentRole._id;
             const {error} = await API.request('roles', 'update', {_id: roleID});
             if (error) Message.send('ошибка при удалении роли, повторите попытку позже', Message.type.danger);
             else {
-                const newRolesList = [];
-                rolesList.forEach(role => {
-                    if (role._id !== roleID) newRolesList.push(role)
-                });
-                this.setState({
-                    show: {
-                        editPage: false
-                    },
-                    rolesList: newRolesList
-                });
+                show.editPage && this.setState({show: {editPage: false, createPage: false}});
+                this.updateRolesList();
                 Message.send('роль успешно удалена', Message.type.success);
             }
         };

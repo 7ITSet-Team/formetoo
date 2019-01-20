@@ -19,6 +19,8 @@ import permissionsList from '@server/controllers/permissions/list';
 import productsList from '@server/controllers/products/list';
 import productsUpdate from '@server/controllers/products/update';
 import productsUpload from '@server/controllers/products/upload';
+import pagesList from '@server/controllers/pages/list';
+import pagesUpdate from '@server/controllers/pages/update';
 
 export default {
     guest:{
@@ -85,7 +87,10 @@ export default {
         }
     },
     pages:{
-
+        pages: {
+            'list': pagesList,
+            'update': pagesUpdate
+        }
     },
     settings:{
 

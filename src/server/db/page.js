@@ -22,6 +22,10 @@ export default db => {
         position: {
             type: Number,
             required: true
+        },
+        inMainMenu: {
+            type: Boolean,
+            required: true
         }
     }, {collection: __modelName});
 
@@ -31,6 +35,24 @@ export default db => {
 
     schema.statics.getBySlug = async function (slug) {
         return await this.findOne({slug}, {_id: 0, __v: 0, position: 0, name: 0, slug: 0});
+    };
+
+    schema.statics.getAll = async function () {
+        return await this.find({}, {__v: 0})
+    };
+
+    schema.statics.update = async function (data) {
+        const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(data._id)});
+        let ok;
+        if (isExist)
+            ok = data.changes
+                ? (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok
+                : (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+        else {
+            await this.create(data);
+            ok = 1;
+        }
+        return (ok === 1);
     };
 
     schema.set('autoIndex', false);

@@ -32,7 +32,8 @@ export default class List extends React.Component {
             const {error, data: productsList} = await API.request('products', 'list');
             if (!error)
                 this.setState({loading: false, productsList});
-            else Message.send('ошибка при обновлении списка продуктов, повторите попытку позже');
+            else
+                Message.send('ошибка при обновлении списка продуктов, повторите попытку позже');
         };
         this.saveChanges = async () => {
             const {currentProduct, changes, show} = this.state;
@@ -54,17 +55,14 @@ export default class List extends React.Component {
             }
         };
         this.deleteProduct = async productID => {
-            const {currentProduct, productsList} = this.state;
+            const {currentProduct, show} = this.state;
             productID = productID ? productID : currentProduct._id;
             const {error} = await API.request('products', 'update', {_id: productID});
             if (error)
                 Message.send('ошибка при удалении продукта, повторите попытку позже', Message.type.danger);
             else {
-                const newProductsList = [];
-                productsList.forEach(product => {
-                    if (product._id !== productID) newProductsList.push(product)
-                });
-                this.setState({show: {editPage: false}, productsList: newProductsList});
+                show.editPage && this.setState({show: {editPage: false, createPage: false}});
+                this.updateProductsList();
                 Message.send('продукт успешно удален', Message.type.success);
             }
         };
