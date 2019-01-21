@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import fs from 'fs';
 
 import Parser from '@server/core/csv-json-parser';
 
@@ -80,6 +81,17 @@ export default db => {
                 error: !(await this.create(validData)),
                 errorRows
             };
+        }
+    };
+
+    schema.statics.getData = async function (data) {
+        if (data.type === 'csv') {
+            const products = await this.find({}, {_id: 0, __v: 0});
+            const parsedProducts = Parser.json2csv(products);
+            // отправить parsedProducts клиенту
+            return {
+                error: true
+            }
         }
     };
 

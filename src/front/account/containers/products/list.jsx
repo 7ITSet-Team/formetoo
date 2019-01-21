@@ -87,6 +87,9 @@ export default class List extends React.Component {
             })(reader);
             reader.readAsText(selectedFile);
         };
+        this.handleExport = async () => {
+            const {error} = await API.request('products', 'get-data', {type: 'csv'});
+        };
         this.buttons = [
             {
                 name: 'сохранить',
@@ -174,7 +177,8 @@ export default class List extends React.Component {
             <>
                 <div className='c--items-group'>
                     <button className='c--btn c--btn--primary' onClick={() => this.show('createPage')}>add new</button>
-                    <span>Импорт  csv</span>
+                    <button className='c--btn c--btn--primary' onClick={this.handleExport}>Export csv</button>
+                    <span>Import  csv</span>
                     <input type='file' onChange={this.handleUpload}/>
                 </div>
                 {productsList.map((product, key) => (
