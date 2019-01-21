@@ -46,6 +46,10 @@ export default db => {
         return await this.findOne({_id: new mongoose.Types.ObjectId(payload.id)});
     };
 
+    schema.statics.getAll = async function (id) {
+        return await this.find({}, {__v: 0, password: 0});
+    };
+
     schema.statics.getByID = async function (id) {
         return await this.findOne({_id: new mongoose.Types.ObjectId(id)});
     };
@@ -78,6 +82,20 @@ export default db => {
             return [];
 
         return role.permissions || [];
+    };
+
+    schema.statics.update = async function (data) {
+        const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(data._id)});
+        let ok;
+        if (isExist)
+            ok = data.changes
+                ? (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok
+                : (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+        else {
+            await this.create(data);
+            ok = 1;
+        }
+        return (ok === 1);
     };
 
     schema.set('autoIndex', false);

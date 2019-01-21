@@ -33,7 +33,7 @@ export default class DBGenerator {
                 {name: 'Любой параметр3', value: 'Любое значение3'},
                 {name: 'Любой параметр4', value: 'Любое значение4'},
                 {name: 'Любой параметр5', value: 'Любое значение5'}
-            ]
+            ];
             await new collection(item).save()
         });
         await DBGenerator.setData('role', roles, async (item, collection) => await new collection(item).save());

@@ -39,8 +39,10 @@ export default class List extends React.Component {
             const {currentProduct, changes, show} = this.state;
 
             let data;
-            show.editPage && (data = {_id: currentProduct._id, changes: changes || {}});
-            show.createPage && (data = currentProduct);
+            if (show.editPage)
+                data = {_id: currentProduct._id, changes: changes || {}};
+            else if (show.createPage)
+                data = currentProduct;
 
             const {error} = await API.request('products', 'update', data);
 
@@ -56,15 +58,14 @@ export default class List extends React.Component {
         };
         this.deleteProduct = async productID => {
             const {currentProduct, show} = this.state;
-            productID = productID ? productID : currentProduct._id;
-            const {error} = await API.request('products', 'update', {_id: productID});
-            if (error)
-                Message.send('ошибка при удалении продукта, повторите попытку позже', Message.type.danger);
-            else {
-                show.editPage && this.setState({show: {editPage: false, createPage: false}});
+            const {error} = await API.request('products', 'update', {_id: (productID || currentProduct._id)});
+            if (!error) {
+                if (show.editPage)
+                    this.setState({show: {editPage: false, createPage: false}});
                 this.updateProductsList();
                 Message.send('продукт успешно удален', Message.type.success);
-            }
+            } else
+                Message.send('ошибка при удалении продукта, повторите попытку позже', Message.type.danger);
         };
         this.handleUpload = async e => {
             const selectedFile = e.target.files[0];
@@ -108,6 +109,8 @@ export default class List extends React.Component {
         const {error, data: productsList} = await API.request('products', 'list');
         if (!error)
             this.setState({loading: false, productsList});
+        else
+            Message.send('ошибка при получении списка продуктов, повторите попытку позже', Message.type.danger);
     };
 
     renderPropMedia(prop) {
@@ -160,7 +163,7 @@ export default class List extends React.Component {
     render() {
         const {loading, productsList, show, currentProduct} = this.state;
         if (loading)
-            return (<Loading/>);
+            return <Loading/>;
 
         let actions = this.buttons;
         actions = !show.editPage
@@ -189,7 +192,7 @@ export default class List extends React.Component {
                                     Array.isArray(currentProduct[prop]) ? (
                                         (prop === 'media') ? this.renderPropMedia(prop) : this.renderPropList(prop)
                                     ) : (
-                                        (prop !== '_id') ? this.renderProp(prop) : null
+                                        (prop !== '_id') && this.renderProp(prop)
                                     )
                                 }
                             </div>

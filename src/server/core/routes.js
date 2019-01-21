@@ -21,6 +21,8 @@ import productsUpdate from '@server/controllers/products/update';
 import productsUpload from '@server/controllers/products/upload';
 import pagesList from '@server/controllers/pages/list';
 import pagesUpdate from '@server/controllers/pages/update';
+import usersList from '@server/controllers/users/list';
+import usersUpdate from '@server/controllers/users/update';
 
 export default {
     guest:{
@@ -65,7 +67,10 @@ export default {
 
     },
     users:{
-
+        users: {
+            'list': usersList,
+            'update': usersUpdate
+        }
     },
     roles:{
         roles: {

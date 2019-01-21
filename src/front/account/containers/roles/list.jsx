@@ -16,7 +16,7 @@ export default class List extends React.Component {
             changes: undefined,
             show: {
                 editPage: false,
-                addPage: false
+                createPage: false
             }
         };
         this.show = (page, currentRole) => this.setState({
@@ -24,7 +24,7 @@ export default class List extends React.Component {
             currentRole: (currentRole || {})
         });
         this.close = () => this.setState({
-            show: {editPage: false, addPage: false},
+            show: {editPage: false, createPage: false},
             currentRole: undefined,
             changes: undefined
         });
@@ -39,8 +39,10 @@ export default class List extends React.Component {
                 return;
 
             isChecked ? permissions.push(permission) : permissions.splice(index, 1);
-            show.editPage && this.setState({changes: {permissions}});
-            show.addPage && this.setState({currentRole: {...currentRole, permissions}});
+            if (show.editPage)
+                this.setState({changes: {permissions}});
+            else if (show.createPage)
+                this.setState({currentRole: {...currentRole, permissions}});
         };
         this.isPermissionExist = permission => {
             const {currentRole, changes} = this.state;
@@ -57,16 +59,18 @@ export default class List extends React.Component {
             const {changes, currentRole, show} = this.state;
 
             let data;
-            show.editPage && (data = {_id: currentRole._id, changes: changes || {}});
-            show.addPage && (data = currentRole);
+            if (show.editPage)
+                data = {_id: currentRole._id, changes: changes || {}};
+            else if (show.createPage)
+                data = currentRole;
 
             const {error} = await API.request('roles', 'update', data);
 
             if (error) {
-                Message.send(`ошибка при ${(show.editPage && 'редактировании') || (show.addPage && 'создании')} роли, повторите попытку позже`, Message.type.danger);
+                Message.send(`ошибка при ${(show.editPage && 'редактировании') || (show.createPage && 'создании')} роли, повторите попытку позже`, Message.type.danger);
                 this.close();
             } else {
-                Message.send(`роль успешно ${(show.editPage && 'изменена') || (show.addPage && 'создана')}`, Message.type.success);
+                Message.send(`роль успешно ${(show.editPage && 'изменена') || (show.createPage && 'создана')}`, Message.type.success);
                 this.close();
                 this.setState({loading: true});
                 this.updateRolesList();
@@ -74,11 +78,11 @@ export default class List extends React.Component {
         };
         this.deleteRole = async roleID => {
             const {currentRole, show} = this.state;
-            roleID = roleID ? roleID : currentRole._id;
-            const {error} = await API.request('roles', 'update', {_id: roleID});
+            const {error} = await API.request('roles', 'update', {_id: (roleID || currentRole._id)});
             if (error) Message.send('ошибка при удалении роли, повторите попытку позже', Message.type.danger);
             else {
-                show.editPage && this.setState({show: {editPage: false, createPage: false}});
+                if (show.editPage)
+                    this.setState({show: {editPage: false, createPage: false}});
                 this.updateRolesList();
                 Message.send('роль успешно удалена', Message.type.success);
             }
@@ -113,7 +117,7 @@ export default class List extends React.Component {
     renderPropList() {
         const {currentRole} = this.state;
         const props = ['alias', 'name'];
-
+console.log(this.state)
         return (
             <div>
                 {props.map((prop, key) => (
@@ -151,7 +155,7 @@ export default class List extends React.Component {
         return (
             <>
                 <div className='c--items-group'>
-                    <button className='c--btn c--btn--primary' onClick={() => this.show('addPage')}>add new</button>
+                    <button className='c--btn c--btn--primary' onClick={() => this.show('createPage')}>add new</button>
                     <button className='c--btn c--btn--primary'>any task</button>
                 </div>
                 {rolesList.map((role, key) => (
@@ -178,7 +182,7 @@ export default class List extends React.Component {
                         )}
                     </div>
                 </Modal>
-                <Modal title='Создание' show={show.addPage} buttons={actions} onClose={this.close}>
+                <Modal title='Создание' show={show.createPage} buttons={actions} onClose={this.close}>
                     <div>
                         {this.renderPropList()}
                         {permissionList.map((permission, key) => (
