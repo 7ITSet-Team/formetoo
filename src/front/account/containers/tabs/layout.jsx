@@ -1,16 +1,21 @@
 import React from 'react';
 
-import Loading from '@components/ui/loading';
+import List from '@account/containers/tabs/list';
+import Tabs from '@components/ui/tabs';
 
 export default class Layout extends React.Component {
     constructor(props) {
         super(props);
+        this.rootPath='/account/tabs';
+        this.links = [
+            {path: this.rootPath+'/list', title: 'Список табов', component: List}
+        ];
     };
 
     render() {
         return (
             <div>
-                Страница табов\nНе готово.
+                <Tabs links={this.links} redirect={{from: this.rootPath, to: this.links[0].path}}/>
             </div>
         );
     };

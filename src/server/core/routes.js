@@ -23,56 +23,55 @@ import pagesList from '@server/controllers/pages/list';
 import pagesUpdate from '@server/controllers/pages/update';
 import usersList from '@server/controllers/users/list';
 import usersUpdate from '@server/controllers/users/update';
+import tabsList from '@server/controllers/tabs/list';
+import tabsUpdate from '@server/controllers/tabs/update';
 
 export default {
-    guest:{
+    guest: {
         catalog: {
             'categories': categories,
             'category': category,
             'product': product
         },
-        cart:{
+        cart: {
             'info': cartInfo,
-            'put-in-order':putInOrder
+            'put-in-order': putInOrder
         },
         content: {
             'page': page,
-            'main-menu':mainMenu
+            'main-menu': mainMenu
         },
         auth: {
             'login': login,
             'logout': logout,
             'registration': registration,
             'verify': verify,
-            'check':check,
-            'forgot':forgot,
-            'change-password':changePassword
+            'check': check,
+            'forgot': forgot,
+            'change-password': changePassword
         }
     },
-    client:{
-        cart:{
-            'placing-orders':placingOrders
+    client: {
+        cart: {
+            'placing-orders': placingOrders
         }
     },
-    media:{
-
+    media: {},
+    tabs: {
+        tabs: {
+            'list': tabsList,
+            'update': tabsUpdate
+        }
     },
-    tabs:{
-
-    },
-    attributes:{
-
-    },
-    orders:{
-
-    },
-    users:{
+    attributes: {},
+    orders: {},
+    users: {
         users: {
             'list': usersList,
             'update': usersUpdate
         }
     },
-    roles:{
+    roles: {
         roles: {
             'list': rolesList,
             'update': rolesUpdate
@@ -81,26 +80,20 @@ export default {
             'list': permissionsList
         }
     },
-    categories:{
-
-    },
-    products:{
+    categories: {},
+    products: {
         products: {
             'list': productsList,
             'update': productsUpdate,
             'upload-data': productsUpload
         }
     },
-    pages:{
+    pages: {
         pages: {
             'list': pagesList,
             'update': pagesUpdate
         }
     },
-    settings:{
-
-    },
-    logs:{
-
-    }
+    settings: {},
+    logs: {}
 };
