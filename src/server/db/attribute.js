@@ -15,6 +15,10 @@ export default db => {
         type: {
             type: String,
             required: true
+        },
+        isTab: {
+            type: Boolean,
+            required: true
         }
     }, {collection: __modelName, autoIndex: false});
 

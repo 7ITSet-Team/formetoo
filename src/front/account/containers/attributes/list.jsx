@@ -32,8 +32,12 @@ export default class List extends React.Component {
             let data;
             if (show === 'editPage')
                 data = {_id: currentAttribute._id, changes};
-            else if (show === 'createPage') // выставляем дефолтное значение у поля type
-                data = {...currentAttribute, type: (currentAttribute.type || 'textField')};
+            else if (show === 'createPage') // выставляем дефолтное значение у поля type и isTab
+                data = {
+                    ...currentAttribute,
+                    type: (currentAttribute.type || 'textField'),
+                    isTab: (currentAttribute.isTab || false)
+                };
 
             const {error} = await API.request('attributes', 'update', data);
 
@@ -117,7 +121,7 @@ export default class List extends React.Component {
         return (
             <div key={key}>
                 <span>{prop}</span>
-                {prop === 'type'
+                {(prop === 'type')
                     ? (
                         <select value={(show === 'editPage') ? currentAttribute[prop] : undefined}
                                 onChange={e => this.setState({
@@ -134,16 +138,28 @@ export default class List extends React.Component {
                             ))}
                         </select>
                     )
-                    : (
-                        <Input value={(show === 'editPage') ? currentAttribute[prop] : undefined}
-                               onChange={value => this.setState({
-                                   currentAttribute: {...currentAttribute, [prop]: value},
-                                   changes: (show === 'editPage') ? {
-                                       ...changes,
-                                       [prop]: value
-                                   } : undefined
-                               })}/>
-                    )}
+                    : (prop === 'isTab')
+                        ? (
+                            <input type='checkbox'
+                                   defaultChecked={(show === 'editPage') ? currentAttribute[prop] : false}
+                                   onChange={e => this.setState({
+                                       currentAttribute: {...currentAttribute, [prop]: e.target.checked},
+                                       changes: (show === 'editPage') ? {
+                                           ...changes,
+                                           [prop]: e.target.checked
+                                       } : undefined
+                                   })}/>
+                        )
+                        : (
+                            <Input value={(show === 'editPage') ? currentAttribute[prop] : undefined}
+                                   onChange={value => this.setState({
+                                       currentAttribute: {...currentAttribute, [prop]: value},
+                                       changes: (show === 'editPage') ? {
+                                           ...changes,
+                                           [prop]: value
+                                       } : undefined
+                                   })}/>
+                        )}
             </div>
         )
     };
@@ -171,7 +187,7 @@ export default class List extends React.Component {
                 </Modal>
                 <Modal title='Создание' show={(show === 'createPage')} buttons={actions} onClose={this.close}>
                     <div>
-                        {['type', 'name', 'alias'].map((prop, key) => this.renderProp(prop, key))}
+                        {['type', 'name', 'alias', 'isTab'].map((prop, key) => this.renderProp(prop, key))}
                     </div>
                 </Modal>
             </>

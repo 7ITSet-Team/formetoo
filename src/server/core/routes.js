@@ -24,8 +24,6 @@ import pagesList from '@server/controllers/pages/list';
 import pagesUpdate from '@server/controllers/pages/update';
 import usersList from '@server/controllers/users/list';
 import usersUpdate from '@server/controllers/users/update';
-import tabsList from '@server/controllers/tabs/list';
-import tabsUpdate from '@server/controllers/tabs/update';
 import attributesList from '@server/controllers/attributes/list';
 import attributesUpdate from '@server/controllers/attributes/update';
 import categoriesList from '@server/controllers/categories/list';
@@ -62,12 +60,6 @@ export default {
         }
     },
     media: {},
-    tabs: {
-        tabs: {
-            'list': tabsList,
-            'update': tabsUpdate
-        }
-    },
     attributes: {
         attributes: {
             'list': attributesList,

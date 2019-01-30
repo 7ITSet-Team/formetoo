@@ -4,5 +4,4 @@ export {default as order} from './order';
 export {default as product} from './product';
 export {default as page} from './page';
 export {default as category} from './category';
-export {default as tab} from './tab';
 export {default as attribute} from './attribute';

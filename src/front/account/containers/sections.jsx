@@ -15,7 +15,6 @@ export default class Sections extends React.Component {
         this.translate = {
             client: 'Текущий пользователь',
             media: 'Медиа',
-            tabs: 'Табы',
             attributes: 'Атрибуты',
             orders: 'Заказы',
             users: 'Пользователи',
