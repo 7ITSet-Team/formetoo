@@ -28,6 +28,8 @@ import tabsList from '@server/controllers/tabs/list';
 import tabsUpdate from '@server/controllers/tabs/update';
 import attributesList from '@server/controllers/attributes/list';
 import attributesUpdate from '@server/controllers/attributes/update';
+import categoriesList from '@server/controllers/categories/list';
+import categoriesUpdate from '@server/controllers/categories/update';
 
 export default {
     guest: {
@@ -88,7 +90,12 @@ export default {
             'list': permissionsList
         }
     },
-    categories: {},
+    categories: {
+        categories: {
+            'list': categoriesList,
+            'update': categoriesUpdate
+        }
+    },
     products: {
         products: {
             'list': productsList,
