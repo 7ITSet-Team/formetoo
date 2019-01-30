@@ -2,10 +2,7 @@ import React from 'react';
 
 import API from '@common/core/api';
 import Loading from '@components/ui/loading';
-import Modal from '@components/ui/modal';
 import Message from '@components/ui/message';
-import Input from '@components/ui/input';
-import UserModel from '@models/user';
 
 export default class List extends React.Component {
     constructor(props) {
@@ -17,7 +14,7 @@ export default class List extends React.Component {
             changes: undefined,
             show: undefined
         };
-        this.show = (page, currentUser = {}) => this.setState({show: page, currentUser});
+        this.show = (page, currentUser) => this.setState({show: page, currentUser: (currentUser || {})});
         this.close = () => this.setState({show: undefined, currentUser: undefined, changes: undefined});
         this.updateUsersList = async () => {
             this.setState({loading: true});
@@ -37,7 +34,7 @@ export default class List extends React.Component {
                 Message.send('ошибка при удалении пользователя, повторите попытку позже', Message.type.danger);
             else {
                 if (show === 'editPage')
-                    this.setState({show: undefined});
+                    this.close();
                 this.updateUsersList();
                 Message.send('пользователь успешно удален', Message.type.success);
             }
@@ -79,7 +76,7 @@ export default class List extends React.Component {
                 <div className='c--items-group'>
                     <button className='c--btn c--btn--primary' onClick={() => this.show('createPage')}>add new</button>
                 </div>
-                {usersList.map((user, key) => (
+                {usersList && usersList.map((user, key) => (
                     <div key={key}>
                         {user.name}
                         <span onClick={() => this.deleteUser(user._id)} className='icon remove-button'/>

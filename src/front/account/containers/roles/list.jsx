@@ -16,7 +16,7 @@ export default class List extends React.Component {
             changes: undefined,
             show: undefined
         };
-        this.show = (page, currentRole = {}) => this.setState({show: page, currentRole});
+        this.show = (page, currentRole) => this.setState({show: page, currentRole: (currentRole || {})});
         this.close = () => this.setState({show: undefined, currentRole: undefined, changes: undefined});
         this.handleCheck = e => {
             let {currentRole, show} = this.state;
@@ -47,7 +47,7 @@ export default class List extends React.Component {
                 Modal.send('ошибка при обновлении списка ролей, повторите попытку позже', Message.type.danger);
         };
         this.saveChanges = async () => {
-            const {changes = {}, currentRole, show} = this.state;
+            const {changes, currentRole, show} = this.state;
 
             let data;
             if (show === 'editPage')
@@ -73,8 +73,7 @@ export default class List extends React.Component {
                 Message.send('ошибка при удалении роли, повторите попытку позже', Message.type.danger);
             else {
                 if (show === 'editPage')
-                    this.setState({show: undefined});
-                this.close();
+                    this.close();
                 this.updateRolesList();
                 Message.send('роль успешно удалена', Message.type.success);
             }
@@ -123,11 +122,11 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {rolesList = []} = this.state;
+        const {rolesList} = this.state;
 
         return (
             <>
-                {rolesList.map((role, key) => (
+                {rolesList && rolesList.map((role, key) => (
                     <div className='a--list-item' key={key}>
                         <span>{role.name}</span>
                         <span onClick={() => this.show('editPage', role)} className='icon pencil'/>

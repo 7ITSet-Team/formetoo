@@ -16,6 +16,7 @@ export default class Sections extends React.Component {
             client: 'Текущий пользователь',
             media: 'Медиа',
             attributes: 'Атрибуты',
+            'attribute-sets': 'Наборы атрибутов',
             orders: 'Заказы',
             users: 'Пользователи',
             roles: 'Роли',

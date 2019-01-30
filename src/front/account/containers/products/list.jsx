@@ -16,7 +16,7 @@ export default class List extends React.Component {
             changes: undefined,
             show: undefined
         };
-        this.show = (page, currentProduct = {}) => this.setState({show: page, currentProduct});
+        this.show = (page, currentProduct) => this.setState({show: page, currentProduct: (currentProduct || {})});
         this.close = () => this.setState({show: undefined, currentProduct: undefined, changes: undefined});
         this.updateProductsList = async () => {
             this.setState({loading: true});
@@ -27,7 +27,7 @@ export default class List extends React.Component {
                 Message.send('ошибка при обновлении списка продуктов, повторите попытку позже');
         };
         this.saveChanges = async () => {
-            const {currentProduct, changes = {}, show} = this.state;
+            const {currentProduct, changes, show} = this.state;
 
             let data;
             if (show === 'editPage')
@@ -51,7 +51,7 @@ export default class List extends React.Component {
             const {error} = await API.request('products', 'update', {_id: (productID || currentProduct._id)});
             if (!error) {
                 if (show === 'editPage')
-                    this.setState({show: undefined});
+                    this.close();
                 this.updateProductsList();
                 Message.send('продукт успешно удален', Message.type.success);
             } else
@@ -156,10 +156,10 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {productsList = []} = this.state;
+        const {productsList} = this.state;
         return (
             <>
-                {productsList.map((product, key) => (
+                {productsList && productsList.map((product, key) => (
                     <div key={key}>
                         <span>{product.name}</span>
                         <span onClick={() => this.show('editPage', product)} className='icon pencil'/>

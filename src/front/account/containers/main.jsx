@@ -4,6 +4,7 @@ import {Redirect, Route, Switch} from 'react-router-dom';
 import Sections from '@account/containers/sections';
 import Client from '@account/containers/client/layout';
 import Attributes from '@account/containers/attributes/layout';
+import AttributeSets from '@account/containers/attribute-sets/layout';
 import Categories from '@account/containers/categories/layout';
 import Logs from '@account/containers/logs/layout';
 import Media from '@account/containers/media/layout';
@@ -42,6 +43,7 @@ export default class Main extends React.Component {
                 <Switch>
                     <Route path="/account/client" component={Client}/>
                     <Route path="/account/attributes" component={Attributes}/>
+                    <Route path="/account/attribute-sets" component={AttributeSets}/>
                     <Route path="/account/categories" component={Categories}/>
                     <Route path="/account/logs" component={Logs}/>
                     <Route path="/account/media" component={Media}/>

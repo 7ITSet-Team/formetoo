@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const __modelName = 'attribute';
+const __modelName = 'attributeSet';
 export default db => {
     const schema = new mongoose.Schema({
         name: {
@@ -12,22 +12,14 @@ export default db => {
             type: String,
             required: true
         },
-        type: {
+        attributes: [{
             type: String,
             required: true
-        },
-        isTab: {
-            type: Boolean,
-            required: true
-        }
+        }]
     }, {collection: __modelName, autoIndex: false});
 
     schema.statics.getAll = async function () {
         return await this.find({}, {__v: 0});
-    };
-
-    schema.statics.getByID = async function (ids) {
-        return await this.find({_id: {$in: ids}}, {__v: 0});
     };
 
     schema.statics.update = async function (data) {

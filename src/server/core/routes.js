@@ -26,6 +26,8 @@ import usersList from '@server/controllers/users/list';
 import usersUpdate from '@server/controllers/users/update';
 import attributesList from '@server/controllers/attributes/list';
 import attributesUpdate from '@server/controllers/attributes/update';
+import attributeSetsList from '@server/controllers/attribute-sets/list';
+import attributeSetsUpdate from '@server/controllers/attribute-sets/update';
 import categoriesList from '@server/controllers/categories/list';
 import categoriesUpdate from '@server/controllers/categories/update';
 
@@ -64,6 +66,12 @@ export default {
         attributes: {
             'list': attributesList,
             'update': attributesUpdate
+        }
+    },
+    'attribute-sets': {
+        'attribute-sets': {
+            'list': attributeSetsList,
+            'update': attributeSetsUpdate
         }
     },
     orders: {},

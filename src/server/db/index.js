@@ -5,3 +5,4 @@ export {default as product} from './product';
 export {default as page} from './page';
 export {default as category} from './category';
 export {default as attribute} from './attribute';
+export {default as attributeSet} from './attributeSet';
