@@ -9,7 +9,18 @@ export default class Parser {
             const rowElements = row.split(';');
             const parsedItem = {};
             for (let j = 0; j < rowElements.length; j++) {
-                parsedItem[columnsTitles[j]] = rowElements[j];
+                if (columnsTitles[j] === 'props') {
+                    parsedItem[columnsTitles[j]] = [];
+                    const props = rowElements[j].split(',');
+                    for (let k = 0; k < props.length; k++) {
+                        const key = props[k].split(':')[0];
+                        const value = props[k].split(':')[1];
+                        parsedItem[columnsTitles[j]].push({name: key, value});
+                    }
+                } else if (columnsTitles[j] === 'media')
+                    parsedItem[columnsTitles[j]] = rowElements[j].split(',');
+                else
+                    parsedItem[columnsTitles[j]] = rowElements[j];
             }
             parsed.push(parsedItem);
         }
@@ -48,12 +59,12 @@ export default class Parser {
                 const product = data[i];
                 const prop = columnsTitles[j];
                 if (prop === 'media')
-                    /*
+                /*
 
-                    ЕСЛИ КАРТИНКИ - РАЗДЕЛЯЕМ ИХ МЕЖДУ СОБОЙ ЗАПЯТЫМИ. ЕСЛИ КАРТИНКИ КОНЧИЛИСЬ, ВСТАВЛЯЕМ ";".
-                    ЕСЛИ КАРТИНКИ ПАРСЯТСЯ ПОСЛЕДНИМИ В ЭТОМ ОБЪЕКТЕ, ТО ВСТАВЛЯЕМ ПЕРЕНОС СТРОКИ
+                ЕСЛИ КАРТИНКИ - РАЗДЕЛЯЕМ ИХ МЕЖДУ СОБОЙ ЗАПЯТЫМИ. ЕСЛИ КАРТИНКИ КОНЧИЛИСЬ, ВСТАВЛЯЕМ ";".
+                ЕСЛИ КАРТИНКИ ПАРСЯТСЯ ПОСЛЕДНИМИ В ЭТОМ ОБЪЕКТЕ, ТО ВСТАВЛЯЕМ ПЕРЕНОС СТРОКИ
 
-                    */
+                */
                     text = `${text}${product[prop].toString()}${j === columnsTitles.length - 1 ? '\n' : ';'}`;
                 else if (prop === 'props') {
                     let props = '';
@@ -73,8 +84,7 @@ export default class Parser {
 
                      */
                     text = `${text}${props}${j === columnsTitles.length - 1 ? '\n' : ';'}`;
-                }
-                else // ЕСЛИ СВОЙСТВО - ОБЫЧНАЯ СТРОКА, ТО ВСТАВЛЯЕМ КАК ОБЫЧНУЮ СТРОКУ.
+                } else // ЕСЛИ СВОЙСТВО - ОБЫЧНАЯ СТРОКА, ТО ВСТАВЛЯЕМ КАК ОБЫЧНУЮ СТРОКУ.
                     text = `${text}${product[prop]}${j === columnsTitles.length - 1 ? '\n' : ';'}`;
             }
         }
