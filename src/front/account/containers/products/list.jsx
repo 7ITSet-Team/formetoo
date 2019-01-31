@@ -78,7 +78,19 @@ export default class List extends React.Component {
             reader.readAsText(selectedFile);
         };
         this.handleExport = async () => {
-            const {error} = await API.request('products', 'get-data', {type: 'csv'});
+            const {error, data} = await API.request('products', 'get-data', {type: 'csv'});
+            if (error)
+                Message.send('ошибка при экспорте продуктов, повторите попытку позже', Message.type.danger);
+            else {
+                // ================АХТУНГ!||ACHTUNG!
+                const a = window.document.createElement('a');
+                a.href = window.URL.createObjectURL(new Blob([data], {type: 'text/csv'}));
+                const time = new Date();
+                a.download = `${time.getHours().toString()}:${time.getMinutes().toString()}:${time.getSeconds().toString()}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
         };
         this.buttons = [
             {
