@@ -8,7 +8,10 @@ export default db => {
             unique: true,
             required: true
         },
-        alias: String,
+        alias: {
+            type: String,
+            required: true
+        },
         permissions: [String]
     }, {collection: __modelName});
 

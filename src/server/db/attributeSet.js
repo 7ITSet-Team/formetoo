@@ -12,11 +12,19 @@ export default db => {
             type: String,
             required: true
         },
-        attributes: []
+        attributes: [mongoose.Schema.Types.ObjectId]
     }, {collection: __modelName, autoIndex: false});
 
     schema.statics.getAll = async function () {
         return await this.find({}, {__v: 0});
+    };
+
+    schema.statics.removeAttribute = async function (data) {
+        return await this.updateMany(
+            {},
+            {$pull: {attributes: {$in: data._id}}},
+            {multi: true}
+        );
     };
 
     schema.statics.update = async function (data) {

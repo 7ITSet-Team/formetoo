@@ -1,5 +1,7 @@
 export default async (db, req, res, data) => {
-    const products = await db.product.getAll();
+    // делаем глубокое копирование, чтобы могли изменять свойства объекта независимо от его типа (15 строка)
+    // THANKS STACKOVERFLOW.COM
+    const products = JSON.parse(JSON.stringify(await db.product.getAll()));
     const attributeIDs = [];
     products.forEach(product => {
         const props = product.props;

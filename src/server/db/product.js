@@ -28,7 +28,16 @@ export default db => {
             required: true
         },
         media: [String],
-        props: []
+        props: [{
+            attribute: {
+                type: mongoose.Schema.Types.ObjectId,
+                required: true
+            },
+            value: {
+                type: {},
+                required: true
+            }
+        }]
     }, {collection: __modelName});
 
     schema.statics.getBySlug = async function (slug) {
@@ -37,6 +46,21 @@ export default db => {
 
     schema.statics.getByCategoryID = async function (categoryID) {
         return await this.find({categoryID: new mongoose.Types.ObjectId(categoryID)}, {__v: 0});
+    };
+
+    schema.statics.removeAttribute = async function (data) {
+        return this.updateMany(
+            {},
+            {$pull: {props: {attribute: data._id}}},
+            {multi: true}
+        );
+    };
+
+    schema.statics.removeCategory = async function (data) {
+        return this.updateMany(
+            {categoryID: new mongoose.Types.ObjectId(data._id)},
+            {$set: {categoryID: (await db.category.getBySlug('root'))._id}}
+        );
     };
 
     schema.statics.getAll = async function (options = {__v: 0}) {

@@ -28,9 +28,13 @@ export default db => {
         const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(data._id)});
         let ok;
         if (isExist)
-            ok = data.changes
-                ? (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok
-                : (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+            if (data.changes)
+                ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok;
+            else {
+                const categoryOk = (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+                const productOk = (await db.product.removeCategory(data)).ok;
+                ok = (categoryOk && productOk) ? 1 : undefined;
+            }
         else {
             await this.create(data);
             ok = 1;

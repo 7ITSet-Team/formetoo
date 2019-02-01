@@ -85,7 +85,8 @@ export default class List extends React.Component {
             <div className='a--list-item' key={key}>
                 <span>{category.name}</span>
                 <span onClick={() => this.show('editPage', category)} className='icon pencil'/>
-                <span onClick={() => this.deleteCategory(category._id)} className='icon remove-button'/>
+                {(category.slug !== 'root') &&
+                <span onClick={() => this.deleteCategory(category._id)} className='icon remove-button'/>}
             </div>
         ))
     };
@@ -122,15 +123,23 @@ export default class List extends React.Component {
         return (
             <div key={key}>
                 <span>{prop}</span>
-                <Input value={(show === 'editPage') ? ((changes && changes[prop]) || currentCategory[prop]) : undefined}
-                       onChange={value => {
-                           changes = changes || {};
-                           changes[prop] = value;
-                           if (show === 'editPage')
-                               this.setState({changes});
-                           else if (show === 'createPage')
-                               this.setState({currentCategory: {...currentCategory, ...changes}});
-                       }}/>
+                {
+                    ((prop === 'slug') && currentCategory && (currentCategory.slug === 'root'))
+                        ? <Input value='root' onChange={() => {
+                        }}/>
+                        : (
+                            <Input
+                                value={(show === 'editPage') ? ((changes && changes[prop]) || currentCategory[prop]) : undefined}
+                                onChange={value => {
+                                    changes = changes || {};
+                                    changes[prop] = value;
+                                    if (show === 'editPage')
+                                        this.setState({changes});
+                                    else if (show === 'createPage')
+                                        this.setState({currentCategory: {...currentCategory, ...changes}});
+                                }}/>
+                        )
+                }
             </div>
         )
     };
@@ -140,11 +149,11 @@ export default class List extends React.Component {
     };
 
     render() {
-        const {loading, show} = this.state;
+        const {loading, show, currentCategory} = this.state;
         if (loading)
             return <Loading/>;
         let actions = this.buttons;
-        if (show === 'editPage')
+        if ((show === 'editPage') && (currentCategory.slug !== 'root'))
             actions = [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deleteCategory}];
         return (
             <>

@@ -13,5 +13,10 @@ export default [
         slug: 'mufty-dlya-trub',
         name: 'Муфты для труб и кабелей',
         img: '/uploads/on5fbrxucpmhtzkklqtm.jpg'
+    },
+    {
+        slug: 'root',
+        name: 'Корневая категория',
+        img: '/uploads/on5fbrxucpmhtzkklqtm.jpg'
     }
 ];
