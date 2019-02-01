@@ -26,14 +26,6 @@ export default class DBGenerator {
             item.price = 1000 * artCounter;
             const img = '/uploads/on5fbrxucpmhtzkklqtm.jpg';
             item.media = [img, img, img];
-            item.props = [
-                {name: 'Производитель', value: 'Китай'},
-                {name: 'Любой параметр', value: 'Любое значение'},
-                {name: 'Любой параметр2', value: 'Любое значение2'},
-                {name: 'Любой параметр3', value: 'Любое значение3'},
-                {name: 'Любой параметр4', value: 'Любое значение4'},
-                {name: 'Любой параметр5', value: 'Любое значение5'}
-            ];
             await new collection(item).save()
         });
         await DBGenerator.setData('role', roles, async (item, collection) => await new collection(item).save());

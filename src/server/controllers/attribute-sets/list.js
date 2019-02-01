@@ -1,26 +1,16 @@
 export default async (db, req, res, data) => {
     const attributeSets = await db.attributeSet.getAll();
     const attributeIDs = [];
-    for (let i = 0; i < attributeSets.length; i++) {
-        const attributeSet = attributeSets[i];
+    attributeSets.forEach(attributeSet => {
         const attributes = attributeSet.attributes;
-        for (let j = 0; j < attributes.length; j++) {
-            if (!attributeIDs.includes(attributes[j]))
-                attributeIDs.push(attributes[j])
-        }
-    }
+        attributes.forEach(attribute => (!attributeIDs.includes(attribute) && attributeIDs.push(attribute)));
+    });
     const attributes = await db.attribute.getByID(attributeIDs);
     let attributesHash = {};
-    for (let i = 0; i < attributes.length; i++) {
-        const attribute = attributes[i];
-        attributesHash[attribute._id] = attribute;
-    }
-    for (let i = 0; i < attributeSets.length; i++) {
-        const attributeSet = attributeSets[i];
+    attributes.forEach(attribute => attributesHash[attribute._id] = attribute);
+    attributeSets.forEach(attributeSet => {
         const attributes = attributeSet.attributes;
-        for (let j = 0; j < attributes.length; j++) {
-            attributes[j] = attributesHash[attributes[j]];
-        }
-    }
+        attributes.forEach((attribute, index, _attributes) => _attributes[index] = attributesHash[attribute]);
+    });
     return {result: attributeSets};
 };

@@ -23,11 +23,9 @@ export default class List extends React.Component {
             const isChecked = e.target.checked;
             const permission = e.target.name;
             const permissions = (currentRole.permissions && [...currentRole.permissions]) || [];
-
             const index = permissions.indexOf(permission);
             if ((!isChecked && index === -1) || (isChecked && index !== -1))
                 return;
-
             isChecked ? permissions.push(permission) : permissions.splice(index, 1);
             if (show === 'editPage')
                 this.setState({changes: {permissions}});
@@ -36,7 +34,7 @@ export default class List extends React.Component {
         };
         this.isPermissionExist = permission => {
             const {currentRole, changes} = this.state;
-            return (changes || currentRole).permissions.includes(permission);
+            return ((changes && changes.permissions) || currentRole.permissions).includes(permission);
         };
         this.updateRolesList = async () => {
             this.setState({loading: true});
@@ -48,20 +46,15 @@ export default class List extends React.Component {
         };
         this.saveChanges = async () => {
             const {changes, currentRole, show} = this.state;
-
-            let data;
+            let data = currentRole;
             if (show === 'editPage')
                 data = {_id: currentRole._id, changes};
-            else if (show === 'createPage')
-                data = currentRole;
-
             const {error} = await API.request('roles', 'update', data);
-
             if (error) {
-                Message.send(`ошибка при ${((show === 'editPage') && 'редактировании') || ((show === 'createPage') && 'создании')} роли, повторите попытку позже`, Message.type.danger);
+                Message.send(`ошибка при ${(show === 'editPage') ? 'редактировании' : 'создании'} роли, повторите попытку позже`, Message.type.danger);
                 this.close();
             } else {
-                Message.send(`роль успешно ${((show === 'editPage') && 'изменена') || ((show === 'createPage') && 'создана')}`, Message.type.success);
+                Message.send(`роль успешно ${(show === 'editPage') ? 'изменена' : 'создана'}`, Message.type.success);
                 this.close();
                 this.updateRolesList();
             }
@@ -105,28 +98,11 @@ export default class List extends React.Component {
             Message.send('ошибка при получении списка ролей, повторите попытку позже', Message.type.danger);
     };
 
-    renderPropList() {
-        const {currentRole} = this.state;
-        const props = ['alias', 'name'];
-
-        return (
-            <div>
-                {props.map((prop, key) => (
-                    <div key={key}>
-                        {prop}
-                        <Input onChange={value => this.setState({currentRole: {...currentRole, [prop]: value}})}/>
-                    </div>
-                ))}
-            </div>
-        )
-    };
-
     renderList() {
         const {rolesList} = this.state;
-
         return (
             <>
-                {rolesList && rolesList.map((role, key) => (
+                {(rolesList || []).map((role, key) => (
                     <div className='a--list-item' key={key}>
                         <span>{role.name}</span>
                         <span onClick={() => this.show('editPage', role)} className='icon pencil'/>
@@ -143,32 +119,51 @@ export default class List extends React.Component {
 
     renderPermissionList() {
         const {permissionList, show} = this.state;
-
-        return (
-            <>
-                {permissionList.map((permission, key) => (
-                        <div key={key}>
-                            {permission}
-                            <input type="checkbox" name={permission} onChange={this.handleCheck}
-                                   disabled={show === 'editPage' ? ['root', 'client'].includes(permission) : false}
-                                   defaultChecked={show === 'editPage' ? this.isPermissionExist(permission) : false}/>
-                        </div>
-                    )
-                )}
-            </>
+        return permissionList.map((permission, key) => (
+                <div key={key}>
+                    {permission}
+                    <input type="checkbox" name={permission} onChange={this.handleCheck}
+                           disabled={show === 'editPage' ? ['root', 'client'].includes(permission) : false}
+                           defaultChecked={show === 'editPage' ? this.isPermissionExist(permission) : false}/>
+                </div>
+            )
         )
+    };
+
+    renderProp(prop, key) {
+        if (prop === 'permissions')
+            return this.renderPermissionList();
+        else {
+            const {currentRole, show} = this.state;
+            let {changes} = this.state;
+            return (
+                <div key={key}>
+                    {prop}
+                    <Input value={(show === 'editPage') ? ((changes && changes[prop]) || currentRole[prop]) : undefined}
+                           onChange={value => {
+                               changes = changes || {};
+                               changes[prop] = value;
+                               if (show === 'editPage')
+                                   this.setState({changes});
+                               else if (show === 'createPage')
+                                   this.setState({currentRole: {...currentRole, ...changes}});
+                           }}/>
+                </div>
+            )
+        }
+    };
+
+    renderProps() {
+        return ['alias', 'name', 'permissions'].map((prop, key) => this.renderProp(prop, key));
     };
 
     render() {
         const {loading, show, currentRole} = this.state;
-
         if (loading)
             return <Loading/>;
-
         let actions = this.buttons;
         if ((show === 'editPage') && !(['root', 'client'].includes(currentRole.name)))
             actions = [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deleteRole}];
-
         return (
             <>
                 <div className='c--items-group'>
@@ -177,15 +172,10 @@ export default class List extends React.Component {
                 </div>
                 {this.renderList()}
                 <Modal title='Редактирование' show={(show === 'editPage')} buttons={actions} onClose={this.close}>
-                    <div>
-                        {this.renderPermissionList()}
-                    </div>
+                    <div>{this.renderProps()}</div>
                 </Modal>
                 <Modal title='Создание' show={(show === 'createPage')} buttons={actions} onClose={this.close}>
-                    <div>
-                        {this.renderPropList()}
-                        {this.renderPermissionList()}
-                    </div>
+                    <div>{this.renderProps()}</div>
                 </Modal>
             </>
         );

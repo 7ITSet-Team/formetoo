@@ -16,7 +16,10 @@ export default class List extends React.Component {
             currentPage: undefined,
             changes: undefined
         };
-        this.show = (page, currentPage) => this.setState({currentPage: (currentPage || {}), show: page});
+        this.show = (page, currentPage) => this.setState({
+            currentPage: (currentPage || {inMainMenu: false}),
+            show: page
+        });
         this.close = () => this.setState({show: undefined, currentPage: undefined, changes: undefined});
         this.updatePagesList = async () => {
             this.setState({loading: true});
@@ -39,23 +42,16 @@ export default class List extends React.Component {
         };
         this.saveChanges = async () => {
             const {currentPage, changes, show} = this.state;
-
-            let data;
+            let data = currentPage;
             if (show === 'editPage')
                 data = {_id: currentPage._id, changes};
-            else if (show === 'createPage') {
-                data = currentPage;
-                if (data.inMainMenu === undefined)
-                    data.inMainMenu = false
-            }
-
             const {error} = await API.request('pages', 'update', data);
             if (!error) {
-                Message.send(`страница успешно ${((show === 'editPage') && 'изменена') || ((show === 'createPage') && 'создана')}`, Message.type.success);
+                Message.send(`страница успешно ${(show === 'editPage') ? 'изменена' : 'создана'}`, Message.type.success);
                 this.close();
                 this.updatePagesList();
             } else {
-                Message.send(`ошибка при ${((show === 'editPage') && 'редактировании') || ((show === 'createPage') && 'создании')} страницы, повторите попытку позже`, Message.type.danger);
+                Message.send(`ошибка при ${(show === 'editPage' ? 'редактировании' : 'создании')} страницы, повторите попытку позже`, Message.type.danger);
                 this.close();
             }
         };
@@ -87,60 +83,67 @@ export default class List extends React.Component {
 
     renderList() {
         const {pagesList} = this.state;
-        return (
-            <>
-                {pagesList && pagesList.map((page, key) => (
-                    <div key={key}>
-                        {page.name}
-                        <span onClick={() => this.show('editPage', page)} className='icon pencil'/>
-                        <span onClick={() => this.deletePage(page._id)} className='icon remove-button'/>
-                    </div>
-                ))}
-            </>
-        )
+        return (pagesList || []).map((page, key) => (
+            <div key={key}>
+                {page.name}
+                <span onClick={() => this.show('editPage', page)} className='icon pencil'/>
+                <span onClick={() => this.deletePage(page._id)} className='icon remove-button'/>
+            </div>
+        ))
     };
 
     renderPropCheckBox(prop, key) {
-        const {currentPage, changes, show} = this.state;
+        const {currentPage, show} = this.state;
+        let {changes} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
-                <input type='checkbox' defaultChecked={show === 'editPage' ? currentPage[prop] : false}
-                       onChange={e => this.setState({
-                           currentPage: {...currentPage, inMainMenu: e.target.checked},
-                           changes: (show === 'editPage') ? {
-                               ...changes,
-                               inMainMenu: e.target.checked
-                           } : undefined
-                       })}/>
+                <input type='checkbox'
+                       defaultChecked={show === 'editPage' ? ((changes && changes[prop]) || currentPage[prop]) : false}
+                       onChange={e => {
+                           changes = changes || {};
+                           changes[prop] = e.target.checked;
+                           if (show === 'editPage')
+                               this.setState({changes});
+                           else if (show === 'createPage')
+                               this.setState({currentPage: {...currentPage, ...changes}});
+                       }}/>
             </div>
         )
     };
 
     renderProp(prop, key) {
-        const {currentPage, changes, show} = this.state;
+        if (prop === 'inMainMenu')
+            return this.renderPropCheckBox(prop, key);
+        const {currentPage, show} = this.state;
+        let {changes} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
-                <Input value={(show === 'editPage') ? currentPage[prop] : undefined}
-                       onChange={value => this.setState({
-                           currentPage: {...currentPage, [prop]: value},
-                           changes: (show === 'editPage') ? {...changes, [prop]: value} : undefined
-                       })}/>
+                <Input value={(show === 'editPage') ? ((changes && changes[prop]) || currentPage[prop]) : undefined}
+                       onChange={value => {
+                           changes = changes || {};
+                           changes[prop] = value;
+                           if (show === 'editPage')
+                               this.setState({changes});
+                           else if (show === 'createPage')
+                               this.setState({currentPage: {...currentPage, ...changes}});
+                       }}/>
             </div>
         )
     };
 
-    render() {
-        const {loading, show, currentPage} = this.state;
+    renderProps() {
+        return ['content', 'name', 'position', 'slug', 'title', 'inMainMenu'].map((prop, key) => this.renderProp(prop, key));
+    };
 
+    render() {
+        const {loading, show} = this.state;
         if (loading)
             return <Loading/>;
-
         let actions = this.buttons;
         if (show === 'editPage')
             actions = [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deletePage}];
-
         return (
             <>
                 <div className='c--items-group'>
@@ -148,20 +151,10 @@ export default class List extends React.Component {
                 </div>
                 {this.renderList()}
                 <Modal title='Редактирование' show={(show === 'editPage')} buttons={actions} onClose={this.close}>
-                    <div>
-                        {Object.keys(currentPage || {}).map((prop, key) => ((prop !== '_id') && (prop === 'inMainMenu')
-                            ? this.renderPropCheckBox(prop, key)
-                            : this.renderProp(prop, key))
-                        )}
-                    </div>
+                    <div>{this.renderProps()}</div>
                 </Modal>
                 <Modal title='Создание' show={(show === 'createPage')} buttons={this.buttons} onClose={this.close}>
-                    <div>
-                        {['content', 'name', 'position', 'slug', 'title', 'inMainMenu'].map((prop, key) => (prop === 'inMainMenu')
-                            ? this.renderPropCheckBox(prop, key)
-                            : this.renderProp(prop, key)
-                        )}
-                    </div>
+                    <div>{this.renderProps()}</div>
                 </Modal>
             </>
         );

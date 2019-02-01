@@ -28,14 +28,7 @@ export default db => {
             required: true
         },
         media: [String],
-        props: [{
-            name: {
-                type: String,
-                unique: true,
-                required: true
-            },
-            value: {}
-        }]
+        props: []
     }, {collection: __modelName});
 
     schema.statics.getBySlug = async function (slug) {
@@ -87,7 +80,6 @@ export default db => {
         if (data.type === 'csv') {
             const products = await this.find({}, {_id: 0, __v: 0});
             const parsedProducts = Parser.json2csv(products);
-            // записать parsedProducts в csv файл и отправить клиенту
             return {
                 error: false,
                 parsedProducts

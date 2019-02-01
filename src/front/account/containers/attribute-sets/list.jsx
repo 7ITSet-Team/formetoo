@@ -20,16 +20,26 @@ export default class List extends React.Component {
             show: undefined
         };
         this.show = (page, currentSet) => {
-            if (page === 'editPage') {
-                const attributes = [];
-                const newSet = {...currentSet, attributes: [...currentSet.attributes]};
-                for (let i = 0; i < newSet.attributes.length; i++) {
-                    attributes.push(newSet.attributes[i].name);
-                    newSet.attributes[i] = newSet.attributes[i]._id;
+            const {attributesList} = this.state;
+            let newState = {
+                show: page,
+                currentAttribute: {
+                    _id: attributesList[0]._id,
+                    name: attributesList[0].name
                 }
-                this.setState({show: page, currentSet: newSet, attributes});
+            };
+            if (page === 'editPage') {
+                const attributesNames = [];
+                const setAttributes = [...currentSet.attributes];
+                setAttributes.forEach((attribute, index, _setAttributes) => {
+                    attributesNames.push(attribute.name);
+                    _setAttributes[index] = attribute._id;
+                });
+                newState.currentSet = {...currentSet, attributes: setAttributes};
+                newState.attributes = attributesNames;
             } else
-                this.setState({show: page, currentSet: {}});
+                newState.currentSet = {};
+            this.setState(newState);
         };
         this.close = () => this.setState({
             show: undefined,
@@ -47,20 +57,15 @@ export default class List extends React.Component {
         };
         this.saveChanges = async () => {
             const {changes, currentSet, show} = this.state;
-
-            let data;
+            let data = currentSet;
             if (show === 'editPage')
                 data = {_id: currentSet._id, changes};
-            else if (show === 'createPage')
-                data = currentSet;
-
             const {error} = await API.request('attribute-sets', 'update', data);
-
             if (error) {
-                Message.send(`ошибка при ${((show === 'editPage') && 'редактировании') || ((show === 'createPage') && 'создании')} набора атрибутов, повторите попытку позже`, Message.type.danger);
+                Message.send(`ошибка при ${(show === 'editPage') ? 'редактировании' : 'создании'} набора атрибутов, повторите попытку позже`, Message.type.danger);
                 this.close();
             } else {
-                Message.send(`набор атрибутов успешно ${((show === 'editPage') && 'изменен') || ((show === 'createPage') && 'создан')}`, Message.type.success);
+                Message.send(`набор атрибутов успешно ${(show === 'editPage' ? 'изменен' : 'создан')}`, Message.type.success);
                 this.close();
                 this.updateSetsList();
             }
@@ -104,24 +109,9 @@ export default class List extends React.Component {
             Message.send('ошибка при получении списка наборов атрибутов, повторите попытку позже', Message.type.danger);
     };
 
-    renderList() {
-        const {setsList} = this.state;
-        return (
-            <>
-                {setsList && setsList.map((set, key) => (
-                    <div className='a--list-item' key={key}>
-                        <span>{set.name}</span>
-                        <span onClick={() => this.show('editPage', set)} className='icon pencil'/>
-                        <span onClick={() => this.deleteSet(set._id)} className='icon remove-button'/>
-                    </div>
-                ))}
-            </>
-        )
-    };
-
-    renderDropDown(prop, key) {
-        const {attributes, attributesList, currentAttribute, currentSet, changes, show} = this.state;
-
+    renderAttributes(prop, key) {
+        const {attributesList, currentAttribute, currentSet, show} = this.state;
+        let {changes, attributes} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
@@ -138,33 +128,27 @@ export default class List extends React.Component {
                     ))}
                 </select>
                 <button onClick={() => {
-                    this.setState({
-                        attributes: [...(attributes || []), (currentAttribute && currentAttribute.name) || attributesList[0].name],
-                        currentSet: {
-                            ...currentSet,
-                            attributes: [...(currentSet.attributes || []), (currentAttribute && currentAttribute._id) || attributesList[0]._id]
-                        },
-                        changes: (show === 'editPage') ? {
-                            ...changes,
-                            attributes: [...(currentSet.attributes || []), (currentAttribute && currentAttribute._id) || attributesList[0]._id]
-                        } : undefined
-                    })
-                }}>
-                    add
+                    changes = changes || {};
+                    changes[prop] = [...(changes[prop] || currentSet[prop] || []), currentAttribute._id];
+                    attributes = [...(attributes || []), currentAttribute.name];
+                    if (show === 'editPage')
+                        this.setState({attributes, changes});
+                    else if (show === 'createPage')
+                        this.setState({attributes, currentSet: {...currentSet, ...changes}});
+                }}>add
                 </button>
-                {attributes && attributes.map((attribute, index) => (
+                {(attributes || []).map((attribute, index) => (
                     <div key={index}>
                         <span>{attribute}</span>
                         <span onClick={() => {
-                            const newAttributes = [...attributes];
-                            newAttributes.splice(index, 1);
-                            const newSetAttributes = [...currentSet.attributes];
-                            newSetAttributes.splice(index, 1);
-                            this.setState({
-                                attributes: newAttributes,
-                                currentSet: {...currentSet, attributes: newSetAttributes},
-                                changes: (show === 'editPage') ? {...changes, attributes: newSetAttributes} : undefined
-                            })
+                            attributes.splice(index, 1);
+                            currentSet.attributes.splice(index, 1);
+                            changes = changes || {};
+                            changes[prop] = currentSet.attributes;
+                            if (show === 'editPage')
+                                this.setState({attributes, changes});
+                            else if (show === 'createPage')
+                                this.setState({attributes, currentSet});
                         }} className='icon remove-button'/>
                     </div>
                 ))}
@@ -173,31 +157,48 @@ export default class List extends React.Component {
     };
 
     renderProp(prop, key) {
-        const {currentSet, changes, show} = this.state;
+        if (prop === 'attributes')
+            return this.renderAttributes(prop, key);
+        const {currentSet, show} = this.state;
+        let {changes} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
-                <Input value={(show === 'editPage') ? currentSet[prop] : undefined}
-                       onChange={value => this.setState({
-                           currentSet: {...currentSet, [prop]: value},
-                           changes: (show === 'editPage') ? {
-                               ...changes,
-                               [prop]: value
-                           } : undefined
-                       })}/>
+                <Input value={(show === 'editPage') ? ((changes && changes[prop]) || currentSet[prop]) : undefined}
+                       onChange={value => {
+                           changes = changes || {};
+                           changes[prop] = value;
+                           if (show === 'editPage')
+                               this.setState({changes});
+                           else if (show === 'createPage')
+                               this.setState({currentSet: {...currentSet, ...changes}});
+                       }}/>
             </div>
         )
     };
 
+    renderProps() {
+        return ['name', 'title', 'attributes'].map((prop, key) => this.renderProp(prop, key));
+    };
+
+    renderList() {
+        const {setsList} = this.state;
+        return (setsList || []).map((set, key) => (
+            <div className='a--list-item' key={key}>
+                <span>{set.name}</span>
+                <span onClick={() => this.show('editPage', set)} className='icon pencil'/>
+                <span onClick={() => this.deleteSet(set._id)} className='icon remove-button'/>
+            </div>
+        ))
+    };
+
     render() {
-        const {loading, show, currentSet} = this.state;
+        const {loading, show} = this.state;
         if (loading)
             return <Loading/>;
-
         let actions = this.buttons;
         if (show === 'editPage')
             actions = [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deleteSet}];
-
         return (
             <>
                 <div className='c--items-group'>
@@ -205,18 +206,10 @@ export default class List extends React.Component {
                 </div>
                 {this.renderList()}
                 <Modal title='Редактирование' show={(show === 'editPage')} buttons={actions} onClose={this.close}>
-                    <div>
-                        {Object.keys(currentSet || {}).map((prop, key) => (prop !== '_id') && ((prop === 'attributes')
-                            ? this.renderDropDown(prop, key)
-                            : this.renderProp(prop, key)))}
-                    </div>
+                    <div>{this.renderProps()}</div>
                 </Modal>
                 <Modal title='Создание' show={(show === 'createPage')} buttons={actions} onClose={this.close}>
-                    <div>
-                        {['name', 'title', 'attributes'].map((prop, key) => (prop === 'attributes')
-                            ? this.renderDropDown(prop, key)
-                            : this.renderProp(prop, key))}
-                    </div>
+                    <div>{this.renderProps()}</div>
                 </Modal>
             </>
         );

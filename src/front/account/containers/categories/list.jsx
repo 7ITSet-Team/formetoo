@@ -40,20 +40,15 @@ export default class List extends React.Component {
         };
         this.saveChanges = async () => {
             const {currentCategory, changes, show} = this.state;
-
-            let data;
+            let data = currentCategory;
             if (show === 'editPage')
                 data = {_id: currentCategory._id, changes};
-            else if (show === 'createPage')
-                data = currentCategory;
-
             const {error} = await API.request('categories', 'update', data);
-
             if (error) {
-                Message.send(`ошибка при ${((show === 'editPage') && 'редактировании') || ((show === 'createPage') && 'создании')} категории, повторите попытку позже`, Message.type.danger);
+                Message.send(`ошибка при ${(show === 'editPage') ? 'редактировании' : 'создании'} категории, повторите попытку позже`, Message.type.danger);
                 this.close();
             } else {
-                Message.send(`категория успешно ${((show === 'editPage') && 'изменен') || ((show === 'createPage') && 'создан')}`, Message.type.success);
+                Message.send(`категория успешно ${(show === 'editPage') ? 'изменен' : 'создан'}`, Message.type.success);
                 this.close();
                 this.updateCategoriesList();
             }
@@ -86,22 +81,17 @@ export default class List extends React.Component {
 
     renderList() {
         const {categoriesList} = this.state;
-        return (
-            <>
-                {categoriesList && categoriesList.map((category, key) => (
-                    <div className='a--list-item' key={key}>
-                        <span>{category.name}</span>
-                        <span onClick={() => this.show('editPage', category)} className='icon pencil'/>
-                        <span onClick={() => this.deleteCategory(category._id)} className='icon remove-button'/>
-                    </div>
-                ))}
-            </>
-        )
+        return (categoriesList || []).map((category, key) => (
+            <div className='a--list-item' key={key}>
+                <span>{category.name}</span>
+                <span onClick={() => this.show('editPage', category)} className='icon pencil'/>
+                <span onClick={() => this.deleteCategory(category._id)} className='icon remove-button'/>
+            </div>
+        ))
     };
 
     renderPropMedia(prop, key) {
         const {currentCategory, changes} = this.state;
-
         return (
             <div key={key}>
                 {currentCategory && currentCategory[prop]
@@ -125,33 +115,37 @@ export default class List extends React.Component {
     };
 
     renderProp(prop, key) {
-        const {currentCategory, changes, show} = this.state;
-
+        if (prop === 'img')
+            return this.renderPropMedia(prop, key);
+        const {currentCategory, show} = this.state;
+        let {changes} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
-                <Input value={(show === 'editPage') ? currentCategory[prop] : undefined}
-                       onChange={value => this.setState({
-                           currentCategory: {...currentCategory, [prop]: value},
-                           changes: (show === 'editPage') ? {
-                               ...changes,
-                               [prop]: value
-                           } : undefined
-                       })}/>
+                <Input value={(show === 'editPage') ? ((changes && changes[prop]) || currentCategory[prop]) : undefined}
+                       onChange={value => {
+                           changes = changes || {};
+                           changes[prop] = value;
+                           if (show === 'editPage')
+                               this.setState({changes});
+                           else if (show === 'createPage')
+                               this.setState({currentCategory: {...currentCategory, ...changes}});
+                       }}/>
             </div>
         )
     };
 
-    render() {
-        const {loading, show, currentCategory} = this.state;
+    renderProps() {
+        return ['slug', 'name', 'img'].map((prop, key) => this.renderProp(prop, key));
+    };
 
+    render() {
+        const {loading, show} = this.state;
         if (loading)
             return <Loading/>;
-
         let actions = this.buttons;
         if (show === 'editPage')
             actions = [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deleteCategory}];
-
         return (
             <>
                 <div className='c--items-group'>
@@ -159,21 +153,10 @@ export default class List extends React.Component {
                 </div>
                 {this.renderList()}
                 <Modal title='Редактирование' show={(show === 'editPage')} buttons={actions} onClose={this.close}>
-                    <div>
-                        {Object.keys(currentCategory || {}).map((prop, key) => (prop === 'img')
-                            ? this.renderPropMedia(prop, key)
-                            : ((prop !== '_id') && this.renderProp(prop, key))
-                        )}
-                        {!Object.keys(currentCategory || {}).includes('img') && this.renderPropMedia('img')}
-                    </div>
+                    <div>{this.renderProps()}</div>
                 </Modal>
                 <Modal title='Создание' show={(show === 'createPage')} buttons={actions} onClose={this.close}>
-                    <div>
-                        {['slug', 'name', 'img'].map((prop, key) => (prop === 'img')
-                            ? this.renderPropMedia(prop, key)
-                            : this.renderProp(prop, key)
-                        )}
-                    </div>
+                    <div>{this.renderProps()}</div>
                 </Modal>
             </>
         )

@@ -12,10 +12,7 @@ export default db => {
             type: String,
             required: true
         },
-        attributes: [{
-            type: String,
-            required: true
-        }]
+        attributes: []
     }, {collection: __modelName, autoIndex: false});
 
     schema.statics.getAll = async function () {
