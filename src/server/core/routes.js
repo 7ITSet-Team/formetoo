@@ -19,7 +19,7 @@ import permissionsList from '@server/controllers/permissions/list';
 import productsList from '@server/controllers/products/list';
 import productsUpdate from '@server/controllers/products/update';
 import productsUpload from '@server/controllers/products/upload';
-import productsGetData from '@server/controllers/products/get-data';
+import productsExport from '@server/controllers/products/export';
 import pagesList from '@server/controllers/pages/list';
 import pagesUpdate from '@server/controllers/pages/update';
 import usersList from '@server/controllers/users/list';
@@ -101,7 +101,7 @@ export default {
             'list': productsList,
             'update': productsUpdate,
             'upload-data': productsUpload,
-            'get-data': productsGetData
+            'export': productsExport
         }
     },
     pages: {

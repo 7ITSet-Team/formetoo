@@ -13,25 +13,28 @@ export default class List extends React.Component {
             loading: true,
             productsList: undefined,
             attributesList: undefined,
+            setsList: undefined,
             categoriesList: undefined,
             currentProduct: undefined,
             currentAttribute: undefined,
+            currentSet: undefined,
             attributes: undefined,
             changes: undefined,
             show: undefined
         };
         this.show = (page, currentProduct) => {
-            const {attributesList, categoriesList} = this.state;
+            const {attributesList, categoriesList, setsList} = this.state;
             let newState = {
                 show: page,
-                currentAttribute: {_id: attributesList[0]._id, name: attributesList[0].name}
+                currentAttribute: (attributesList[0] && {_id: attributesList[0]._id, name: attributesList[0].name}),
+                currentSet: (setsList[0] && setsList[0]._id)
             };
             if (page === 'editPage') {
                 const attributesNames = [];
                 const productProps = [...currentProduct.props];
                 productProps.forEach((prop, index, _productProps) => {
                     attributesNames.push(prop.attribute.name);
-                    _productProps[index] = prop.attribute._id;
+                    _productProps[index] = {attribute: prop.attribute._id, value: prop.value};
                 });
                 newState.currentProduct = {...currentProduct, props: productProps};
                 newState.attributes = attributesNames;
@@ -99,7 +102,7 @@ export default class List extends React.Component {
             reader.readAsText(selectedFile);
         };
         this.handleExport = async () => {
-            const {error, data} = await API.request('products', 'get-data', {type: 'csv'});
+            const {error, data} = await API.request('products', 'export', {type: 'csv'});
             if (error)
                 Message.send('ошибка при экспорте продуктов, повторите попытку позже', Message.type.danger);
             else {
@@ -135,50 +138,86 @@ export default class List extends React.Component {
         const {errorP, data: productsList} = await API.request('products', 'list');
         const {errorA, data: attributesList} = await API.request('attributes', 'list');
         const {errorC, data: categoriesList} = await API.request('categories', 'list');
-        if (!errorP && !errorA && !errorC)
-            this.setState({loading: false, productsList, attributesList, categoriesList});
+        const {errorS, data: setsList} = await API.request('attribute-sets', 'list');
+        if (!errorP && !errorA && !errorC && !errorS)
+            this.setState({loading: false, productsList, attributesList, categoriesList, setsList});
         else
             Message.send('ошибка при получении списка продуктов, повторите попытку позже', Message.type.danger);
     };
 
     renderPropDropDown() {
         // Рендер дропдауна с кнопкой добавления атрибутов
-        const {attributesList, currentProduct, currentAttribute, attributes} = this.state;
+        const {attributesList, setsList, currentProduct, currentAttribute, currentSet, show} = this.state;
+        let {changes, attributes, sets} = this.state;
         return (
             <>
-                <select onChange={e => this.setState({
-                    currentAttribute: {_id: e.target.value, name: e.target.options[e.target.selectedIndex].text}
-                })}>
-                    {attributesList && attributesList.map((attribute, key) => (
-                        <option value={attribute._id} key={key}>{attribute.name}</option>
-                    ))}
-                </select>
-                <button onClick={() => {
-                    this.setState({
-                        currentProduct: {
-                            ...currentProduct,
-                            props: [...(currentProduct.props || []), {attribute: currentAttribute._id}]
-                        },
-                        attributes: [...(attributes || []), currentAttribute.name]
-                    })
-                }}>add attribute
-                </button>
+                <div>
+                    <select onChange={e => this.setState({
+                        currentAttribute: {_id: e.target.value, name: e.target.options[e.target.selectedIndex].text}
+                    })}>
+                        {(attributesList || []).map((attribute, key) => (
+                            <option value={attribute._id} key={key}>{attribute.name}</option>
+                        ))}
+                    </select>
+                    <button onClick={() => {
+                        changes = changes || {};
+                        attributes = attributes || [];
+                        changes.props = [...(currentProduct.props || []), {attribute: currentAttribute._id, value: ''}];
+                        if (show === 'editPage')
+                            this.setState({changes, attributes: [...attributes, currentAttribute.name]});
+                        else if (show === 'createPage')
+                            this.setState({
+                                currentProduct: {...currentProduct, ...changes},
+                                attributes: [...attributes, currentAttribute.name]
+                            });
+                    }}>add attribute
+                    </button>
+                </div>
+                <div>
+                    <select onChange={e => this.setState({currentSet: e.target.value})}>
+                        {(setsList || []).map((set, key) => (
+                            <option value={set._id} key={key}>{set.name}</option>
+                        ))}
+                    </select>
+                    <button onClick={() => {
+                        changes = changes || {};
+                        attributes = attributes || [];
+                        changes.props = [...(currentProduct.props || [])];
+                        setsList.forEach(set => {
+                            if (set._id === currentSet) {
+                                set.attributes.forEach(attribute => {
+                                    changes.props.push({attribute: attribute._id, value: ''});
+                                    attributes.push(attribute.name);
+                                })
+                            }
+                        });
+                        if (show === 'editPage')
+                            this.setState({changes, attributes});
+                        else if (show === 'createPage')
+                            this.setState({currentProduct: {...currentProduct, ...changes}, attributes});
+                    }}>add attribute set
+                    </button>
+                </div>
             </>
         )
     };
 
     renderCategoryDropDown() {
         // Рендер дропдауна для категорий
-        const {categoriesList, currentProduct, show, changes} = this.state;
-
+        const {categoriesList, currentProduct, show} = this.state;
+        let {changes} = this.state;
         return (
             <select
-                value={(show === 'editPage') ? currentProduct.categoryID : undefined}
-                onChange={e => this.setState({
-                    currentProduct: {...currentProduct, categoryID: e.target.value},
-                    changes: {...(changes || {}), categoryID: e.target.value}
-                })}>
-                {categoriesList && categoriesList.map((category, key) => (
+                value={(show === 'editPage') ? ((changes && changes.categoryID) || currentProduct.categoryID) : undefined}
+                onChange={e => {
+                    changes = changes || {};
+                    changes.categoryID = e.target.value;
+                    if (show === 'editPage')
+                        this.setState({changes});
+                    else if (show === 'createPage')
+                        this.setState({currentProduct: {...currentProduct, ...changes}});
+                }}>
+                {(categoriesList || []).map((category, key) => (
                     <option value={category._id} key={key}>{category.name}</option>
                 ))}
             </select>
@@ -187,7 +226,6 @@ export default class List extends React.Component {
 
     renderMedia() {
         let {currentProduct, changes} = this.state;
-
         return ((changes && changes.media) || currentProduct.media).map((image, key) => (
             <div key={key}>
                 <img src={image}/>
@@ -203,27 +241,35 @@ export default class List extends React.Component {
 
     renderPropList() {
         // Рендер списка атрибутов с их значениями
-        let {attributes, currentProduct, show, changes} = this.state;
-
+        const {attributes, currentProduct, show} = this.state;
+        let {changes} = this.state;
         return (attributes || []).map((attribute, index) => (
             <div key={index}>
                 <span>{attribute}</span>
-                <Input value={(show === 'editPage') ? currentProduct.props[index].value : undefined}
-                       onChange={value => {
-                           currentProduct.props[index].value = value;
-                           this.setState({
-                               currentProduct,
-                               changes: (show === 'editPage') ? {...changes, props: currentProduct.props} : undefined
-                           })
-                       }}/>
+                <Input
+                    value={(show === 'editPage')
+                        ? (changes && changes.props && changes.props[index])
+                            ? changes.props[index].value
+                            : currentProduct.props[index].value
+                        : undefined
+                    }
+                    onChange={value => {
+                        changes = changes || {props: [...currentProduct.props]};
+                        changes.props[index].value = value;
+                        if (show === 'editPage')
+                            this.setState({changes});
+                        else if (show === 'createPage')
+                            this.setState({...currentProduct, ...changes});
+                    }}/>
                 <span onClick={() => {
                     attributes.splice(index, 1);
-                    currentProduct.props.splice(index, 1);
-                    this.setState({
-                        attributes,
-                        currentProduct: {...currentProduct, props: currentProduct.props},
-                        changes: (show === 'editPage') ? {...changes, props: currentProduct.props} : undefined
-                    })
+                    changes = changes || {};
+                    changes.props = [...currentProduct.props];
+                    changes.props.splice(index, 1);
+                    if (show === 'editPage')
+                        this.setState({attributes, changes});
+                    else if (show === 'createPage')
+                        this.setState({attributes, currentProduct: {...currentProduct, ...changes}});
                 }} className='icon remove-button'/>
             </div>
         ))
@@ -250,7 +296,6 @@ export default class List extends React.Component {
                         value={(show === 'editPage') ? ((changes && changes[prop]) || currentProduct[prop]) : undefined}
                         onChange={value => {
                             const {show, currentProduct} = this.state;
-
                             changes = changes || {};
                             changes[prop] = value;
                             if (show === 'editPage')
@@ -267,7 +312,7 @@ export default class List extends React.Component {
         const {productsList} = this.state;
         return (
             <>
-                {productsList && productsList.map((product, key) => (
+                {(productsList || []).map((product, key) => (
                     <div key={key}>
                         <span>{product.name}</span>
                         <span onClick={() => this.show('editPage', product)} className='icon pencil'/>
@@ -278,16 +323,18 @@ export default class List extends React.Component {
         )
     };
 
-    render() {
-        const {loading, show, currentProduct} = this.state;
+    renderProps() {
+        return ['categoryID', 'code', 'name', 'price', 'slug', 'props'].map((prop, key) => this.renderProp(prop, key));
+    };
 
+    render() {
+        const {loading, show} = this.state;
+        console.log(this.state);
         if (loading)
             return <Loading/>;
-
         let actions = this.buttons;
         if (show === 'editPage')
             actions = [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deleteProduct}];
-
         return (
             <>
                 <div className='c--items-group'>
@@ -298,13 +345,11 @@ export default class List extends React.Component {
                 </div>
                 {this.renderList()}
                 <Modal title='Редактирование' show={(show === 'editPage')} buttons={actions} onClose={this.close}>
-                    <div>
-                        {Object.keys(currentProduct || {}).map((prop, key) => (prop !== '_id') && this.renderProp(prop, key))}
-                    </div>
+                    <div>{this.renderProps()}</div>
                 </Modal>
                 <Modal title='Создание' show={(show === 'createPage')} buttons={actions} onClose={this.close}>
                     <div>
-                        {['categoryID', 'code', 'name', 'price', 'slug', 'props'].map((prop, key) => this.renderProp(prop, key))}
+                        {this.renderProps()}
                         <button>add image</button>
                     </div>
                 </Modal>

@@ -15,7 +15,7 @@ export default class Parser {
                     for (let k = 0; k < props.length; k++) {
                         const key = props[k].split(':')[0];
                         const value = props[k].split(':')[1];
-                        parsedItem[columnsTitles[j]].push({name: key, value});
+                        parsedItem[columnsTitles[j]].push({attribute: key, value});
                     }
                 } else if (columnsTitles[j] === 'media')
                     parsedItem[columnsTitles[j]] = rowElements[j].split(',');
@@ -38,7 +38,7 @@ export default class Parser {
         ЕСЛИ ЗНАЧЕНИЕ - МАССИВ, ТО ЭЛЕМЕНТЫ МАССИВА РАЗДЕЛЯЮТСЯ МЕЖДУ СОБОЙ ЗАПЯТЫМИ.
 
         ЕСЛИ ЗНАЧЕНИЕ - ПОЛЕ prop, ТО ЗАПИСЬ ИМЕЕТ СЛЕДУЮЩИЙ ВИД:
-        производитель:Китай,Любой параметр:Любое значение,Любой параметр2:Любое значение2;
+        ATTRIBUTE_ID:VALUE,ATTRIBUTE_ID:VALUE,ATTRIBUTE_ID:VALUE,ATTRIBUTE_ID:VALUE;
 
          */
         const columnsTitles = Object.keys(data[0].toJSON());
@@ -71,11 +71,11 @@ export default class Parser {
                     for (let index = 0; index < product[prop].length; index++) {
                         /*
 
-                        ВСТАВЛЯЕМ ДОП. СВОЙСТВА ТОВАРА ПО ШАБЛОНУ "<НАЗВАНИЕ>:<ЗНАЧЕНИЕ>", МЕЖДУ СОБОЙ СВОЙСТВА
+                        ВСТАВЛЯЕМ ДОП. СВОЙСТВА ТОВАРА ПО ШАБЛОНУ "<АЙДИ АТРИБУТА>:<ЗНАЧЕНИЕ>", МЕЖДУ СОБОЙ СВОЙСТВА
                         РАЗДЕЛЯЕМ ЗАПЯТЫМИ
 
                          */
-                        props = `${props}${product[prop][index].name}:${product[prop][index].value}${index === product[prop].length - 1 ? '' : ','}`;
+                        props = `${props}${product[prop][index].attribute._id}:${product[prop][index].value}${index === product[prop].length - 1 ? '' : ','}`;
                     }
                     /*
 

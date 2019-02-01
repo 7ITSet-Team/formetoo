@@ -39,8 +39,8 @@ export default db => {
         return await this.find({categoryID: new mongoose.Types.ObjectId(categoryID)}, {__v: 0});
     };
 
-    schema.statics.getAll = async function () {
-        return await this.find({}, {__v: 0});
+    schema.statics.getAll = async function (options = {__v: 0}) {
+        return await this.find({}, options);
     };
 
     schema.statics.update = async function (data) {
@@ -73,17 +73,6 @@ export default db => {
                 error: !(await this.create(validData)),
                 errorRows
             };
-        }
-    };
-
-    schema.statics.getData = async function (data) {
-        if (data.type === 'csv') {
-            const products = await this.find({}, {_id: 0, __v: 0});
-            const parsedProducts = Parser.json2csv(products);
-            return {
-                error: false,
-                parsedProducts
-            }
         }
     };
 
