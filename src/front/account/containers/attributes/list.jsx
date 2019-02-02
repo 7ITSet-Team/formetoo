@@ -31,6 +31,8 @@ export default class List extends React.Component {
         };
         this.saveChanges = async () => {
             const {changes, currentAttribute, show} = this.state;
+            if ((show === 'editPage') && (Object.keys(changes || {}).length === 0))
+                return this.close();
             let data = currentAttribute;
             if (show === 'editPage')
                 data = {_id: currentAttribute._id, changes};
@@ -76,7 +78,10 @@ export default class List extends React.Component {
             title: 'Текстовый блок'
         }, {
             name: 'numberField',
-            title: 'Численное поле'
+            title: 'Числовое поле'
+        }, {
+            name: 'rangeField',
+            title: 'Диапазон'
         }];
     };
 
@@ -93,20 +98,19 @@ export default class List extends React.Component {
     };
 
     renderTypeDropDown(prop, key) {
-        const {currentAttribute, show} = this.state;
-        let {changes} = this.state;
+        const {currentAttribute, show, changes} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
                 <select
                     value={(show === 'editPage') ? ((changes && changes[prop]) || currentAttribute[prop]) : undefined}
                     onChange={e => {
-                        changes = changes || {};
-                        changes[prop] = e.target.value;
+                        const newChanges = {...(changes || {})};
+                        newChanges[prop] = e.target.value;
                         if (show === 'editPage')
-                            this.setState({changes});
+                            this.setState({changes: newChanges});
                         else if (show === 'createPage')
-                            this.setState({currentAttribute: {...currentAttribute, ...changes}});
+                            this.setState({currentAttribute: {...currentAttribute, ...newChanges}});
                     }}>
                     {this.attributeTypes.map((type, key) => (
                         <option value={type.name} key={key}>{type.title}</option>
@@ -117,20 +121,19 @@ export default class List extends React.Component {
     };
 
     renderIsTabCheckBox(prop, key) {
-        const {currentAttribute, show} = this.state;
-        let {changes} = this.state;
+        const {currentAttribute, show, changes} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
                 <input type='checkbox'
                        defaultChecked={(show === 'editPage') ? ((changes && changes[prop]) || currentAttribute[prop]) : false}
                        onChange={e => {
-                           changes = changes || {};
-                           changes[prop] = e.target.checked;
+                           const newChanges = {...(changes || {})};
+                           newChanges[prop] = e.target.checked;
                            if (show === 'editPage')
-                               this.setState({changes});
+                               this.setState({changes: newChanges});
                            else if (show === 'createPage')
-                               this.setState({currentAttribute: {...currentAttribute, ...changes}});
+                               this.setState({currentAttribute: {...currentAttribute, ...newChanges}});
                        }}/>
             </div>
         )
@@ -142,20 +145,19 @@ export default class List extends React.Component {
         else if (prop === 'isTab')
             return this.renderIsTabCheckBox(prop, key);
         else {
-            const {currentAttribute, show} = this.state;
-            let {changes} = this.state;
+            const {currentAttribute, show, changes} = this.state;
             return (
                 <div key={key}>
                     <span>{prop}</span>
                     <Input
                         value={(show === 'editPage') ? ((changes && changes[prop]) || currentAttribute[prop]) : undefined}
                         onChange={value => {
-                            changes = changes || {};
-                            changes[prop] = value;
+                            const newChanges = {...(changes || {})};
+                            newChanges[prop] = value;
                             if (show === 'editPage')
-                                this.setState({changes});
+                                this.setState({changes: newChanges});
                             else if (show === 'createPage')
-                                this.setState({currentAttribute: {...currentAttribute, ...changes}});
+                                this.setState({currentAttribute: {...currentAttribute, ...newChanges}});
                         }}/>
                 </div>
             )

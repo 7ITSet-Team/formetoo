@@ -19,10 +19,10 @@ export default class List extends React.Component {
         this.show = (page, currentRole) => this.setState({show: page, currentRole: (currentRole || {})});
         this.close = () => this.setState({show: undefined, currentRole: undefined, changes: undefined});
         this.handleCheck = e => {
-            let {currentRole, show} = this.state;
+            const {currentRole, show, changes} = this.state;
             const isChecked = e.target.checked;
             const permission = e.target.name;
-            const permissions = (currentRole.permissions && [...currentRole.permissions]) || [];
+            const permissions = ((changes && changes.permissions) || (currentRole.permissions && [...currentRole.permissions])) || [];
             const index = permissions.indexOf(permission);
             if ((!isChecked && index === -1) || (isChecked && index !== -1))
                 return;
@@ -46,6 +46,8 @@ export default class List extends React.Component {
         };
         this.saveChanges = async () => {
             const {changes, currentRole, show} = this.state;
+            if ((show === 'editPage') && (Object.keys(changes || {}).length === 0))
+                return this.close();
             let data = currentRole;
             if (show === 'editPage')
                 data = {_id: currentRole._id, changes};
@@ -134,19 +136,18 @@ export default class List extends React.Component {
         if (prop === 'permissions')
             return this.renderPermissionList();
         else {
-            const {currentRole, show} = this.state;
-            let {changes} = this.state;
+            const {currentRole, show, changes} = this.state;
             return (
                 <div key={key}>
                     {prop}
                     <Input value={(show === 'editPage') ? ((changes && changes[prop]) || currentRole[prop]) : undefined}
                            onChange={value => {
-                               changes = changes || {};
-                               changes[prop] = value;
+                               const newChanges = {...(changes || {})};
+                               newChanges[prop] = value;
                                if (show === 'editPage')
-                                   this.setState({changes});
+                                   this.setState({changes: newChanges});
                                else if (show === 'createPage')
-                                   this.setState({currentRole: {...currentRole, ...changes}});
+                                   this.setState({currentRole: {...currentRole, ...newChanges}});
                            }}/>
                 </div>
             )

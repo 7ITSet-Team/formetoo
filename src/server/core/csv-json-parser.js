@@ -10,16 +10,24 @@ export default class Parser {
             const parsedItem = {};
             for (let j = 0; j < rowElements.length; j++) {
                 if (columnsTitles[j] === 'props') {
-                    parsedItem[columnsTitles[j]] = [];
-                    const props = rowElements[j].split(',');
-                    for (let k = 0; k < props.length; k++) {
-                        const key = props[k].split(':')[0];
-                        const value = props[k].split(':')[1];
-                        parsedItem[columnsTitles[j]].push({attribute: key, value});
+                    if (rowElements[j] !== '') {
+                        parsedItem[columnsTitles[j]] = [];
+                        const props = rowElements[j].split(',');
+                        for (let k = 0; k < props.length; k++) {
+                            const key = props[k].split(':')[0];
+                            let value = props[k].split(':')[1];
+                            if (value.indexOf('-') !== -1)
+                                value = {
+                                    after: value.split('-')[0],
+                                    before: value.split('-')[1]
+                                };
+                            parsedItem[columnsTitles[j]].push({attribute: key, value});
+                        }
                     }
-                } else if (columnsTitles[j] === 'media')
-                    parsedItem[columnsTitles[j]] = rowElements[j].split(',');
-                else
+                } else if (columnsTitles[j] === 'media') {
+                    if ((rowElements[j] !== ''))
+                        parsedItem[columnsTitles[j]] = rowElements[j].split(',');
+                } else
                     parsedItem[columnsTitles[j]] = rowElements[j];
             }
             parsed.push(parsedItem);
@@ -72,10 +80,14 @@ export default class Parser {
                         /*
 
                         ВСТАВЛЯЕМ ДОП. СВОЙСТВА ТОВАРА ПО ШАБЛОНУ "<АЙДИ АТРИБУТА>:<ЗНАЧЕНИЕ>", МЕЖДУ СОБОЙ СВОЙСТВА
-                        РАЗДЕЛЯЕМ ЗАПЯТЫМИ
+                        РАЗДЕЛЯЕМ ЗАПЯТЫМИ.
+                        ЕСЛИ ЗНАЧЕНИЕ - ДИАПАЗОН, ТО МЕЖДУ ДВУМЯ ЧИСЛАМИ ВСТАВЛЯЕМ "-".
 
                          */
-                        props = `${props}${product[prop][index].attribute._id}:${product[prop][index].value}${index === product[prop].length - 1 ? '' : ','}`;
+                        const value = (typeof product[prop][index].value === 'object')
+                            ? `${product[prop][index].value.after}-${product[prop][index].value.before}`
+                            : product[prop][index].value;
+                        props = `${props}${product[prop][index].attribute}:${value}${index === product[prop].length - 1 ? '' : ','}`;
                     }
                     /*
 

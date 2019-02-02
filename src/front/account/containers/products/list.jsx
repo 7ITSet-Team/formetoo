@@ -18,7 +18,7 @@ export default class List extends React.Component {
             currentProduct: undefined,
             currentAttribute: undefined,
             currentSet: undefined,
-            attributes: undefined,
+            attributesHash: undefined,
             changes: undefined,
             show: undefined
         };
@@ -26,18 +26,15 @@ export default class List extends React.Component {
             const {attributesList, categoriesList, setsList} = this.state;
             let newState = {
                 show: page,
-                currentAttribute: (attributesList[0] && {_id: attributesList[0]._id, name: attributesList[0].name}),
+                currentAttribute: (attributesList[0] && attributesList[0]._id),
                 currentSet: (setsList[0] && setsList[0]._id)
             };
             if (page === 'editPage') {
-                const attributesNames = [];
-                const productProps = [...currentProduct.props];
-                productProps.forEach((prop, index, _productProps) => {
-                    attributesNames.push(prop.attribute.name);
-                    _productProps[index] = {attribute: prop.attribute._id, value: prop.value};
+                const props = [...currentProduct.props];
+                props.forEach((prop, index, _props) => {
+                    _props[index] = {attribute: prop.attribute._id, value: prop.value};
                 });
-                newState.currentProduct = {...currentProduct, props: productProps};
-                newState.attributes = attributesNames;
+                newState.currentProduct = {...currentProduct, props};
             } else
                 newState.currentProduct = {categoryID: categoriesList[0]._id};
             this.setState(newState);
@@ -46,8 +43,7 @@ export default class List extends React.Component {
             show: undefined,
             currentProduct: undefined,
             currentAttribute: undefined,
-            changes: undefined,
-            attributes: undefined
+            changes: undefined
         });
         this.updateProductsList = async () => {
             this.setState({loading: true});
@@ -59,6 +55,8 @@ export default class List extends React.Component {
         };
         this.saveChanges = async () => {
             const {currentProduct, changes, show} = this.state;
+            if ((show === 'editPage') && (Object.keys(changes || {}).length === 0))
+                return this.close();
             let data = currentProduct;
             if (show === 'editPage')
                 data = {_id: currentProduct._id, changes};
@@ -139,62 +137,60 @@ export default class List extends React.Component {
         const {errorA, data: attributesList} = await API.request('attributes', 'list');
         const {errorC, data: categoriesList} = await API.request('categories', 'list');
         const {errorS, data: setsList} = await API.request('attribute-sets', 'list');
+        const attributesHash = {};
+        attributesList.forEach(attribute => attributesHash[attribute._id] = attribute);
         if (!errorP && !errorA && !errorC && !errorS)
-            this.setState({loading: false, productsList, attributesList, categoriesList, setsList});
+            this.setState({loading: false, productsList, attributesList, categoriesList, setsList, attributesHash});
         else
             Message.send('ошибка при получении списка продуктов, повторите попытку позже', Message.type.danger);
     };
 
     renderPropDropDown() {
         // Рендер дропдауна с кнопкой добавления атрибутов
-        const {attributesList, setsList, currentProduct, currentAttribute, currentSet, show} = this.state;
-        let {changes, attributes, sets} = this.state;
+        const {attributesList, currentProduct, currentAttribute, setsList, currentSet, show, changes, attributesHash} = this.state;
         return (
             <>
                 <div>
-                    <select onChange={e => this.setState({
-                        currentAttribute: {_id: e.target.value, name: e.target.options[e.target.selectedIndex].text}
-                    })}>
+                    <select onChange={e => this.setState({currentAttribute: e.target.value})}>
                         {(attributesList || []).map((attribute, key) => (
-                            <option value={attribute._id} key={key}>{attribute.name}</option>
+                            <option value={attribute._id} key={key}>{attribute.title}</option>
                         ))}
                     </select>
                     <button onClick={() => {
-                        changes = changes || {};
-                        attributes = attributes || [];
-                        changes.props = [...(currentProduct.props || []), {attribute: currentAttribute._id, value: ''}];
+                        const newChanges = {...(changes || {})};
+                        newChanges.props = [
+                            ...((changes && changes.props) || currentProduct.props || []),
+                            {
+                                attribute: currentAttribute,
+                                value: (attributesHash[currentAttribute].type === 'rangeField')
+                                    ? {after: '', before: ''}
+                                    : ''
+                            }
+                        ];
                         if (show === 'editPage')
-                            this.setState({changes, attributes: [...attributes, currentAttribute.name]});
+                            this.setState({changes: newChanges});
                         else if (show === 'createPage')
-                            this.setState({
-                                currentProduct: {...currentProduct, ...changes},
-                                attributes: [...attributes, currentAttribute.name]
-                            });
+                            this.setState({currentProduct: {...currentProduct, ...newChanges}});
                     }}>add attribute
                     </button>
                 </div>
                 <div>
                     <select onChange={e => this.setState({currentSet: e.target.value})}>
-                        {(setsList || []).map((set, key) => (
-                            <option value={set._id} key={key}>{set.name}</option>
-                        ))}
+                        {(setsList || []).map((set, key) => <option value={set._id} key={key}>{set.title}</option>)}
                     </select>
                     <button onClick={() => {
-                        changes = changes || {};
-                        attributes = attributes || [];
-                        changes.props = [...(currentProduct.props || [])];
+                        const newChanges = {...(changes || {})};
+                        newChanges.props = [...((changes && changes.props) || currentProduct.props || [])];
                         setsList.forEach(set => {
-                            if (set._id === currentSet) {
+                            if (set._id === currentSet)
                                 set.attributes.forEach(attribute => {
-                                    changes.props.push({attribute: attribute._id, value: ''});
-                                    attributes.push(attribute.name);
+                                    newChanges.props.push({attribute: attribute._id, value: ''});
                                 })
-                            }
                         });
                         if (show === 'editPage')
-                            this.setState({changes, attributes});
+                            this.setState({changes: newChanges});
                         else if (show === 'createPage')
-                            this.setState({currentProduct: {...currentProduct, ...changes}, attributes});
+                            this.setState({currentProduct: {...currentProduct, ...newChanges}});
                     }}>add attribute set
                     </button>
                 </div>
@@ -204,18 +200,17 @@ export default class List extends React.Component {
 
     renderCategoryDropDown() {
         // Рендер дропдауна для категорий
-        const {categoriesList, currentProduct, show} = this.state;
-        let {changes} = this.state;
+        const {categoriesList, currentProduct, show, changes} = this.state;
         return (
             <select
                 value={(show === 'editPage') ? ((changes && changes.categoryID) || currentProduct.categoryID) : undefined}
                 onChange={e => {
-                    changes = changes || {};
-                    changes.categoryID = e.target.value;
+                    const newChanges = {...(changes || {})};
+                    newChanges.categoryID = e.target.value;
                     if (show === 'editPage')
-                        this.setState({changes});
+                        this.setState({changes: newChanges});
                     else if (show === 'createPage')
-                        this.setState({currentProduct: {...currentProduct, ...changes}});
+                        this.setState({currentProduct: {...currentProduct, ...newChanges}});
                 }}>
                 {(categoriesList || []).map((category, key) => (
                     <option value={category._id} key={key}>{category.name}</option>
@@ -225,15 +220,15 @@ export default class List extends React.Component {
     };
 
     renderMedia() {
-        let {currentProduct, changes} = this.state;
-        return ((changes && changes.media) || currentProduct.media).map((image, key) => (
+        const {currentProduct, changes} = this.state;
+        return ((changes && changes.media) || (currentProduct && currentProduct.media) || []).map((image, key) => (
             <div key={key}>
                 <img src={image}/>
                 <div className="icon remove-button" onClick={() => {
-                    changes = changes || {};
-                    changes.media = [...currentProduct.media];
-                    changes.media.splice(key, 1);
-                    this.setState({changes})
+                    const newChanges = {...(changes || {})};
+                    newChanges.media = [...((changes && changes.media) || (currentProduct && currentProduct.media))];
+                    newChanges.media.splice(key, 1);
+                    this.setState({changes: newChanges})
                 }}/>
             </div>
         ));
@@ -241,38 +236,92 @@ export default class List extends React.Component {
 
     renderPropList() {
         // Рендер списка атрибутов с их значениями
-        const {attributes, currentProduct, show} = this.state;
+        const {currentProduct, show, attributesHash} = this.state;
         let {changes} = this.state;
-        return (attributes || []).map((attribute, index) => (
-            <div key={index}>
-                <span>{attribute}</span>
-                <Input
-                    value={(show === 'editPage')
-                        ? (changes && changes.props && changes.props[index])
-                            ? changes.props[index].value
-                            : currentProduct.props[index].value
-                        : undefined
-                    }
-                    onChange={value => {
+        return ((changes && changes.props) || (currentProduct && currentProduct.props) || []).map((prop, index) => {
+            let propInput;
+            let propValue = (show === 'editPage')
+                ? (changes && changes.props && changes.props[index])
+                    ? changes.props[index].value
+                    : currentProduct.props[index].value
+                : undefined;
+            let propOnChange = (arg) => {
+                changes = changes || {props: [...currentProduct.props]};
+                if (typeof arg === 'object')
+                    changes.props[index].value = arg.target.value;
+                else
+                    changes.props[index].value = arg;
+                if (show === 'editPage')
+                    this.setState({changes});
+                else if (show === 'createPage')
+                    this.setState({currentProduct: {...currentProduct, ...changes}});
+            };
+            switch (attributesHash[prop.attribute].type) {
+                case 'textField':
+                    propInput = (
+                        <Input
+                            value={propValue}
+                            onChange={propOnChange}/>
+                    );
+                    break;
+                case 'numberField':
+                    propInput = (
+                        <input
+                            type='number'
+                            value={propValue}
+                            onChange={propOnChange}/>
+                    );
+                    break;
+                case 'textArea':
+                    propInput = (
+                        <textarea
+                            value={propValue}
+                            onChange={propOnChange}/>
+                    );
+                    break;
+                case 'rangeField':
+                    propOnChange = (e, position) => {
                         changes = changes || {props: [...currentProduct.props]};
-                        changes.props[index].value = value;
+                        changes.props[index].value = {...changes.props[index].value, [position]: e.target.value};
                         if (show === 'editPage')
                             this.setState({changes});
                         else if (show === 'createPage')
-                            this.setState({...currentProduct, ...changes});
-                    }}/>
-                <span onClick={() => {
-                    attributes.splice(index, 1);
-                    changes = changes || {};
-                    changes.props = [...currentProduct.props];
-                    changes.props.splice(index, 1);
-                    if (show === 'editPage')
-                        this.setState({attributes, changes});
-                    else if (show === 'createPage')
-                        this.setState({attributes, currentProduct: {...currentProduct, ...changes}});
-                }} className='icon remove-button'/>
-            </div>
-        ))
+                            this.setState({currentProduct: {...currentProduct, ...changes}});
+                    };
+                    propInput = [{title: 'от', trans: 'after'}, {
+                        title: 'до',
+                        trans: 'before'
+                    }].map(({title, trans}, key) => (
+                        <div key={key}>
+                            <span>{title}</span>
+                            <input
+                                type='number'
+                                value={(show === 'editPage')
+                                    ? (changes && changes.props && changes.props[index])
+                                        ? (changes.props[index].value[trans] || '')
+                                        : (currentProduct.props[index].value[trans] || '')
+                                    : undefined}
+                                onChange={value => propOnChange(value, trans)}/>
+                        </div>
+                    ));
+                    break;
+            }
+            return (
+                <div key={index}>
+                    <span>{attributesHash[prop.attribute].title}</span>
+                    {propInput}
+                    <span onClick={() => {
+                        const newChanges = {...(changes || {})};
+                        newChanges.props = [...((changes && changes.props) || currentProduct.props || [])];
+                        newChanges.props.splice(index, 1);
+                        if (show === 'editPage')
+                            this.setState({changes: newChanges});
+                        else if (show === 'createPage')
+                            this.setState({currentProduct: {...currentProduct, ...newChanges}});
+                    }} className='icon remove-button'/>
+                </div>
+            )
+        })
     };
 
     renderProp(prop, key) {
@@ -288,20 +337,19 @@ export default class List extends React.Component {
         else if (prop === 'media')
             return <div key={key}>{this.renderMedia()}</div>;
         else {
-            let {currentProduct, changes, show} = this.state;
+            const {currentProduct, changes, show} = this.state;
             return (
                 <div key={key}>
                     <span>{prop}</span>
                     <Input
                         value={(show === 'editPage') ? ((changes && changes[prop]) || currentProduct[prop]) : undefined}
                         onChange={value => {
-                            const {show, currentProduct} = this.state;
-                            changes = changes || {};
-                            changes[prop] = value;
+                            const newChanges = {...(changes || {})};
+                            newChanges[prop] = value;
                             if (show === 'editPage')
-                                this.setState({changes});
+                                this.setState({changes: newChanges});
                             else if (show === 'createPage')
-                                this.setState({currentProduct: {...currentProduct, ...changes}});
+                                this.setState({currentProduct: {...currentProduct, ...newChanges}});
                         }}/>
                 </div>
             )
@@ -324,12 +372,11 @@ export default class List extends React.Component {
     };
 
     renderProps() {
-        return ['categoryID', 'code', 'name', 'price', 'slug', 'props'].map((prop, key) => this.renderProp(prop, key));
+        return ['media', 'categoryID', 'code', 'name', 'price', 'slug', 'props'].map((prop, key) => this.renderProp(prop, key));
     };
 
     render() {
         const {loading, show} = this.state;
-        console.log(this.state);
         if (loading)
             return <Loading/>;
         let actions = this.buttons;

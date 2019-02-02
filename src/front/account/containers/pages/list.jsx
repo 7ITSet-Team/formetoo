@@ -42,6 +42,8 @@ export default class List extends React.Component {
         };
         this.saveChanges = async () => {
             const {currentPage, changes, show} = this.state;
+            if ((show === 'editPage') && (Object.keys(changes || {}).length === 0))
+                return this.close();
             let data = currentPage;
             if (show === 'editPage')
                 data = {_id: currentPage._id, changes};
@@ -93,20 +95,19 @@ export default class List extends React.Component {
     };
 
     renderPropCheckBox(prop, key) {
-        const {currentPage, show} = this.state;
-        let {changes} = this.state;
+        const {currentPage, show, changes} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
                 <input type='checkbox'
                        defaultChecked={show === 'editPage' ? ((changes && changes[prop]) || currentPage[prop]) : false}
                        onChange={e => {
-                           changes = changes || {};
-                           changes[prop] = e.target.checked;
+                           const newChanges = {...(changes || {})};
+                           newChanges[prop] = e.target.checked;
                            if (show === 'editPage')
-                               this.setState({changes});
+                               this.setState({changes: newChanges});
                            else if (show === 'createPage')
-                               this.setState({currentPage: {...currentPage, ...changes}});
+                               this.setState({currentPage: {...currentPage, ...newChanges}});
                        }}/>
             </div>
         )
@@ -115,19 +116,18 @@ export default class List extends React.Component {
     renderProp(prop, key) {
         if (prop === 'inMainMenu')
             return this.renderPropCheckBox(prop, key);
-        const {currentPage, show} = this.state;
-        let {changes} = this.state;
+        const {currentPage, show, changes} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
                 <Input value={(show === 'editPage') ? ((changes && changes[prop]) || currentPage[prop]) : undefined}
                        onChange={value => {
-                           changes = changes || {};
-                           changes[prop] = value;
+                           const newChanges = {...(changes || {})};
+                           newChanges[prop] = value;
                            if (show === 'editPage')
-                               this.setState({changes});
+                               this.setState({changes: newChanges});
                            else if (show === 'createPage')
-                               this.setState({currentPage: {...currentPage, ...changes}});
+                               this.setState({currentPage: {...currentPage, ...newChanges}});
                        }}/>
             </div>
         )

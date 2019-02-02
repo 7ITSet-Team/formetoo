@@ -13,7 +13,6 @@ export default class List extends React.Component {
             loading: true,
             setsList: undefined,
             attributesList: undefined,
-            attributes: undefined,
             currentSet: undefined,
             currentAttribute: undefined,
             changes: undefined,
@@ -21,31 +20,23 @@ export default class List extends React.Component {
         };
         this.show = (page, currentSet) => {
             const {attributesList} = this.state;
-            let newState = {
+            const newState = {
                 show: page,
-                currentAttribute: {
-                    _id: attributesList[0]._id,
-                    name: attributesList[0].name
-                }
+                currentAttribute: attributesList[0]._id,
+                currentSet: {}
             };
             if (page === 'editPage') {
-                const attributesNames = [];
-                const setAttributes = [...currentSet.attributes];
-                setAttributes.forEach((attribute, index, _setAttributes) => {
-                    attributesNames.push(attribute.name);
-                    _setAttributes[index] = attribute._id;
-                });
-                newState.currentSet = {...currentSet, attributes: setAttributes};
-                newState.attributes = attributesNames;
-            } else
-                newState.currentSet = {};
+                const attributes = [...currentSet.attributes];
+                attributes.forEach((attribute, index, _attributes) => _attributes[index] = attribute._id);
+                newState.currentSet = {...currentSet, attributes};
+            }
             this.setState(newState);
         };
         this.close = () => this.setState({
             show: undefined,
             currentSet: undefined,
-            changes: undefined,
-            attributes: undefined
+            currentAttribute: undefined,
+            changes: undefined
         });
         this.updateSetsList = async () => {
             this.setState({loading: true});
@@ -57,6 +48,8 @@ export default class List extends React.Component {
         };
         this.saveChanges = async () => {
             const {changes, currentSet, show} = this.state;
+            if ((show === 'editPage') && (Object.keys(changes || {}).length === 0))
+                return this.close();
             let data = currentSet;
             if (show === 'editPage')
                 data = {_id: currentSet._id, changes};
@@ -103,52 +96,45 @@ export default class List extends React.Component {
     async getInitialDataFromSrv() {
         const {errorS, data: setsList} = await API.request('attribute-sets', 'list');
         const {errorA, data: attributesList} = await API.request('attributes', 'list');
+        const attributesHash = {};
+        attributesList.forEach(attribute => attributesHash[attribute._id] = attribute);
         if (!errorS && !errorA)
-            this.setState({loading: false, setsList, attributesList});
+            this.setState({loading: false, setsList, attributesList, attributesHash});
         else
             Message.send('ошибка при получении списка наборов атрибутов, повторите попытку позже', Message.type.danger);
     };
 
     renderAttributes(prop, key) {
-        const {attributesList, currentAttribute, currentSet, show} = this.state;
-        let {changes, attributes} = this.state;
+        const {attributesList, currentAttribute, currentSet, show, changes, attributesHash} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
-                <select onChange={e => {
-                    this.setState({
-                        currentAttribute: {
-                            _id: e.target.value,
-                            name: e.target.options[e.target.selectedIndex].text
-                        }
-                    })
-                }}>
+                <select onChange={e => this.setState({currentAttribute: e.target.value})}>
                     {attributesList.map((attribute, index) => (
-                        <option value={attribute._id} key={index}>{attribute.name}</option>
+                        <option value={attribute._id} key={index}>{attribute.title}</option>
                     ))}
                 </select>
                 <button onClick={() => {
-                    changes = changes || {};
-                    changes[prop] = [...(changes[prop] || currentSet[prop] || []), currentAttribute._id];
-                    attributes = [...(attributes || []), currentAttribute.name];
+                    const newChanges = {...(changes || {})};
+                    newChanges[prop] = [...((changes && changes[prop]) || currentSet[prop] || []), currentAttribute];
                     if (show === 'editPage')
-                        this.setState({attributes, changes});
+                        this.setState({changes: newChanges});
                     else if (show === 'createPage')
-                        this.setState({attributes, currentSet: {...currentSet, ...changes}});
+                        this.setState({currentSet: {...currentSet, ...newChanges}});
                 }}>add
                 </button>
-                {(attributes || []).map((attribute, index) => (
+                {((changes && changes.attributes) || (currentSet && currentSet.attributes) || []).map((attribute, index) => (
                     <div key={index}>
-                        <span>{attribute}</span>
+                        <span>{attributesHash[attribute].title}</span>
                         <span onClick={() => {
-                            attributes.splice(index, 1);
-                            currentSet.attributes.splice(index, 1);
-                            changes = changes || {};
-                            changes[prop] = currentSet.attributes;
+                            const newAttributes = [...((changes && changes.attributes) || currentSet.attributes)];
+                            newAttributes.splice(index, 1);
+                            const newChanges = {...(changes || {})};
+                            newChanges[prop] = newAttributes;
                             if (show === 'editPage')
-                                this.setState({attributes, changes});
+                                this.setState({changes: newChanges});
                             else if (show === 'createPage')
-                                this.setState({attributes, currentSet});
+                                this.setState({currentSet: {...currentSet, ...newChanges}});
                         }} className='icon remove-button'/>
                     </div>
                 ))}
@@ -159,19 +145,18 @@ export default class List extends React.Component {
     renderProp(prop, key) {
         if (prop === 'attributes')
             return this.renderAttributes(prop, key);
-        const {currentSet, show} = this.state;
-        let {changes} = this.state;
+        const {currentSet, show, changes} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
                 <Input value={(show === 'editPage') ? ((changes && changes[prop]) || currentSet[prop]) : undefined}
                        onChange={value => {
-                           changes = changes || {};
-                           changes[prop] = value;
+                           const newChanges = {...(changes || {})};
+                           newChanges[prop] = value;
                            if (show === 'editPage')
-                               this.setState({changes});
+                               this.setState({changes: newChanges});
                            else if (show === 'createPage')
-                               this.setState({currentSet: {...currentSet, ...changes}});
+                               this.setState({currentSet: {...currentSet, ...newChanges}});
                        }}/>
             </div>
         )
@@ -185,7 +170,7 @@ export default class List extends React.Component {
         const {setsList} = this.state;
         return (setsList || []).map((set, key) => (
             <div className='a--list-item' key={key}>
-                <span>{set.name}</span>
+                <span>{set.title}</span>
                 <span onClick={() => this.show('editPage', set)} className='icon pencil'/>
                 <span onClick={() => this.deleteSet(set._id)} className='icon remove-button'/>
             </div>

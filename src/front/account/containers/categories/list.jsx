@@ -40,6 +40,8 @@ export default class List extends React.Component {
         };
         this.saveChanges = async () => {
             const {currentCategory, changes, show} = this.state;
+            if ((show === 'editPage') && (Object.keys(changes || {}).length === 0))
+                return this.close();
             let data = currentCategory;
             if (show === 'editPage')
                 data = {_id: currentCategory._id, changes};
@@ -92,19 +94,20 @@ export default class List extends React.Component {
     };
 
     renderPropMedia(prop, key) {
-        const {currentCategory, changes} = this.state;
+        const {currentCategory, changes, show} = this.state;
         return (
             <div key={key}>
-                {currentCategory && currentCategory[prop]
+                {((changes && changes[prop]) || (currentCategory && currentCategory[prop]))
                     ? (
                         <>
-                            <img src={currentCategory[prop]}/>
+                            <img src={((changes && changes[prop]) || currentCategory[prop])}/>
                             <div className="icon remove-button" onClick={() => {
-                                const newChanges = {...changes};
+                                const newChanges = {...(changes || {})};
                                 delete newChanges.img;
-                                const newCategory = {...currentCategory};
-                                delete newCategory.img;
-                                this.setState({changes: newChanges, currentCategory: newCategory})
+                                if (show === 'editPage')
+                                    this.setState({changes: newChanges});
+                                else if (show === 'createPage')
+                                    this.setState({currentCategory: {...currentCategory, ...newChanges}})
                             }}/>
                         </>
                     )
@@ -118,8 +121,7 @@ export default class List extends React.Component {
     renderProp(prop, key) {
         if (prop === 'img')
             return this.renderPropMedia(prop, key);
-        const {currentCategory, show} = this.state;
-        let {changes} = this.state;
+        const {currentCategory, show, changes} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
@@ -131,12 +133,12 @@ export default class List extends React.Component {
                             <Input
                                 value={(show === 'editPage') ? ((changes && changes[prop]) || currentCategory[prop]) : undefined}
                                 onChange={value => {
-                                    changes = changes || {};
-                                    changes[prop] = value;
+                                    const newChanges = {...(changes || {})};
+                                    newChanges[prop] = value;
                                     if (show === 'editPage')
-                                        this.setState({changes});
+                                        this.setState({changes: newChanges});
                                     else if (show === 'createPage')
-                                        this.setState({currentCategory: {...currentCategory, ...changes}});
+                                        this.setState({currentCategory: {...currentCategory, ...newChanges}});
                                 }}/>
                         )
                 }
