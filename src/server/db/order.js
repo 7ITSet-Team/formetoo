@@ -17,6 +17,10 @@ export default db => {
         finalSum: Number
     }, {collection: __modelName});
 
+    schema.statics.getAll = async function () {
+        return await this.find({}, {__v: 0});
+    };
+
     schema.statics.getByUser = async function (user) {
         const orders = await this.find({
             userID: new mongoose.Types.ObjectId(user._id),

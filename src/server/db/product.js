@@ -44,6 +44,10 @@ export default db => {
         return await this.findOne({slug}, {__v: 0});
     };
 
+    schema.statics.getByID = async function (ids) {
+        return await this.find({_id: {$in: ids}}, {__v: 0});
+    };
+
     schema.statics.getByCategoryID = async function (categoryID) {
         return await this.find({categoryID: new mongoose.Types.ObjectId(categoryID)}, {__v: 0});
     };
