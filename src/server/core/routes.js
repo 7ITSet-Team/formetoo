@@ -31,6 +31,7 @@ import attributeSetsUpdate from '@server/controllers/attribute-sets/update';
 import categoriesList from '@server/controllers/categories/list';
 import categoriesUpdate from '@server/controllers/categories/update';
 import ordersList from '@server/controllers/orders/list';
+import ordersUpdate from '@server/controllers/orders/update';
 
 export default {
     guest: {
@@ -77,7 +78,8 @@ export default {
     },
     orders: {
         orders: {
-            'list': ordersList
+            'list': ordersList,
+            'update': ordersUpdate
         }
     },
     users: {

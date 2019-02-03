@@ -19,11 +19,26 @@ export default class List extends React.Component {
             changes: undefined,
             show: undefined
         };
-        this.show = (page, currentOrder) => {
+        this.show = (currentOrder) => {
             const {productsList} = this.state;
-            this.setState({show: page, currentOrder, currentProduct: productsList[0]._id})
+            this.setState({show: 'editPage', currentOrder, currentProduct: productsList[0]._id})
         };
         this.close = () => this.setState({show: undefined, currentOrder: undefined, changes: undefined});
+        this.saveChanges = async () => {
+            const {changes, currentOrder} = this.state;
+            if (Object.keys(changes || {}).length === 0)
+                return this.close();
+            const data = {_id: currentOrder._id, changes};
+            const {error} = await API.request('orders', 'update', data);
+            if (error) {
+                Message.send(`ошибка при редактировании заказа, повторите попытку позже`, Message.type.danger);
+                this.close();
+            } else {
+                Message.send(`заказ успешно изменен`, Message.type.success);
+                this.close();
+                this.updateOrdersList();
+            }
+        };
         this.updateOrdersList = async () => {
             this.setState({loading: true});
             const {error, data: ordersList} = await API.request('orders', 'list');
@@ -33,13 +48,12 @@ export default class List extends React.Component {
                 Modal.send('ошибка при обновлении списка заказов, повторите попытку позже', Message.type.danger);
         };
         this.deleteOrder = async orderID => {
-            const {currentOrder, show} = this.state;
+            const {currentOrder} = this.state;
             const {error} = await API.request('orders', 'update', {_id: (orderID || currentOrder._id)});
             if (error)
                 Message.send('ошибка при удалении заказа, повторите попытку позже', Message.type.danger);
             else {
-                if (show === 'editPage')
-                    this.close();
+                this.close();
                 this.updateOrdersList();
                 Message.send('заказ успешно удален', Message.type.success);
             }
@@ -54,6 +68,11 @@ export default class List extends React.Component {
                 name: 'закрыть',
                 types: 'secondary',
                 handler: this.close
+            },
+            {
+                name: 'удалить',
+                types: 'danger',
+                handler: this.deleteOrder
             }
         ];
     };
@@ -78,14 +97,14 @@ export default class List extends React.Component {
         return (ordersList || []).map((order, key) => (
             <div className='a--list-item' key={key}>
                 <span>{order.status}</span>
-                <span onClick={() => this.show('editPage', order)} className='icon pencil'/>
-                <span onClick={() => this.deleteAttribute(order._id)} className='icon remove-button'/>
+                <span onClick={() => this.show(order)} className='icon pencil'/>
+                <span onClick={() => this.deleteOrder(order._id)} className='icon remove-button'/>
             </div>
         ))
     };
 
     renderProductsProp(prop, key) {
-        const {changes, currentOrder, show, productsList, productsHash} = this.state;
+        const {changes, currentOrder, productsList, productsHash} = this.state;
         return (
             <div key={key}>
                 {((changes && changes.products) || (currentOrder && currentOrder.products) || []).map(({count, _id}, index) => (
@@ -104,10 +123,7 @@ export default class List extends React.Component {
                                     ...((changes && changes.products[index]) || (currentOrder && currentOrder.products[index]) || {}),
                                     count: e.target.value
                                 };
-                                if (show === 'editPage')
-                                    this.setState({changes: newChanges});
-                                else if (show === 'createPage')
-                                    this.setState({currentOrder: {...currentOrder, ...newChanges}})
+                                this.setState({changes: newChanges});
                             }}/>
                         <span onClick={() => {
                             const newChanges = {...(changes || {})};
@@ -115,10 +131,7 @@ export default class List extends React.Component {
                                 ...((changes && changes.products) || (currentOrder && currentOrder.products) || [])
                             ];
                             newChanges.products.splice(index, 1);
-                            if (show === 'editPage')
-                                this.setState({changes: newChanges});
-                            else if (show === 'createPage')
-                                this.setState({currentOrder: {...currentOrder, ...newChanges}});
+                            this.setState({changes: newChanges});
                         }} className='icon remove-button'/>
                     </div>
                 ))}
@@ -134,11 +147,9 @@ export default class List extends React.Component {
                         ...((changes && changes.products) || (currentOrder && currentOrder.products) || [])
                     ];
                     newChanges.products.push({count: 1, _id: currentProduct});
-                    if (show === 'editPage')
-                        this.setState({changes: newChanges});
-                    else if (show === 'createPage')
-                        this.setState({currentOrder: {...currentOrder, ...newChanges}});
-                }}>add product</button>
+                    this.setState({changes: newChanges});
+                }}>add product
+                </button>
             </div>
         )
     };
@@ -146,6 +157,31 @@ export default class List extends React.Component {
     renderProp(prop, key) {
         if (prop === 'products')
             return this.renderProductsProp(prop, key);
+        else if ((prop === 'createDate') || (prop === 'statusDate')) {
+            const {currentOrder} = this.state;
+            const date = (currentOrder && new Date(currentOrder[prop]));
+            return (
+                <div key={key}>
+                    <span>{prop}</span>
+                    <div/>
+                    <span>{date && date.toLocaleString()}</span>
+                </div>
+            )
+        } else {
+            const {changes, currentOrder} = this.state;
+            return (
+                <div key={key}>
+                    <span>{prop}</span>
+                    <Input
+                        value={(changes && changes[prop]) || (currentOrder && currentOrder[prop])}
+                        onChange={value => {
+                            const newChanges = {...(changes || {})};
+                            newChanges[prop] = value;
+                            this.setState({changes: newChanges});
+                        }}/>
+                </div>
+            )
+        }
     };
 
     renderProps() {
@@ -154,22 +190,13 @@ export default class List extends React.Component {
 
     render() {
         const {loading, show} = this.state;
-        console.log(this.state)
+        console.log(this.state);
         if (loading)
             return <Loading/>;
-        let actions = this.buttons;
-        if (show === 'editPage')
-            actions = [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deleteOrder}];
         return (
             <>
-                <div className='c--items-group'>
-                    <button className='c--btn c--btn--primary' onClick={() => this.show('createPage')}>add new</button>
-                </div>
                 {this.renderList()}
-                <Modal title='Редактирование' show={(show === 'editPage')} buttons={actions} onClose={this.close}>
-                    <div>{this.renderProps()}</div>
-                </Modal>
-                <Modal title='Создание' show={(show === 'createPage')} buttons={actions} onClose={this.close}>
+                <Modal title='Редактирование' show={(show === 'editPage')} buttons={this.buttons} onClose={this.close}>
                     <div>{this.renderProps()}</div>
                 </Modal>
             </>

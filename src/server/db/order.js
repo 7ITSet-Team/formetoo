@@ -21,6 +21,13 @@ export default db => {
         return await this.find({}, {__v: 0});
     };
 
+    schema.statics.update = async function (data) {
+        const ok = data.changes
+            ? (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok
+            : (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+        return (ok === 1);
+    };
+
     schema.statics.getByUser = async function (user) {
         const orders = await this.find({
             userID: new mongoose.Types.ObjectId(user._id),
@@ -81,7 +88,7 @@ export default db => {
 
         this.products.push({count: Math.max(count, 0), _id: product._id});
         await this.save();
-        return;
+
     };
 
     schema.methods.setStatus = async function (newStatus) {
