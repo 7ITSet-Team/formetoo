@@ -185,12 +185,11 @@ export default class List extends React.Component {
     };
 
     renderProps() {
-        return ['createDate', 'products', 'status', 'statusDate'].map((prop, key) => this.renderProp(prop, key));
+        return ['createDate', 'products', 'status', 'statusDate', 'deliveryAddress', 'comment'].map((prop, key) => this.renderProp(prop, key));
     };
 
     render() {
         const {loading, show} = this.state;
-        console.log(this.state);
         if (loading)
             return <Loading/>;
         return (

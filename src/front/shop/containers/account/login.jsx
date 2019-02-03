@@ -1,6 +1,7 @@
 import React from 'react';
 import {Link, Redirect} from 'react-router-dom';
 
+import API from '@common/core/api';
 import Modal from '@components/ui/modal';
 import Input from '@components/ui/input';
 import Message from '@components/ui/message';
@@ -24,6 +25,7 @@ export default class Login extends React.Component {
         this.close = e => this.setState({show: false});
         this.login = async e => {
             let {email, password} = this.state;
+            const {update, isInOrder} = this.props;
             email = email.trim();
 
             if (!email || !/^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i.test(email))
@@ -35,13 +37,18 @@ export default class Login extends React.Component {
                 email,
                 password: UserModel.getHash(email, password)
             });
-            if (success)
+            if (success) {
                 this.setState({
                     show: false,
                     email: '',
                     password: '',
                     redirect: true
                 });
+                if (isInOrder) {
+                    update();
+                    await API.request('cart', 'set-id');
+                }
+            }
         };
         this.buttons = [
             {
@@ -68,10 +75,11 @@ export default class Login extends React.Component {
 
     render() {
         const {show, email, password, redirect, authorised} = this.state;
-        if (redirect)
+        const {isInOrder} = this.props;
+        if (redirect && !isInOrder)
             return (<Redirect to={{pathname: '/account'}}/>);
 
-        if (authorised)
+        if (authorised && !isInOrder)
             return (
                 <Link to='/account' rel='nofollow' className='c--btn c--btn--icon'>
                     <span className='icon plus-in-circle'/>

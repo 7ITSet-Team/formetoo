@@ -11,6 +11,7 @@ import check from '@server/controllers/auth/check';
 import forgot from '@server/controllers/auth/forgot';
 import changePassword from '@server/controllers/auth/change-password';
 import cartInfo from '@server/controllers/cart/info';
+import cartSetID from '@server/controllers/cart/set-id';
 import placingOrders from '@server/controllers/cart/placing-orders';
 import putInOrder from '@server/controllers/cart/put-in-order';
 import rolesList from '@server/controllers/roles/list';
@@ -42,6 +43,7 @@ export default {
         },
         cart: {
             'info': cartInfo,
+            'placing-orders': placingOrders,
             'put-in-order': putInOrder
         },
         content: {
@@ -60,7 +62,8 @@ export default {
     },
     client: {
         cart: {
-            'placing-orders': placingOrders
+            'placing-orders': placingOrders,
+            'set-id': cartSetID
         }
     },
     media: {},

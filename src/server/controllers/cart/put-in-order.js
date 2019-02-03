@@ -7,7 +7,7 @@ export default async (db, req, res, data) => {
 
     let order = await db.order.getByUserOrOrderToken(user, req.cookies.orderJWT);
     if (!order) {
-        order = await db.order.createNewOrder();
+        order = await db.order.createNewOrder(user);
         const token = jwt.sign({id: order._id}, Config.jwt.secret);
         res.cookie('orderJWT', token, {maxAge: Config.jwt.lifetime, httpOnly: false});
     }

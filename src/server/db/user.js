@@ -19,7 +19,7 @@ export default db => {
         phone: {
             type: String,
             unique: true,
-            required: true
+            //required: true
         },
         name: {
             type: String,
@@ -46,7 +46,7 @@ export default db => {
         return await this.findOne({_id: new mongoose.Types.ObjectId(payload.id)});
     };
 
-    schema.statics.getAll = async function (id) {
+    schema.statics.getAll = async function () {
         return await this.find({}, {__v: 0, password: 0});
     };
 
@@ -71,7 +71,7 @@ export default db => {
         if (!this.role)
             return [];
 
-        if (this.role==='root'){
+        if (this.role === 'root') {
             const rootPermissions = Object.keys(Routes);
             rootPermissions.splice(rootPermissions.indexOf('guest'), 1);
             return rootPermissions;
@@ -86,16 +86,15 @@ export default db => {
 
     schema.statics.update = async function (data) {
         const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(data._id)});
-        let ok;
-        if (isExist)
-            ok = data.changes
+        if (isExist) {
+            const ok = data.changes
                 ? (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok
                 : (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
-        else {
-            await this.create(data);
-            ok = 1;
+            return {error: (ok !== 1)};
+        } else {
+            const newUser = await this.create(data);
+            return {newUser, error: !newUser};
         }
-        return (ok === 1);
     };
 
     schema.set('autoIndex', false);

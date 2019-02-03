@@ -14,7 +14,9 @@ export default db => {
             type: String,
             required: true
         },
-        finalSum: Number
+        finalSum: Number,
+        deliveryAddress: String,
+        comment: String
     }, {collection: __modelName});
 
     schema.statics.getAll = async function () {
@@ -26,6 +28,11 @@ export default db => {
             ? (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok
             : (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
         return (ok === 1);
+    };
+
+    schema.statics.setUserID = async function (user, token) {
+        const payload = jwt.verify(token, Config.jwt.secret);
+        console.log(await this.updateOne({_id: new mongoose.Types.ObjectId(payload.id)}, {$set: {userID: user._id}}));
     };
 
     schema.statics.getByUser = async function (user) {
@@ -91,8 +98,10 @@ export default db => {
 
     };
 
-    schema.methods.setStatus = async function (newStatus) {
-        this.status = newStatus;
+    schema.methods.setInfo = async function (info) {
+        this.status = info.status;
+        this.deliveryAddress = info.deliveryAddress;
+        this.comment = info.comment;
         await this.save();
     };
 

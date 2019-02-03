@@ -51,7 +51,8 @@ export default class Cart {
         return (this.productsIDs && this.productsIDs[item._id]);
     };
 
-    static async orderPlacement() {
-        alert('under construction');
+    static async orderPlacement(data) {
+        const {error} = await API.request('cart', 'placing-orders', data);
+        return error;
     };
 };
