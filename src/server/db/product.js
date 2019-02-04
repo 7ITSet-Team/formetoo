@@ -79,7 +79,7 @@ export default db => {
         attributes.forEach(attribute => attributesHash[attribute._id] = attribute);
         return products.map(product => ({
             ...product.toJSON(),
-            props: (product.toJSON()).props.map(prop => attributesHash[prop.attribute])
+            props: (product.toJSON()).props.map(prop => ({...prop, attribute: attributesHash[prop.attribute]}))
         }));
     };
 
