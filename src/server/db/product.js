@@ -68,7 +68,19 @@ export default db => {
     };
 
     schema.statics.getAll = async function (options = {__v: 0}) {
-        return await this.find({}, options);
+        const products = await this.find({}, options);
+        const attributeIDs = [];
+        products.forEach(product => {
+            const props = product.props;
+            props.forEach(prop => (!attributeIDs.includes(prop.attribute) && attributeIDs.push(prop.attribute)));
+        });
+        const attributes = await db.attribute.getByID(attributeIDs);
+        let attributesHash = {};
+        attributes.forEach(attribute => attributesHash[attribute._id] = attribute);
+        return products.map(product => ({
+            ...product.toJSON(),
+            props: (product.toJSON()).props.map(prop => attributesHash[prop.attribute])
+        }));
     };
 
     schema.statics.update = async function (data) {
