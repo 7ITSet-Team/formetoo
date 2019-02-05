@@ -27,8 +27,6 @@ export default class DBGenerator {
             item.name = 'Продукт ' + artCounter;
             item.slug = 'product' + artCounter;
             item.price = 1000 * artCounter;
-            const img = '/uploads/on5fbrxucpmhtzkklqtm.jpg';
-            item.media = [img, img, img];
             await new collection(item).save()
         });
         await DBGenerator.setData('role', roles, async (item, collection) => await new collection(item).save());

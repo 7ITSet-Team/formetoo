@@ -49,7 +49,7 @@ export default class Parser {
         ATTRIBUTE_ID:VALUE,ATTRIBUTE_ID:VALUE,ATTRIBUTE_ID:VALUE,ATTRIBUTE_ID:VALUE;
 
          */
-        const columnsTitles = Object.keys(data[0].toJSON());
+        const columnsTitles = Object.keys(data[0]);
 
         let text = '';
         for (let columnIndex = 0; columnIndex < columnsTitles.length; columnIndex++) {

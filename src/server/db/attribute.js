@@ -37,10 +37,12 @@ export default db => {
             if (data.changes)
                 ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok;
             else {
-                const attributeOk = (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
-                const setOk = (await db.attributeSet.removeAttribute(data)).ok;
-                const productOk = (await db.product.removeAttribute(data)).ok;
-                ok = (attributeOk && setOk && productOk) ? 1 : undefined;
+                const rmAttrPromise = this.remove({_id: new mongoose.Types.ObjectId(data._id)});
+                const rmAttrSetPromise = db.attributeSet.removeAttribute(data);
+                const rmAttrProductPromise = db.product.removeAttribute(data);
+                ok = ((await rmAttrPromise).ok && (await rmAttrSetPromise).ok && (await rmAttrProductPromise).ok)
+                    ? 1
+                    : undefined;
             }
         else {
             await this.create(data);

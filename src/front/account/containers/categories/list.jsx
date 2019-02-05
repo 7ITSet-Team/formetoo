@@ -11,6 +11,7 @@ export default class List extends React.Component {
         super(props);
         this.state = {
             loading: true,
+            sendLoading: false,
             categoriesList: undefined,
             currentCategory: undefined,
             changes: undefined,
@@ -39,6 +40,7 @@ export default class List extends React.Component {
             }
         };
         this.saveChanges = async () => {
+            this.setState({sendLoading: true});
             const {currentCategory, changes, show} = this.state;
             if ((show === 'editPage') && (Object.keys(changes || {}).length === 0))
                 return this.close();
@@ -47,9 +49,11 @@ export default class List extends React.Component {
                 data = {_id: currentCategory._id, changes};
             const {error} = await API.request('categories', 'update', data);
             if (error) {
+                this.setState({sendLoading: false});
                 Message.send(`ошибка при ${(show === 'editPage') ? 'редактировании' : 'создании'} категории, повторите попытку позже`, Message.type.danger);
                 this.close();
             } else {
+                this.setState({sendLoading: false});
                 Message.send(`категория успешно ${(show === 'editPage') ? 'изменен' : 'создан'}`, Message.type.success);
                 this.close();
                 this.updateCategoriesList();
@@ -95,25 +99,44 @@ export default class List extends React.Component {
 
     renderPropMedia(prop, key) {
         const {currentCategory, changes, show} = this.state;
+        const wasImgChanged = !!(changes && (changes[prop] || changes[prop] === ''));
+        const isExistInCategory = !!(currentCategory && currentCategory[prop]);
+        const isExistInChanges = !!(changes && changes[prop] && changes[prop] !== '');
         return (
             <div key={key}>
-                {((changes && changes[prop]) || (currentCategory && currentCategory[prop]))
-                    ? (
-                        <>
-                            <img src={((changes && changes[prop]) || currentCategory[prop])}/>
-                            <div className="icon remove-button" onClick={() => {
-                                const newChanges = {...(changes || {})};
-                                delete newChanges.img;
-                                if (show === 'editPage')
-                                    this.setState({changes: newChanges});
-                                else if (show === 'createPage')
-                                    this.setState({currentCategory: {...currentCategory, ...newChanges}})
-                            }}/>
-                        </>
-                    )
-                    : (
-                        <button>add image</button>
-                    )}
+                {wasImgChanged
+                    ? isExistInChanges && <img width='400' height='400' src={changes[prop].url}/>
+                    : isExistInCategory && <img width='400' height='400' src={currentCategory[prop].url}/>}
+                {(isExistInChanges || (isExistInCategory && !wasImgChanged)) && (
+                    <span onClick={() => {
+                        const newChanges = {...(changes || {})};
+                        newChanges[prop] = '';
+                        if (show === 'editPage')
+                            this.setState({changes: newChanges});
+                        else if (show === 'createPage')
+                            this.setState({currentCategory: {...currentCategory, ...newChanges}});
+                    }} className='icon remove-button'/>
+                )}
+                <input type='file' onChange={e => {
+                    const file = e.target.files[0];
+                    if (file.size < 10 * 1024 * 1024) {
+                        const reader = new FileReader();
+                        reader.onload = r => {
+                            const dataURL = reader.result;
+                            if (show === 'editPage')
+                                this.setState({changes: {...changes, img: {name: file.name, url: dataURL}}});
+                            else
+                                this.setState({
+                                    currentCategory: {
+                                        ...currentCategory,
+                                        img: {name: file.name, url: dataURL}
+                                    }
+                                });
+                        };
+                        reader.readAsDataURL(file);
+                    } else
+                        Message.send('файл слишком большой', Message.types.danger);
+                }}/>
             </div>
         )
     };
@@ -151,7 +174,7 @@ export default class List extends React.Component {
     };
 
     render() {
-        const {loading, show, currentCategory} = this.state;
+        const {loading, show, currentCategory, sendLoading} = this.state;
         if (loading)
             return <Loading/>;
         let actions = this.buttons;
@@ -164,10 +187,16 @@ export default class List extends React.Component {
                 </div>
                 {this.renderList()}
                 <Modal title='Редактирование' show={(show === 'editPage')} buttons={actions} onClose={this.close}>
-                    <div>{this.renderProps()}</div>
+                    <div>
+                        {this.renderProps()}
+                        {sendLoading && <Loading/>}
+                    </div>
                 </Modal>
                 <Modal title='Создание' show={(show === 'createPage')} buttons={actions} onClose={this.close}>
-                    <div>{this.renderProps()}</div>
+                    <div>
+                        {this.renderProps()}
+                        {sendLoading && <Loading/>}
+                    </div>
                 </Modal>
             </>
         )

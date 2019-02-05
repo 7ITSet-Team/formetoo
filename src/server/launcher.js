@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
 
 import Config from '@project/config';
 import RPC from '@server/core/rpc';
@@ -16,7 +17,8 @@ router.use(express.static(path.resolve('build', 'public'), {maxAge: '30d'}));
 router.get('*', Renderer);
 //API handlers
 router.use(cookieParser());
-router.use(express.json());
+router.use(bodyParser.json({limit: '50mb'}));
+router.use(bodyParser.urlencoded({limit: '50mb'}));
 router.post('/api/', RPC.router);
 server.use(router);
 

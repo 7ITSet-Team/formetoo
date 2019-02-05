@@ -33,6 +33,8 @@ import categoriesList from '@server/controllers/categories/list';
 import categoriesUpdate from '@server/controllers/categories/update';
 import ordersList from '@server/controllers/orders/list';
 import ordersUpdate from '@server/controllers/orders/update';
+import mediaList from '@server/controllers/media/list';
+import mediaUpdate from '@server/controllers/media/update';
 
 export default {
     guest: {
@@ -66,7 +68,12 @@ export default {
             'set-id': cartSetID
         }
     },
-    media: {},
+    media: {
+        media: {
+            'list': mediaList,
+            'update': mediaUpdate
+        }
+    },
     attributes: {
         attributes: {
             'list': attributesList,

@@ -32,7 +32,7 @@ export default db => {
 
     schema.statics.setUserID = async function (user, token) {
         const payload = jwt.verify(token, Config.jwt.secret);
-        console.log(await this.updateOne({_id: new mongoose.Types.ObjectId(payload.id)}, {$set: {userID: user._id}}));
+        await this.updateOne({_id: new mongoose.Types.ObjectId(payload.id)}, {$set: {userID: user._id}});
     };
 
     schema.statics.getByUser = async function (user) {

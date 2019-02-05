@@ -17,11 +17,17 @@ export default db => {
     }, {collection: __modelName, autoIndex: false});
 
     schema.statics.getAll = async function () {
-        return await this.find({}, {__v: 0});
+        const categories = await this.find({}, {__v: 0});
+        const mediaIDs = [];
+        categories.forEach(({img}) => (img !== '') && (!mediaIDs.includes(img)) && mediaIDs.push(img));
+        const media = await db.media.getByID(mediaIDs);
+        const mediaHash = {};
+        media.forEach(item => mediaHash[item._id] = item);
+        return categories.map(category => ({...category.toJSON(), img: mediaHash[(category.toJSON()).img]}));
     };
 
     schema.statics.getBySlug = async function (slug) {
-        return await this.findOne({slug}, { __v: 0});
+        return await this.findOne({slug}, {__v: 0});
     };
 
     schema.statics.update = async function (data) {
@@ -31,9 +37,13 @@ export default db => {
             if (data.changes)
                 ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok;
             else {
-                const categoryOk = (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
-                const productOk = (await db.product.removeCategory(data)).ok;
-                ok = (categoryOk && productOk) ? 1 : undefined;
+                const category = await this.findOne({_id: data._id});
+                const mediaOk = (await db.media.update({_id: new mongoose.Types.ObjectId(category.img)})).isSuccess;
+                const rmCatPromise = this.remove({_id: new mongoose.Types.ObjectId(data._id)});
+                const rmCatProductPromise = db.product.removeCategory(data);
+                ok = ((await rmCatPromise).ok && (await rmCatProductPromise).ok && mediaOk)
+                    ? 1
+                    : undefined;
             }
         else {
             await this.create(data);

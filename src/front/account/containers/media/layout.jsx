@@ -1,16 +1,21 @@
 import React from 'react';
 
-import Loading from '@components/ui/loading';
+import List from '@account/containers/media/list';
+import Tabs from '@components/ui/tabs';
 
 export default class Layout extends React.Component {
     constructor(props) {
         super(props);
+        this.rootPath = '/account/media';
+        this.links = [
+            {path: this.rootPath + '/list', title: 'Список картинок', component: List}
+        ];
     };
 
     render() {
         return (
             <div>
-                Страница медиа-файлов\nНе готово.
+                <Tabs links={this.links} redirect={{from: this.rootPath, to: this.links[0].path}}/>
             </div>
         );
     };
