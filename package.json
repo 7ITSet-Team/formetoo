@@ -7,7 +7,7 @@
     "pm2-restart": "pm2 delete new-formetoo && pm2 start build/server.js --name new-formetoo",
     "pm2-start": "pm2 start build/server.js --name new-formetoo",
     "start": "node build/server.js",
-    "dev": "NODE_ENV=development node config/webpack.build.js",
+    "dev": "cross-env NODE_ENV=development node config/webpack.build.js",
     "prod": "node config/webpack.build.js",
     "init": "node build/init.js"
   },
@@ -39,6 +39,7 @@
     "babel-loader": "8.0.4",
     "babel-polyfill": "6.26.0",
     "copy-webpack-plugin": "4.5.4",
+    "cross-env": "^5.2.0",
     "css-loader": "1.0.0",
     "ejs-compiled-loader": "1.1.0",
     "file-loader": "2.0.0",

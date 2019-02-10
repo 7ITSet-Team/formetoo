@@ -44,8 +44,8 @@ export default db => {
 		await this.create({time: new Date(), user, method});
 	};
 
-	schema.statics.delete = async function (data) {
-		return await this.remove({_id: new mongoose.Types.ObjectId(data._id)});
+	schema.statics.deleteAll = async function () {
+		return await this.remove({});
 	};
 
 	schema.set('autoIndex', false);

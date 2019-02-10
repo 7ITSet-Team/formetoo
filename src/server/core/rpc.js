@@ -30,7 +30,7 @@ export default class RPC {
 			if (handler)
 				permissionScope = permission;
 		});
-		if (handler && (!['guest, client'].includes(permissionScope)) && (action !== 'list') && (controller !== 'logs'))
+        if (handler && (!['guest, client'].includes(permissionScope)) && (action !== 'list'))
 			RPC.db.log.insert(controller, action, {...data, userByToken: user});
 		return {user, handler};
 	};

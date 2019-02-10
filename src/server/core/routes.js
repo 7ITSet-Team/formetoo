@@ -36,7 +36,7 @@ import ordersUpdate from '@server/controllers/orders/update';
 import mediaList from '@server/controllers/media/list';
 import mediaUpdate from '@server/controllers/media/update';
 import logsList from '@server/controllers/logs/list';
-import logsUpdate from '@server/controllers/logs/update';
+import logsDelete from '@server/controllers/logs/delete';
 
 export default {
     guest: {
@@ -133,7 +133,7 @@ export default {
     logs: {
         logs: {
             'list': logsList,
-            'update': logsUpdate
+            'delete-all': logsDelete
         }
     }
 };

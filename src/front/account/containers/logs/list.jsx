@@ -24,30 +24,14 @@ export default class List extends React.Component {
 			else
 				Message.send('ошибка при обновлении списка логов, повторите попытку позже');
 		};
-		this.deleteLog = async logID => {
-			const {error} = await API.request('logs', 'update', {_id: logID});
+        this.deleteLogs = async () => {
+            const {error} = await API.request('logs', 'delete-all');
 			if (!error) {
 				this.updateLogsList();
 				Message.send('логи успешно удалены', Message.type.success);
 			} else
 				Message.send('ошибка при удалении логов, повторите попытку позже', Message.type.danger);
 		};
-		this.buttons = [
-			{
-				name: 'сохранить',
-				types: 'primary',
-				handler: this.saveChanges
-			},
-			{
-				name: 'закрыть',
-				types: 'secondary',
-				handler: this.close
-			}, {
-				name: 'удалить',
-				types: 'danger',
-				handler: this.deleteLog
-			}
-		];
 	};
 
 	componentWillMount() {
@@ -69,7 +53,6 @@ export default class List extends React.Component {
 					<span style={{color: 'green'}}>{log.user.email}</span> <span
 						style={{color: 'red'}}>{log.method.action} {log.method.controller}</span> {(new Date(log.time)).toLocaleString()}
 					<span onClick={() => this.show(log)} className='icon pencil'/>
-					<span onClick={() => this.deleteLog(log._id)} className='icon remove-button'/>
 				</div>
 		))
 	};
@@ -97,11 +80,13 @@ export default class List extends React.Component {
 
 	render() {
 		const {loading, show} = this.state;
-		console.log(this.state);
 		if (loading)
 			return <Loading/>;
 		return (
 				<>
+                    <div className='c--items-group'>
+                        <button className='c--btn c--btn--danger' onClick={this.deleteLogs}>delete all logs</button>
+                    </div>
 					{this.renderList()}
 					<Modal title='Редактирование' show={show} buttons={this.buttons} onClose={this.close}>
 						<div>{this.renderProps()}</div>
