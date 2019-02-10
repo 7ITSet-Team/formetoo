@@ -1,16 +1,21 @@
 import React from 'react';
 
-import Loading from '@components/ui/loading';
+import List from '@account/containers/settings/list';
+import Tabs from '@components/ui/tabs';
 
 export default class Layout extends React.Component {
     constructor(props) {
         super(props);
+        this.rootPath = '/account/settings';
+        this.links = [
+            {path: this.rootPath + '/list', title: 'Список настроек', component: List}
+        ];
     };
 
     render() {
         return (
             <div>
-                Страница общих настроек сайта\nНе готово.
+                <Tabs links={this.links} redirect={{from: this.rootPath, to: this.links[0].path}}/>
             </div>
         );
     };

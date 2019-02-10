@@ -4,6 +4,7 @@ import products from './products';
 import roles from './roles';
 import attributes from './attributes';
 import attributeSets from './attributeSets';
+import settings from './settings';
 
 export default class DBGenerator {
     static init(db) {
@@ -19,6 +20,7 @@ export default class DBGenerator {
         }).save());
         await DBGenerator.setData('category', categories, async (item, collection) => await new collection(item).save());
         await DBGenerator.setData('attribute', attributes, async (item, collection) => await new collection(item).save());
+        await DBGenerator.setData('setting', settings, async (item, collection) => await new collection(item).save());
         let artCounter = 0;
         await DBGenerator.setData('product', products, async (item, collection) => {
             const category = await this.db.category.findOne();

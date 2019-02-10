@@ -37,6 +37,8 @@ import mediaList from '@server/controllers/media/list';
 import mediaUpdate from '@server/controllers/media/update';
 import logsList from '@server/controllers/logs/list';
 import logsDelete from '@server/controllers/logs/delete';
+import settingsList from '@server/controllers/settings/list';
+import settingsUpdate from '@server/controllers/settings/update';
 
 export default {
     guest: {
@@ -129,7 +131,12 @@ export default {
             'update': pagesUpdate
         }
     },
-    settings: {},
+    settings: {
+        settings: {
+            'list': settingsList,
+            'update': settingsUpdate
+        }
+    },
     logs: {
         logs: {
             'list': logsList,
