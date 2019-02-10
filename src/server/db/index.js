@@ -7,3 +7,4 @@ export {default as category} from './category';
 export {default as attribute} from './attribute';
 export {default as attributeSet} from './attributeSet';
 export {default as media} from './media';
+export {default as log} from './log';

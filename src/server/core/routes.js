@@ -35,6 +35,8 @@ import ordersList from '@server/controllers/orders/list';
 import ordersUpdate from '@server/controllers/orders/update';
 import mediaList from '@server/controllers/media/list';
 import mediaUpdate from '@server/controllers/media/update';
+import logsList from '@server/controllers/logs/list';
+import logsUpdate from '@server/controllers/logs/update';
 
 export default {
     guest: {
@@ -128,5 +130,10 @@ export default {
         }
     },
     settings: {},
-    logs: {}
+    logs: {
+        logs: {
+            'list': logsList,
+            'update': logsUpdate
+        }
+    }
 };
