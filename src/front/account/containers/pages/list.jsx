@@ -16,8 +16,8 @@ export default class List extends React.Component {
             currentPage: undefined,
             changes: undefined
         };
-        this.show = (page, currentPage) => this.setState({
-            currentPage: (currentPage || {inMainMenu: false}),
+        this.show = (page, currentPage = {inMainMenu: false}) => this.setState({
+            currentPage,
             show: page
         });
         this.close = () => this.setState({show: undefined, currentPage: undefined, changes: undefined});
@@ -29,9 +29,9 @@ export default class List extends React.Component {
             else
                 Message.send('ошибка при обновлении списка страниц, повторите попытку позже');
         };
-        this.deletePage = async pageID => {
-            const {currentPage, show} = this.state;
-            const {error} = await API.request('pages', 'update', {_id: (pageID || currentPage._id)});
+        this.deletePage = async (pageID = this.state.currentPage._id) => {
+            const {show} = this.state;
+            const {error} = await API.request('pages', 'update', {_id: pageID});
             if (!error) {
                 if (show === 'editPage')
                     this.close();
@@ -50,12 +50,10 @@ export default class List extends React.Component {
             const {error} = await API.request('pages', 'update', data);
             if (!error) {
                 Message.send(`страница успешно ${(show === 'editPage') ? 'изменена' : 'создана'}`, Message.type.success);
-                this.close();
                 this.updatePagesList();
-            } else {
+            } else
                 Message.send(`ошибка при ${(show === 'editPage' ? 'редактировании' : 'создании')} страницы, повторите попытку позже`, Message.type.danger);
-                this.close();
-            }
+            this.close();
         };
         this.buttons = [
             {
@@ -84,8 +82,8 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {pagesList} = this.state;
-        return (pagesList || []).map((page, key) => (
+        const {pagesList = []} = this.state;
+        return pagesList.map((page, key) => (
             <div key={key}>
                 {page.name}
                 <span onClick={() => this.show('editPage', page)} className='icon pencil'/>
@@ -95,15 +93,14 @@ export default class List extends React.Component {
     };
 
     renderPropCheckBox(prop, key) {
-        const {currentPage, show, changes} = this.state;
+        const {currentPage, show, changes = {}} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
                 <input type='checkbox'
                        defaultChecked={show === 'editPage' ? ((changes && changes[prop]) || currentPage[prop]) : false}
                        onChange={e => {
-                           const newChanges = {...(changes || {})};
-                           newChanges[prop] = e.target.checked;
+                           const newChanges = {...changes, [prop]: e.target.checked};
                            if (show === 'editPage')
                                this.setState({changes: newChanges});
                            else if (show === 'createPage')
@@ -116,14 +113,13 @@ export default class List extends React.Component {
     renderProp(prop, key) {
         if (prop === 'inMainMenu')
             return this.renderPropCheckBox(prop, key);
-        const {currentPage, show, changes} = this.state;
+        const {currentPage, show, changes = {}} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
                 <Input value={(show === 'editPage') ? ((changes && changes[prop]) || currentPage[prop]) : undefined}
                        onChange={value => {
-                           const newChanges = {...(changes || {})};
-                           newChanges[prop] = value;
+                           const newChanges = {...changes, [prop]: value};
                            if (show === 'editPage')
                                this.setState({changes: newChanges});
                            else if (show === 'createPage')
@@ -150,12 +146,12 @@ export default class List extends React.Component {
                     <button className='c--btn c--btn--primary' onClick={() => this.show('createPage')}>add new</button>
                 </div>
                 {this.renderList()}
-                <Modal title='Редактирование' show={(show === 'editPage')} buttons={actions} onClose={this.close}>
-                    <div>{this.renderProps()}</div>
-                </Modal>
-                <Modal title='Создание' show={(show === 'createPage')} buttons={this.buttons} onClose={this.close}>
-                    <div>{this.renderProps()}</div>
-                </Modal>
+                {show && (
+                    <Modal title={(show === 'editPage') ? 'Редактирование' : 'Создание'} show={true} buttons={actions}
+                           onClose={this.close}>
+                        <div>{this.renderProps()}</div>
+                    </Modal>
+                )}
             </>
         );
     };

@@ -25,19 +25,18 @@ export default class List extends React.Component {
         };
         this.close = () => this.setState({show: undefined, currentOrder: undefined, changes: undefined});
         this.saveChanges = async () => {
-            const {changes, currentOrder} = this.state;
-            if (Object.keys(changes || {}).length === 0)
+            const {changes = {}, currentOrder} = this.state;
+            if (Object.keys(changes).length === 0)
                 return this.close();
             const data = {_id: currentOrder._id, changes};
             const {error} = await API.request('orders', 'update', data);
             if (error) {
                 Message.send(`ошибка при редактировании заказа, повторите попытку позже`, Message.type.danger);
-                this.close();
             } else {
                 Message.send(`заказ успешно изменен`, Message.type.success);
-                this.close();
                 this.updateOrdersList();
             }
+            this.close();
         };
         this.updateOrdersList = async () => {
             this.setState({loading: true});
@@ -47,16 +46,15 @@ export default class List extends React.Component {
             else
                 Modal.send('ошибка при обновлении списка заказов, повторите попытку позже', Message.type.danger);
         };
-        this.deleteOrder = async orderID => {
-            const {currentOrder} = this.state;
-            const {error} = await API.request('orders', 'update', {_id: (orderID || currentOrder._id)});
+        this.deleteOrder = async (orderID = this.state.currentOrder._id) => {
+            const {error} = await API.request('orders', 'update', {_id: orderID});
             if (error)
                 Message.send('ошибка при удалении заказа, повторите попытку позже', Message.type.danger);
             else {
-                this.close();
-                this.updateOrdersList();
                 Message.send('заказ успешно удален', Message.type.success);
+                this.updateOrdersList();
             }
+            this.close();
         };
         this.buttons = [
             {
@@ -93,8 +91,8 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {ordersList} = this.state;
-        return (ordersList || []).map((order, key) => (
+        const {ordersList = []} = this.state;
+        return ordersList.map((order, key) => (
             <div className='a--list-item' key={key}>
                 <span>{order.status}</span>
                 <span onClick={() => this.show(order)} className='icon pencil'/>
@@ -104,48 +102,48 @@ export default class List extends React.Component {
     };
 
     renderProductsProp(prop, key) {
-        const {changes, currentOrder, productsList, productsHash} = this.state;
+        const {changes = {}, currentOrder, productsList = [], productsHash} = this.state;
         return (
             <div key={key}>
-                {((changes && changes.products) || (currentOrder && currentOrder.products) || []).map(({count, _id}, index) => (
+                {(changes.products || currentOrder.products || []).map(({count, _id}, index) => (
                     <div key={index}>
                         <span>{productsHash[_id].name}</span>
                         <input
                             type='number'
                             value={count}
                             onChange={e => {
-                                const newChanges = {...(changes || {})};
+                                const newChanges = {...changes};
                                 // меняем ссылки, чтобы изменились только те поля, которые должны меняться
                                 newChanges.products = [
-                                    ...((changes && changes.products) || (currentOrder && currentOrder.products) || [])
+                                    ...(changes.products || (currentOrder && currentOrder.products) || [])
                                 ];
                                 newChanges.products[index] = {
-                                    ...((changes && changes.products[index]) || (currentOrder && currentOrder.products[index]) || {}),
+                                    ...((changes.products && changes.products[index]) || (currentOrder && currentOrder.products[index]) || {}),
                                     count: e.target.value
                                 };
                                 this.setState({changes: newChanges});
                             }}/>
                         <span onClick={() => {
-                            const newChanges = {...(changes || {})};
-                            newChanges.products = [
-                                ...((changes && changes.products) || (currentOrder && currentOrder.products) || [])
-                            ];
+                            const newChanges = {
+                                ...changes,
+                                products: [...(changes.products || (currentOrder && currentOrder.products) || [])]
+                            };
                             newChanges.products.splice(index, 1);
                             this.setState({changes: newChanges});
                         }} className='icon remove-button'/>
                     </div>
                 ))}
                 <select onChange={e => this.setState({currentProduct: e.target.value})}>
-                    {(productsList || []).map((product, key) => (
+                    {productsList.map((product, key) => (
                         <option value={product._id} key={key}>{product.name}</option>
                     ))}
                 </select>
                 <button onClick={() => {
                     const {currentProduct} = this.state;
-                    const newChanges = {...(changes || {})};
-                    newChanges.products = [
-                        ...((changes && changes.products) || (currentOrder && currentOrder.products) || [])
-                    ];
+                    const newChanges = {
+                        ...changes,
+                        products: [...(changes.products || (currentOrder && currentOrder.products) || [])]
+                    };
                     newChanges.products.push({count: 1, _id: currentProduct});
                     this.setState({changes: newChanges});
                 }}>add product
@@ -157,9 +155,9 @@ export default class List extends React.Component {
     renderProp(prop, key) {
         if (prop === 'products')
             return this.renderProductsProp(prop, key);
-        else if ((prop === 'createDate') || (prop === 'statusDate')) {
+        if (['statusDate', 'createDate'].includes(prop)) {
             const {currentOrder} = this.state;
-            const date = (currentOrder && new Date(currentOrder[prop]));
+            const date = new Date(currentOrder[prop]);
             return (
                 <div key={key}>
                     <span>{prop}</span>
@@ -167,21 +165,19 @@ export default class List extends React.Component {
                     <span>{date && date.toLocaleString()}</span>
                 </div>
             )
-        } else {
-            const {changes, currentOrder} = this.state;
-            return (
-                <div key={key}>
-                    <span>{prop}</span>
-                    <Input
-                        value={(changes && changes[prop]) || (currentOrder && currentOrder[prop])}
-                        onChange={value => {
-                            const newChanges = {...(changes || {})};
-                            newChanges[prop] = value;
-                            this.setState({changes: newChanges});
-                        }}/>
-                </div>
-            )
         }
+        const {changes = {}, currentOrder} = this.state;
+        return (
+            <div key={key}>
+                <span>{prop}</span>
+                <Input
+                    value={(changes[prop] || (currentOrder && currentOrder[prop])) || ''}
+                    onChange={value => {
+                        const newChanges = {...changes, [prop]: value};
+                        this.setState({changes: newChanges});
+                    }}/>
+            </div>
+        )
     };
 
     renderProps() {
@@ -195,9 +191,11 @@ export default class List extends React.Component {
         return (
             <>
                 {this.renderList()}
-                <Modal title='Редактирование' show={(show === 'editPage')} buttons={this.buttons} onClose={this.close}>
-                    <div>{this.renderProps()}</div>
-                </Modal>
+                {show && (
+                    <Modal title='Редактирование' show={true} buttons={this.buttons} onClose={this.close}>
+                        <div>{this.renderProps()}</div>
+                    </Modal>
+                )}
             </>
         );
     };

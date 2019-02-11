@@ -38,10 +38,14 @@ export default db => {
                 ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok;
             else {
                 const category = await this.findOne({_id: data._id});
-                const mediaOk = (await db.media.update({_id: new mongoose.Types.ObjectId(category.img)})).isSuccess;
+                if (category.img !== '') {
+                    const mediaOk = (await db.media.update({_id: new mongoose.Types.ObjectId(category.img)})).isSuccess;
+                    if (mediaOk !== 1)
+                        return false
+                }
                 const rmCatPromise = this.remove({_id: new mongoose.Types.ObjectId(data._id)});
                 const rmCatProductPromise = db.product.removeCategory(data);
-                ok = ((await rmCatPromise).ok && (await rmCatProductPromise).ok && mediaOk)
+                ok = ((await rmCatPromise).ok && (await rmCatProductPromise).ok)
                     ? 1
                     : undefined;
             }

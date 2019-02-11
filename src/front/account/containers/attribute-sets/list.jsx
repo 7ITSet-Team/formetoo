@@ -47,8 +47,8 @@ export default class List extends React.Component {
                 Modal.send('ошибка при обновлении списка ннаборов атрибутов, повторите попытку позже', Message.type.danger);
         };
         this.saveChanges = async () => {
-            const {changes, currentSet, show} = this.state;
-            if ((show === 'editPage') && (Object.keys(changes || {}).length === 0))
+            const {changes = {}, currentSet, show} = this.state;
+            if ((show === 'editPage') && (Object.keys(changes).length === 0))
                 return this.close();
             let data = currentSet;
             if (show === 'editPage')
@@ -63,9 +63,9 @@ export default class List extends React.Component {
                 this.updateSetsList();
             }
         };
-        this.deleteSet = async setID => {
-            const {currentSet, show} = this.state;
-            const {error} = await API.request('attribute-sets', 'update', {_id: (setID || currentSet._id)});
+        this.deleteSet = async (setID = this.state.currentSet._id) => {
+            const {show} = this.state;
+            const {error} = await API.request('attribute-sets', 'update', {_id: setID});
             if (error)
                 Message.send('ошибка при удалении набора атрибутов, повторите попытку позже', Message.type.danger);
             else {
@@ -105,7 +105,7 @@ export default class List extends React.Component {
     };
 
     renderAttributes(prop, key) {
-        const {attributesList, currentAttribute, currentSet, show, changes, attributesHash} = this.state;
+        const {attributesList, currentAttribute, currentSet, show, changes = {}, attributesHash} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
@@ -115,22 +115,23 @@ export default class List extends React.Component {
                     ))}
                 </select>
                 <button onClick={() => {
-                    const newChanges = {...(changes || {})};
-                    newChanges[prop] = [...((changes && changes[prop]) || currentSet[prop] || []), currentAttribute];
+                    const newChanges = {
+                        ...changes,
+                        [prop]: [...(changes[prop] || currentSet[prop] || []), currentAttribute]
+                    };
                     if (show === 'editPage')
                         this.setState({changes: newChanges});
                     else if (show === 'createPage')
                         this.setState({currentSet: {...currentSet, ...newChanges}});
                 }}>add
                 </button>
-                {((changes && changes.attributes) || (currentSet && currentSet.attributes) || []).map((attribute, index) => (
+                {(changes.attributes || currentSet.attributes || []).map((attribute, index) => (
                     <div key={index}>
                         <span>{attributesHash[attribute].title}</span>
                         <span onClick={() => {
-                            const newAttributes = [...((changes && changes.attributes) || currentSet.attributes)];
+                            const newAttributes = [...(changes.attributes || currentSet.attributes)];
                             newAttributes.splice(index, 1);
-                            const newChanges = {...(changes || {})};
-                            newChanges[prop] = newAttributes;
+                            const newChanges = {...changes, [prop]: newAttributes};
                             if (show === 'editPage')
                                 this.setState({changes: newChanges});
                             else if (show === 'createPage')
@@ -145,14 +146,13 @@ export default class List extends React.Component {
     renderProp(prop, key) {
         if (prop === 'attributes')
             return this.renderAttributes(prop, key);
-        const {currentSet, show, changes} = this.state;
+        const {currentSet, show, changes = {}} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
-                <Input value={(show === 'editPage') ? ((changes && changes[prop]) || currentSet[prop]) : undefined}
+                <Input value={(show === 'editPage') ? (changes[prop] || currentSet[prop]) : undefined}
                        onChange={value => {
-                           const newChanges = {...(changes || {})};
-                           newChanges[prop] = value;
+                           const newChanges = {...changes, [prop]: value};
                            if (show === 'editPage')
                                this.setState({changes: newChanges});
                            else if (show === 'createPage')
@@ -167,8 +167,8 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {setsList} = this.state;
-        return (setsList || []).map((set, key) => (
+        const {setsList = []} = this.state;
+        return setsList.map((set, key) => (
             <div className='a--list-item' key={key}>
                 <span>{set.title}</span>
                 <span onClick={() => this.show('editPage', set)} className='icon pencil'/>
@@ -190,12 +190,12 @@ export default class List extends React.Component {
                     <button className='c--btn c--btn--primary' onClick={() => this.show('createPage')}>add new</button>
                 </div>
                 {this.renderList()}
-                <Modal title='Редактирование' show={(show === 'editPage')} buttons={actions} onClose={this.close}>
-                    <div>{this.renderProps()}</div>
-                </Modal>
-                <Modal title='Создание' show={(show === 'createPage')} buttons={actions} onClose={this.close}>
-                    <div>{this.renderProps()}</div>
-                </Modal>
+                {show && (
+                    <Modal title={(show === 'editPage') ? 'Редактирование' : 'Создание'} show={true} buttons={actions}
+                           onClose={this.close}>
+                        <div>{this.renderProps()}</div>
+                    </Modal>
+                )}
             </>
         );
     };

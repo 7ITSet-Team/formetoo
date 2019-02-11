@@ -39,6 +39,7 @@ import logsList from '@server/controllers/logs/list';
 import logsDelete from '@server/controllers/logs/delete';
 import settingsList from '@server/controllers/settings/list';
 import settingsUpdate from '@server/controllers/settings/update';
+import clientInfo from '@server/controllers/client/info'
 
 export default {
     guest: {
@@ -67,6 +68,9 @@ export default {
         }
     },
     client: {
+        client: {
+            'info': clientInfo
+        },
         cart: {
             'placing-orders': placingOrders,
             'set-id': cartSetID

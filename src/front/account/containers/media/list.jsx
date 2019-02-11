@@ -13,7 +13,7 @@ export default class List extends React.Component {
             mediaList: undefined,
             currentMedia: undefined
         };
-        this.show = (page, currentMedia) => this.setState({currentMedia: (currentMedia || {})});
+        this.show = (page, currentMedia = {}) => this.setState({currentMedia});
         this.close = () => this.setState({currentMedia: undefined});
         this.updateMediaList = async () => {
             this.setState({loading: true});
@@ -23,9 +23,8 @@ export default class List extends React.Component {
             else
                 Modal.send('ошибка при обновлении списка картинок, повторите попытку позже', Message.type.danger);
         };
-        this.deleteMedia = async mediaID => {
-            const {currentMedia} = this.state;
-            const {error} = await API.request('media', 'update', {_id: (mediaID || currentMedia._id)});
+        this.deleteMedia = async (mediaID = this.state.currentMedia._id) => {
+            const {error} = await API.request('media', 'update', {_id: mediaID});
             if (error)
                 Message.send('ошибка при удалении картиннки, повторите попытку позже', Message.type.danger);
             else {
@@ -60,8 +59,8 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {mediaList} = this.state;
-        return (mediaList || []).map((img, key) => (
+        const {mediaList = []} = this.state;
+        return mediaList.map((img, key) => (
             <div className='a--list-item' key={key}>
                 <img width='200' height='200' src={img.url}/>
                 <span onClick={() => this.deleteMedia(img._id)} className='icon remove-button'/>

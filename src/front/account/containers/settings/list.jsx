@@ -16,7 +16,7 @@ export default class List extends React.Component {
             changes: undefined,
             show: undefined
         };
-        this.show = currentSetting => this.setState({show: true, currentSetting: (currentSetting || {})});
+        this.show = (currentSetting = {}) => this.setState({show: true, currentSetting});
         this.close = () => this.setState({show: undefined, currentSetting: undefined, changes: undefined});
         this.updateSettingsList = async () => {
             this.setState({loading: true});
@@ -27,8 +27,8 @@ export default class List extends React.Component {
                 Modal.send('ошибка при обновлении списка настроек, повторите попытку позже', Message.type.danger);
         };
         this.saveChanges = async () => {
-            const {changes, currentSetting, show} = this.state;
-            if (show && (Object.keys(changes || {}).length === 0))
+            const {changes = {}, currentSetting, show} = this.state;
+            if (show && (Object.keys(changes).length === 0))
                 return this.close();
             const data = {_id: currentSetting._id, changes};
             const {error} = await API.request('settings', 'update', data);
@@ -68,10 +68,10 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {settingsList} = this.state;
+        const {settingsList = []} = this.state;
         return (
             <>
-                {(settingsList || []).map((setting, key) => (
+                {settingsList.map((setting, key) => (
                     <div className='a--list-item' key={key}>
                         <span>{setting.title}</span>
                         <span onClick={() => this.show(setting)} className='icon pencil'/>
@@ -82,19 +82,18 @@ export default class List extends React.Component {
     };
 
     renderProp(prop, key) {
-        const {currentSetting, changes} = this.state;
+        const {currentSetting, changes = {}} = this.state;
         return (
             <div key={key}>
                 {prop}
                 {prop === 'isPrivate'
                     ? <input type="checkbox"
-                             defaultChecked={(changes && changes[prop]) || (currentSetting && currentSetting[prop])}
+                             defaultChecked={changes[prop] || (currentSetting && currentSetting[prop])}
                              disabled/>
-                    : <Input value={(changes && changes[prop]) || (currentSetting && currentSetting[prop])}
+                    : <Input value={changes[prop] || (currentSetting && currentSetting[prop])}
                              onChange={(prop === 'value')
                                  ? value => {
-                                     const newChanges = {...(changes || {})};
-                                     newChanges[prop] = value;
+                                     const newChanges = {...changes, [prop]: value};
                                      this.setState({changes: newChanges});
                                  }
                                  : () => {
@@ -114,9 +113,11 @@ export default class List extends React.Component {
         return (
             <>
                 {this.renderList()}
-                <Modal title='Редактирование' show={show} buttons={this.buttons} onClose={this.close}>
-                    <div>{this.renderProps()}</div>
-                </Modal>
+                {show && (
+                    <Modal title='Редактирование' show={true} buttons={this.buttons} onClose={this.close}>
+                        <div>{this.renderProps()}</div>
+                    </Modal>
+                )}
             </>
         );
     };

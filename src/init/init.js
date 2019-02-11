@@ -44,5 +44,6 @@ import * as models from '../server/db/index.js';
         role:'root',
         isActive: true
     }).save();
+
     console.log('=========THE END=========')
 })();

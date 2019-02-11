@@ -43,7 +43,7 @@ export default db => {
 
     schema.statics.getByToken = async function (token) {
         const payload = jwt.verify(token, Config.jwt.secret);
-        return await this.findOne({_id: new mongoose.Types.ObjectId(payload.id)});
+        return await this.findOne({_id: new mongoose.Types.ObjectId(payload.id)}, {__v: 0});
     };
 
     schema.statics.getAll = async function () {

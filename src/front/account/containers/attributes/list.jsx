@@ -16,10 +16,11 @@ export default class List extends React.Component {
             changes: undefined,
             show: undefined
         };
-        this.show = (page, currentAttribute) => this.setState({
-            show: page,
-            currentAttribute: (currentAttribute || {type: this.attributeTypes[0].name, isTab: false})
-        });
+        this.show = (page, currentAttribute = {type: this.attributeTypes[0].name, isTab: false}) =>
+            this.setState({
+                show: page,
+                currentAttribute
+            });
         this.close = () => this.setState({show: undefined, currentAttribute: undefined, changes: undefined});
         this.updateAttributesList = async () => {
             this.setState({loading: true});
@@ -30,8 +31,8 @@ export default class List extends React.Component {
                 Modal.send('ошибка при обновлении списка атрибутов, повторите попытку позже', Message.type.danger);
         };
         this.saveChanges = async () => {
-            const {changes, currentAttribute, show} = this.state;
-            if ((show === 'editPage') && (Object.keys(changes || {}).length === 0))
+            const {changes = {}, currentAttribute, show} = this.state;
+            if ((show === 'editPage') && (Object.keys(changes).length === 0))
                 return this.close();
             let data = currentAttribute;
             if (show === 'editPage')
@@ -46,9 +47,9 @@ export default class List extends React.Component {
                 this.updateAttributesList();
             }
         };
-        this.deleteAttribute = async attributeID => {
-            const {currentAttribute, show} = this.state;
-            const {error} = await API.request('attributes', 'update', {_id: (attributeID || currentAttribute._id)});
+        this.deleteAttribute = async (attributeID = this.state.currentAttribute._id) => {
+            const {show} = this.state;
+            const {error} = await API.request('attributes', 'update', {_id: attributeID});
             if (error)
                 Message.send('ошибка при удалении атрибута, повторите попытку позже', Message.type.danger);
             else {
@@ -98,15 +99,14 @@ export default class List extends React.Component {
     };
 
     renderTypeDropDown(prop, key) {
-        const {currentAttribute, show, changes} = this.state;
+        const {currentAttribute, show, changes = {}} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
                 <select
-                    value={(show === 'editPage') ? ((changes && changes[prop]) || currentAttribute[prop]) : undefined}
+                    value={(show === 'editPage') ? (changes[prop] || currentAttribute[prop]) : undefined}
                     onChange={e => {
-                        const newChanges = {...(changes || {})};
-                        newChanges[prop] = e.target.value;
+                        const newChanges = {...changes, [prop]: e.target.value};
                         if (show === 'editPage')
                             this.setState({changes: newChanges});
                         else if (show === 'createPage')
@@ -121,15 +121,14 @@ export default class List extends React.Component {
     };
 
     renderIsTabCheckBox(prop, key) {
-        const {currentAttribute, show, changes} = this.state;
+        const {currentAttribute, show, changes = {}} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
                 <input type='checkbox'
-                       defaultChecked={(show === 'editPage') ? ((changes && changes[prop]) || currentAttribute[prop]) : false}
+                       defaultChecked={(show === 'editPage') ? (changes[prop] || currentAttribute[prop]) : false}
                        onChange={e => {
-                           const newChanges = {...(changes || {})};
-                           newChanges[prop] = e.target.checked;
+                           const newChanges = {...changes, [prop]: e.target.checked};
                            if (show === 'editPage')
                                this.setState({changes: newChanges});
                            else if (show === 'createPage')
@@ -142,26 +141,23 @@ export default class List extends React.Component {
     renderProp(prop, key) {
         if (prop === 'type')
             return this.renderTypeDropDown(prop, key);
-        else if (prop === 'isTab')
+        if (prop === 'isTab')
             return this.renderIsTabCheckBox(prop, key);
-        else {
-            const {currentAttribute, show, changes} = this.state;
-            return (
-                <div key={key}>
-                    <span>{prop}</span>
-                    <Input
-                        value={(show === 'editPage') ? ((changes && changes[prop]) || currentAttribute[prop]) : undefined}
-                        onChange={value => {
-                            const newChanges = {...(changes || {})};
-                            newChanges[prop] = value;
-                            if (show === 'editPage')
-                                this.setState({changes: newChanges});
-                            else if (show === 'createPage')
-                                this.setState({currentAttribute: {...currentAttribute, ...newChanges}});
-                        }}/>
-                </div>
-            )
-        }
+        const {currentAttribute, show, changes = {}} = this.state;
+        return (
+            <div key={key}>
+                <span>{prop}</span>
+                <Input
+                    value={(show === 'editPage') ? (changes[prop] || currentAttribute[prop]) : undefined}
+                    onChange={value => {
+                        const newChanges = {...changes, [prop]: value};
+                        if (show === 'editPage')
+                            this.setState({changes: newChanges});
+                        else if (show === 'createPage')
+                            this.setState({currentAttribute: {...currentAttribute, ...newChanges}});
+                    }}/>
+            </div>
+        )
     };
 
     renderProps() {
@@ -169,8 +165,8 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {attributesList} = this.state;
-        return (attributesList || []).map((attribute, key) => (
+        const {attributesList = []} = this.state;
+        return attributesList.map((attribute, key) => (
             <div className='a--list-item' key={key}>
                 <span>{attribute.title}</span>
                 <span onClick={() => this.show('editPage', attribute)} className='icon pencil'/>
@@ -192,12 +188,12 @@ export default class List extends React.Component {
                     <button className='c--btn c--btn--primary' onClick={() => this.show('createPage')}>add new</button>
                 </div>
                 {this.renderList()}
-                <Modal title='Редактирование' show={(show === 'editPage')} buttons={actions} onClose={this.close}>
-                    <div>{this.renderProps()}</div>
-                </Modal>
-                <Modal title='Создание' show={(show === 'createPage')} buttons={actions} onClose={this.close}>
-                    <div>{this.renderProps()}</div>
-                </Modal>
+                {show && (
+                    <Modal title={(show === 'editPage') ? 'Редактирование' : 'Создание'} show={true} buttons={actions}
+                           onClose={this.close}>
+                        <div>{this.renderProps()}</div>
+                    </Modal>
+                )}
             </>
         );
     };

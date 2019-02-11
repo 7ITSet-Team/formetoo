@@ -29,7 +29,8 @@ export default async (db, req, res, data) => {
         html: orderTemplate()
     };
     transporter.sendMail(mailOptions, err => {
-        if (err) throw err;
+        if (err)
+            console.error(err);
     });
 
     return {error: false};

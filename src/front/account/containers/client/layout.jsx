@@ -1,16 +1,21 @@
 import React from 'react';
 
-import Loading from '@components/ui/loading';
+import Info from '@account/containers/client/info';
+import Tabs from '@components/ui/tabs';
 
 export default class Layout extends React.Component {
     constructor(props) {
         super(props);
+        this.rootPath = '/account/client';
+        this.links = [
+            {path: this.rootPath + '/info', title: 'Профиль', component: Info}
+        ];
     };
 
     render() {
         return (
             <div>
-                Страница текущего пользователя (для клиентов отображается только она, без боковой панели и в ней вся работа с заказами и прочим)\nНе готово.
+                <Tabs links={this.links} redirect={{from: this.rootPath, to: this.links[0].path}}/>
             </div>
         );
     };

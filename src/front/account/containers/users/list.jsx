@@ -14,7 +14,7 @@ export default class List extends React.Component {
             changes: undefined,
             show: undefined
         };
-        this.show = (page, currentUser) => this.setState({show: page, currentUser: (currentUser || {})});
+        this.show = (page, currentUser = {}) => this.setState({show: page, currentUser});
         this.close = () => this.setState({show: undefined, currentUser: undefined, changes: undefined});
         this.updateUsersList = async () => {
             this.setState({loading: true});
@@ -27,9 +27,9 @@ export default class List extends React.Component {
         this.saveChanges = async () => {
 
         };
-        this.deleteUser = async userID => {
-            const {currentUser, show} = this.state;
-            const {error} = await API.request('users', 'update', {_id: (userID || currentUser._id)});
+        this.deleteUser = async (userID = this.state.currentUser._id) => {
+            const {show} = this.state;
+            const {error} = await API.request('users', 'update', {_id: userID});
             if (error)
                 Message.send('ошибка при удалении пользователя, повторите попытку позже', Message.type.danger);
             else {
@@ -66,17 +66,15 @@ export default class List extends React.Component {
     };
 
     render() {
-        const {loading, usersList} = this.state;
-
+        const {loading, usersList = []} = this.state;
         if (loading)
             return <Loading/>;
-
         return (
             <>
                 <div className='c--items-group'>
                     <button className='c--btn c--btn--primary' onClick={() => this.show('createPage')}>add new</button>
                 </div>
-                {usersList && usersList.map((user, key) => (
+                {usersList.map((user, key) => (
                     <div key={key}>
                         {user.name}
                         <span onClick={() => this.deleteUser(user._id)} className='icon remove-button'/>
