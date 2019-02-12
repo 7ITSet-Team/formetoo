@@ -47,6 +47,20 @@ export default class List extends React.Component {
             let data = currentPage;
             if (show === 'editPage')
                 data = {_id: currentPage._id, changes};
+            let msg;
+            const isNotValid = ['name', 'slug', 'title', 'position']
+                .map(prop => {
+                    const isNull = (currentPage[prop] == null) || (currentPage[prop] === '');
+                    if ((prop === 'position') && !isNull && isNaN(currentPage[prop])) {
+                        msg = 'Ошибка валидации: позиция - число';
+                        return true;
+                    }
+                    msg = 'Введены не все обязательные поля';
+                    return isNull;
+                })
+                .includes(true);
+            if ((show === 'createPage') && isNotValid)
+                return Message.send(msg, Message.type.danger);
             const {error} = await API.request('pages', 'update', data);
             if (!error) {
                 Message.send(`страница успешно ${(show === 'editPage') ? 'изменена' : 'создана'}`, Message.type.success);

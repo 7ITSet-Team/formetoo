@@ -40,13 +40,18 @@ export default class List extends React.Component {
             }
         };
         this.saveChanges = async () => {
-            this.setState({sendLoading: true});
             const {currentCategory, changes = {}, show} = this.state;
             if ((show === 'editPage') && (Object.keys(changes).length === 0))
                 return this.close();
             let data = currentCategory;
             if (show === 'editPage')
                 data = {_id: currentCategory._id, changes};
+            const isNotValid = ['slug', 'name']
+                .map(prop => ((currentCategory[prop] == null) || (currentCategory[prop] === '')))
+                .includes(true);
+            if ((show === 'createPage') && isNotValid)
+                return Message.send('Введены не все обязательные поля', Message.type.danger);
+            this.setState({sendLoading: true});
             const {error} = await API.request('categories', 'update', data);
             this.setState({sendLoading: false});
             if (error)

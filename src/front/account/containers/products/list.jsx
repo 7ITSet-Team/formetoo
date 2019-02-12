@@ -60,6 +60,21 @@ export default class List extends React.Component {
             let data = currentProduct;
             if (show === 'editPage')
                 data = {_id: currentProduct._id, changes};
+            let msg;
+            const isNotValid = ['categoryID', 'code', 'name', 'slug', 'price']
+                .map(prop => {
+                        const isNull = (currentProduct[prop] == null) || (currentProduct[prop] === '');
+                        if ((prop === 'price') && !isNull && isNaN(currentProduct[prop])) {
+                            msg = 'Ошибка валидации: цена - число';
+                            return true;
+                        }
+                        msg = 'Введены не все обязательные поля';
+                        return isNull;
+                    }
+                )
+                .includes(true);
+            if ((show === 'createPage') && isNotValid)
+                return Message.send(msg, Message.type.danger);
             const {error} = await API.request('products', 'update', data);
             if (error)
                 Message.send(`ошибка при ${(show === 'editPage') ? 'редактировании' : 'создании'} продукта, повторите попытку позже`, Message.type.danger);

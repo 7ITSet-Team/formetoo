@@ -12,7 +12,10 @@ export default db => {
             type: String,
             required: true
         },
-        permissions: [String]
+        permissions: [{
+            type: String,
+            required: true
+        }]
     }, {collection: __modelName});
 
     schema.statics.getByName = async function (name) {

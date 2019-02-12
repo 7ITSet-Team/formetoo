@@ -37,6 +37,11 @@ export default class List extends React.Component {
             let data = currentAttribute;
             if (show === 'editPage')
                 data = {_id: currentAttribute._id, changes};
+            const isNotValid = ['type', 'name', 'title', 'isTab']
+                .map(prop => ((currentAttribute[prop] == null) || (currentAttribute[prop] === '')))
+                .includes(true);
+            if ((show === 'createPage') && isNotValid)
+                return Message.send('Введены не все обязательные поля', Message.type.danger);
             const {error} = await API.request('attributes', 'update', data);
             if (error) {
                 Message.send(`ошибка при ${(show === 'editPage') ? 'редактировании' : 'создании'} атрибута, повторите попытку позже`, Message.type.danger);

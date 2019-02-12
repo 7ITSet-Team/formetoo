@@ -113,6 +113,7 @@ export default class Info extends React.Component {
                         </div>
                     ))
                 )}
+                {clientInfo && !clientInfo.orders && <div>Заказов нет.</div>}
                 {currentOrder && (
                     <Modal title='Просмотр заказа' show={true} buttons={this.buttons}
                            onClose={() => this.setState({currentOrder: undefined})}>

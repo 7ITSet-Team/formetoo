@@ -53,6 +53,11 @@ export default class List extends React.Component {
             let data = currentSet;
             if (show === 'editPage')
                 data = {_id: currentSet._id, changes};
+            const isNotValid = ['name', 'title', 'attributes']
+                .map(prop => (currentSet[prop] == null) || (currentSet[prop] === '') || (Array.isArray(currentSet[prop]) && currentSet[prop].length === 0))
+                .includes(true);
+            if ((show === 'createPage') && isNotValid)
+                return Message.send('Введены не все обязательные поля', Message.type.danger);
             const {error} = await API.request('attribute-sets', 'update', data);
             if (error) {
                 Message.send(`ошибка при ${(show === 'editPage') ? 'редактировании' : 'создании'} набора атрибутов, повторите попытку позже`, Message.type.danger);
@@ -117,8 +122,12 @@ export default class List extends React.Component {
                 <button onClick={() => {
                     const newChanges = {
                         ...changes,
-                        [prop]: [...(changes[prop] || currentSet[prop] || []), currentAttribute]
+                        [prop]: [...(changes[prop] || currentSet[prop] || [])]
                     };
+                    if (!newChanges[prop].includes(currentAttribute))
+                        newChanges[prop].push(currentAttribute);
+                    else
+                        Message.send('Такой атрибут уже добавлен', Message.type.info);
                     if (show === 'editPage')
                         this.setState({changes: newChanges});
                     else if (show === 'createPage')
@@ -178,6 +187,7 @@ export default class List extends React.Component {
     };
 
     render() {
+        console.log(this.state);
         const {loading, show} = this.state;
         if (loading)
             return <Loading/>;

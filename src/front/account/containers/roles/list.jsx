@@ -51,6 +51,11 @@ export default class List extends React.Component {
             let data = currentRole;
             if (show === 'editPage')
                 data = {_id: currentRole._id, changes};
+            const isNotValid = ['name', 'alias', 'permissions']
+                .map(prop => ((currentRole[prop] == null) || (currentRole[prop] === '') || (Array.isArray(currentRole[prop]) && currentRole[prop].length === 0)))
+                .includes(true);
+            if ((show === 'createPage') && isNotValid)
+                return Message.send('Введены не все обязательные поля', Message.type.danger);
             const {error} = await API.request('roles', 'update', data);
             if (error) {
                 Message.send(`ошибка при ${(show === 'editPage') ? 'редактировании' : 'создании'} роли, повторите попытку позже`, Message.type.danger);
