@@ -37,6 +37,7 @@ import mediaList from '@server/controllers/media/list';
 import mediaUpdate from '@server/controllers/media/update';
 import logsList from '@server/controllers/logs/list';
 import logsDelete from '@server/controllers/logs/delete';
+import logsUpdate from '@server/controllers/logs/update';
 import settingsList from '@server/controllers/settings/list';
 import settingsUpdate from '@server/controllers/settings/update';
 import clientInfo from '@server/controllers/client/info'
@@ -144,7 +145,8 @@ export default {
     logs: {
         logs: {
             'list': logsList,
-            'delete-all': logsDelete
+            'delete-all': logsDelete,
+            'update': logsUpdate
         }
     }
 };

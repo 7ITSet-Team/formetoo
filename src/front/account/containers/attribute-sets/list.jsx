@@ -187,7 +187,6 @@ export default class List extends React.Component {
     };
 
     render() {
-        console.log(this.state);
         const {loading, show} = this.state;
         if (loading)
             return <Loading/>;

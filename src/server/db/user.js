@@ -50,11 +50,11 @@ export default db => {
         return await this.find({}, {__v: 0, password: 0});
     };
 
-    schema.statics.getByID = async function (id) {
+    schema.statics.getByID = async function (id, options = {}) {
 	    if (Array.isArray(id))
-		    return await this.find({_id: {$in: id}});
+            return await this.find({_id: {$in: id}, ...options});
 	    else
-		    return await this.findOne({_id: new mongoose.Types.ObjectId(id)});
+            return await this.findOne({_id: new mongoose.Types.ObjectId(id), ...options});
     };
 
     schema.statics.getByEmail = async function (email) {
