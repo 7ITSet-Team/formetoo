@@ -11,25 +11,22 @@ export default class List extends React.Component {
         super(props);
         this.state = {
             loading: true,
-            settingsList: undefined,
+            settings: undefined,
             currentSetting: undefined,
             changes: undefined,
             show: undefined
         };
         this.show = (currentSetting = {}) => this.setState({show: true, currentSetting});
         this.close = () => this.setState({show: undefined, currentSetting: undefined, changes: undefined});
-        this.updateSettingsList = async () => {
+        this.updateSettings = async () => {
             this.setState({loading: true});
-            const {error, data: settingsList} = await API.request('settings', 'list');
-            if (!error)
-                this.setState({loading: false, settingsList});
-            else
-                Modal.send('ошибка при обновлении списка настроек, повторите попытку позже', Message.type.danger);
+            const {error, data: settings} = await API.request('settings', 'list');
+            if (!error) this.setState({loading: false, settings});
+            else Modal.send('ошибка при обновлении списка настроек, повторите попытку позже', Message.type.danger);
         };
         this.saveChanges = async () => {
             const {changes = {}, currentSetting, show} = this.state;
-            if (show && (Object.keys(changes).length === 0))
-                return this.close();
+            if (show && (Object.keys(changes).length === 0)) return this.close();
             const data = {_id: currentSetting._id, changes};
             const {error} = await API.request('settings', 'update', data);
             if (error) {
@@ -38,7 +35,7 @@ export default class List extends React.Component {
             } else {
                 Message.send(`настройка успешно ${show ? 'изменена' : 'создана'}`, Message.type.success);
                 this.close();
-                this.updateSettingsList();
+                this.updateSettings();
             }
         };
         this.buttons = [
@@ -60,18 +57,16 @@ export default class List extends React.Component {
     };
 
     async getInitialDataFromSrv() {
-        const {error, data: settingsList} = await API.request('settings', 'list');
-        if (!error)
-            this.setState({loading: false, settingsList});
-        else
-            Message.send('ошибка при получении списка настроек, повторите попытку позже', Message.type.danger);
+        const {error, data: settings} = await API.request('settings', 'list');
+        if (!error) this.setState({loading: false, settings});
+        else Message.send('ошибка при получении списка настроек, повторите попытку позже', Message.type.danger);
     };
 
     renderList() {
-        const {settingsList = []} = this.state;
+        const {settings = []} = this.state;
         return (
             <>
-                {settingsList.map((setting, key) => (
+                {settings.map((setting, key) => (
                     <div className='a--list-item' key={key}>
                         <span>{setting.title}</span>
                         <span onClick={() => this.show(setting)} className='icon pencil'/>
@@ -87,8 +82,7 @@ export default class List extends React.Component {
             <div key={key}>
                 {prop}
                 {prop === 'isPrivate'
-                    ? <input type="checkbox"
-                             defaultChecked={changes[prop] || (currentSetting && currentSetting[prop])}
+                    ? <input type="checkbox" defaultChecked={changes[prop] || (currentSetting && currentSetting[prop])}
                              disabled/>
                     : <Input value={changes[prop] || (currentSetting && currentSetting[prop])}
                              onChange={(prop === 'value')
@@ -96,8 +90,7 @@ export default class List extends React.Component {
                                      const newChanges = {...changes, [prop]: value};
                                      this.setState({changes: newChanges});
                                  }
-                                 : () => {
-                                 }}/>}
+                                 : () => undefined}/>}
             </div>
         )
     };
@@ -108,8 +101,7 @@ export default class List extends React.Component {
 
     render() {
         const {loading, show} = this.state;
-        if (loading)
-            return <Loading/>;
+        if (loading) return <Loading/>;
         return (
             <>
                 {this.renderList()}

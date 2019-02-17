@@ -15,28 +15,28 @@ export default db => {
         attributes: [mongoose.Schema.Types.ObjectId]
     }, {collection: __modelName, autoIndex: false});
 
-    schema.statics.getAll = async function () {
-        return await this.find({}, {__v: 0});
+    schema.statics.getAll = async function (options = {projection: {__v: 0}}) {
+        return await this.find({}, options.projection);
     };
 
-    schema.statics.removeAttribute = async function (data) {
+    schema.statics.removeAttribute = async function ({_id}) {
         return await this.updateMany(
             {},
-            {$pull: {attributes: {$in: data._id}}},
+            {$pull: {attributes: {$in: _id}}},
             {multi: true}
         );
     };
 
-    schema.statics.update = async function (data) {
-        const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(data._id)});
+    schema.statics.update = async function (set) {
+        const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(set._id)});
         let ok;
         if (isExist)
-            ok = data.changes
-                ? (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok
-                : (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+            ok = set.changes
+                ? (await this.updateOne({_id: new mongoose.Types.ObjectId(set._id)}, {$set: set.changes})).ok
+                : (await this.remove({_id: new mongoose.Types.ObjectId(set._id)})).ok;
         else {
-            await this.create(data);
-            ok = 1;
+            const {_id} = await this.create(set);
+            ok = _id ? 1 : 0;
         }
         return (ok === 1);
     };

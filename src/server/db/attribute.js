@@ -30,23 +30,21 @@ export default db => {
         return await this.find({_id: {$in: ids}}, {__v: 0});
     };
 
-    schema.statics.update = async function (data) {
-        const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(data._id)});
+    schema.statics.update = async function (attribute) {
+        const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(attribute._id)});
         let ok;
         if (isExist)
-            if (data.changes)
-                ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok;
+            if (attribute.changes)
+                ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(attribute._id)}, {$set: attribute.changes})).ok;
             else {
-                const rmAttrPromise = this.remove({_id: new mongoose.Types.ObjectId(data._id)});
-                const rmAttrSetPromise = db.attributeSet.removeAttribute(data);
-                const rmAttrProductPromise = db.product.removeAttribute(data);
-                ok = ((await rmAttrPromise).ok && (await rmAttrSetPromise).ok && (await rmAttrProductPromise).ok)
-                    ? 1
-                    : undefined;
+                const rmAttrPromise = this.remove({_id: new mongoose.Types.ObjectId(attribute._id)});
+                const rmAttrSetPromise = db.attributeSet.removeAttribute(attribute);
+                const rmAttrProductPromise = db.product.removeAttribute(attribute);
+                ok = ((await rmAttrPromise).ok && (await rmAttrSetPromise).ok && (await rmAttrProductPromise).ok) ? 1 : 0;
             }
         else {
-            await this.create(data);
-            ok = 1;
+            const {_id} = await this.create(attribute);
+            ok = _id ? 1 : 0;
         }
         return (ok === 1);
     };

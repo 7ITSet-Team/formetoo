@@ -35,10 +35,8 @@ export default class Info extends React.Component {
 
     async getInitialDataFromSrv() {
         const {error, data: clientInfo} = await API.request('client', 'info');
-        if (!error)
-            this.setState({loading: false, clientInfo});
-        else
-            Message.send('ошибка при получении списка пользователей, повторите попытку позже', Message.type.danger);
+        if (!error) this.setState({loading: false, clientInfo});
+        else Message.send('ошибка при получении списка пользователей, повторите попытку позже', Message.type.danger);
     };
 
     renderProductsProp(prop, key) {
@@ -48,8 +46,7 @@ export default class Info extends React.Component {
                 {(currentOrder.products || []).map((info, index) => (
                     <div key={index}>
                         <span>{info.product.name}</span>
-                        <input type='number' value={info.count} onChange={() => {
-                        }}/>
+                        <input type='number' value={info.count} onChange={() => undefined}/>
                     </div>
                 ))}
             </div>
@@ -57,9 +54,8 @@ export default class Info extends React.Component {
     };
 
     renderProp(prop, key) {
-        if (prop === 'products')
-            return this.renderProductsProp(prop, key);
-        else if ((prop === 'createDate') || (prop === 'statusDate')) {
+        if (prop === 'products') return this.renderProductsProp(prop, key);
+        if ((prop === 'createDate') || (prop === 'statusDate')) {
             const {currentOrder} = this.state;
             const date = new Date(currentOrder[prop]);
             return (
@@ -87,16 +83,11 @@ export default class Info extends React.Component {
 
     render() {
         const {loading, clientInfo, show, currentOrder} = this.state;
-        if (loading)
-            return <Loading/>;
+        if (loading) return <Loading/>;
         return (
             <>
-                <button onClick={() => this.setState({show: 'info'})}>
-                    info
-                </button>
-                <button onClick={() => this.setState({show: 'orders'})}>
-                    orders
-                </button>
+                <button onClick={() => this.setState({show: 'info'})}>info</button>
+                <button onClick={() => this.setState({show: 'orders'})}>orders</button>
                 {clientInfo && (show === 'info') && (
                     <div>
                         <div>Почта: {clientInfo.email}</div>

@@ -11,7 +11,7 @@ export default class List extends React.Component {
         super(props);
         this.state = {
             loading: true,
-            rolesList: undefined,
+            roles: undefined,
             currentRole: undefined,
             changes: undefined,
             show: undefined
@@ -24,57 +24,48 @@ export default class List extends React.Component {
             const permission = e.target.name;
             const permissions = (changes.permissions || (currentRole.permissions && [...currentRole.permissions])) || [];
             const index = permissions.indexOf(permission);
-            if ((!isChecked && index === -1) || (isChecked && index !== -1))
-                return;
+            if ((!isChecked && index === -1) || (isChecked && index !== -1)) return;
             isChecked ? permissions.push(permission) : permissions.splice(index, 1);
-            if (show === 'editPage')
-                this.setState({changes: {permissions}});
-            else if (show === 'createPage')
-                this.setState({currentRole: {...currentRole, permissions}});
+            if (show === 'editPage') this.setState({changes: {permissions}});
+            else this.setState({currentRole: {...currentRole, permissions}});
         };
         this.isPermissionExist = permission => {
             const {currentRole, changes = {}} = this.state;
             return (changes.permissions || currentRole.permissions).includes(permission);
         };
-        this.updateRolesList = async () => {
+        this.updateRoles = async () => {
             this.setState({loading: true});
-            const {error, data: rolesList} = await API.request('roles', 'list');
-            if (!error)
-                this.setState({loading: false, rolesList});
-            else
-                Modal.send('ошибка при обновлении списка ролей, повторите попытку позже', Message.type.danger);
+            const {error, data: roles} = await API.request('roles', 'list');
+            if (!error) this.setState({loading: false, roles});
+            else Modal.send('ошибка при обновлении списка ролей, повторите попытку позже', Message.type.danger);
         };
         this.saveChanges = async () => {
             const {changes = {}, currentRole, show} = this.state;
-            if ((show === 'editPage') && (Object.keys(changes).length === 0))
-                return this.close();
+            const isEdit = (show === 'editPage');
+            if (isEdit && (Object.keys(changes).length === 0)) return this.close();
             let data = currentRole;
-            if (show === 'editPage')
-                data = {_id: currentRole._id, changes};
+            if (isEdit) data = {_id: currentRole._id, changes};
             const isNotValid = ['name', 'alias', 'permissions']
                 .map(prop => ((currentRole[prop] == null) || (currentRole[prop] === '') || (Array.isArray(currentRole[prop]) && currentRole[prop].length === 0)))
                 .includes(true);
-            if ((show === 'createPage') && isNotValid)
-                return Message.send('Введены не все обязательные поля', Message.type.danger);
+            if (!isEdit && isNotValid) return Message.send('Введены не все обязательные поля', Message.type.danger);
             const {error} = await API.request('roles', 'update', data);
             if (error) {
-                Message.send(`ошибка при ${(show === 'editPage') ? 'редактировании' : 'создании'} роли, повторите попытку позже`, Message.type.danger);
+                Message.send(`ошибка при ${isEdit ? 'редактировании' : 'создании'} роли, повторите попытку позже`, Message.type.danger);
                 this.close();
             } else {
-                Message.send(`роль успешно ${(show === 'editPage') ? 'изменена' : 'создана'}`, Message.type.success);
+                Message.send(`роль успешно ${isEdit ? 'изменена' : 'создана'}`, Message.type.success);
                 this.close();
-                this.updateRolesList();
+                this.updateRoles();
             }
         };
         this.deleteRole = async (roleID = this.state.currentRole._id) => {
             const {show} = this.state;
             const {error} = await API.request('roles', 'update', {_id: roleID});
-            if (error)
-                Message.send('ошибка при удалении роли, повторите попытку позже', Message.type.danger);
+            if (error) Message.send('ошибка при удалении роли, повторите попытку позже', Message.type.danger);
             else {
-                if (show === 'editPage')
-                    this.close();
-                this.updateRolesList();
+                if (show === 'editPage') this.close();
+                this.updateRoles();
                 Message.send('роль успешно удалена', Message.type.success);
             }
         };
@@ -97,19 +88,17 @@ export default class List extends React.Component {
     };
 
     async getInitialDataFromSrv() {
-        const {error: errorR, data: rolesList} = await API.request('roles', 'list');
+        const {error: errorR, data: roles} = await API.request('roles', 'list');
         const {error: errorP, data: permissionList} = await API.request('permissions', 'list');
-        if (!errorR && !errorP)
-            this.setState({loading: false, rolesList, permissionList});
-        else
-            Message.send('ошибка при получении списка ролей, повторите попытку позже', Message.type.danger);
+        if (!errorR && !errorP) this.setState({loading: false, roles, permissionList});
+        else Message.send('ошибка при получении списка ролей, повторите попытку позже', Message.type.danger);
     };
 
     renderList() {
-        const {rolesList = []} = this.state;
+        const {roles = []} = this.state;
         return (
             <>
-                {rolesList.map((role, key) => (
+                {roles.map((role, key) => (
                     <div className='a--list-item' key={key}>
                         <span>{role.name}</span>
                         <span onClick={() => this.show('editPage', role)} className='icon pencil'/>
@@ -138,8 +127,7 @@ export default class List extends React.Component {
     };
 
     renderProp(prop, key) {
-        if (prop === 'permissions')
-            return this.renderPermissionList();
+        if (prop === 'permissions') return this.renderPermissionList();
         else {
             const {currentRole, show, changes = {}} = this.state;
             return (
@@ -148,10 +136,8 @@ export default class List extends React.Component {
                     <Input value={(show === 'editPage') ? (changes[prop] || currentRole[prop]) : undefined}
                            onChange={value => {
                                const newChanges = {...changes, [prop]: value};
-                               if (show === 'editPage')
-                                   this.setState({changes: newChanges});
-                               else if (show === 'createPage')
-                                   this.setState({currentRole: {...currentRole, ...newChanges}});
+                               if (show === 'editPage') this.setState({changes: newChanges});
+                               else this.setState({currentRole: {...currentRole, ...newChanges}});
                            }}/>
                 </div>
             )
@@ -164,8 +150,7 @@ export default class List extends React.Component {
 
     render() {
         const {loading, show, currentRole} = this.state;
-        if (loading)
-            return <Loading/>;
+        if (loading) return <Loading/>;
         let actions = this.buttons;
         if ((show === 'editPage') && !(['root', 'client'].includes(currentRole.name)))
             actions = [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deleteRole}];

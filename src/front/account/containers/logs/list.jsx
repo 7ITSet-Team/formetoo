@@ -24,18 +24,15 @@ export default class List extends React.Component {
             const {filter} = this.state;
             this.setState({loading: true});
             const {error, data: logsList} = filter ? await API.request('logs', 'list', {filter}) : await API.request('logs', 'list');
-            if (!error)
-                this.setState({loading: false, logsList});
-            else
-                Message.send('ошибка при обновлении списка логов, повторите попытку позже');
+            if (!error) this.setState({loading: false, logsList});
+            else Message.send('ошибка при обновлении списка логов, повторите попытку позже');
         };
         this.deleteLogs = async () => {
             const {error} = await API.request('logs', 'delete-all');
             if (!error) {
                 this.updateLogsList();
                 Message.send('логи успешно удалены', Message.type.success);
-            } else
-                Message.send('ошибка при удалении логов, повторите попытку позже', Message.type.danger);
+            } else Message.send('ошибка при удалении логов, повторите попытку позже', Message.type.danger);
         };
         this.deleteCheckedLogs = async () => {
             const {checkedLogs} = this.state;
@@ -43,8 +40,7 @@ export default class List extends React.Component {
             if (!error) {
                 this.updateLogsList();
                 Message.send('логи успешно удалены', Message.type.success);
-            } else
-                Message.send('ошибка при удалении логов, повторите попытку позже', Message.type.danger);
+            } else Message.send('ошибка при удалении логов, повторите попытку позже', Message.type.danger);
         };
         this.acceptFilter = async (filterBy, value) => {
             const {filter} = this.state;
@@ -53,10 +49,8 @@ export default class List extends React.Component {
             for (const key in newFilter) (newFilter[key] === undefined) && (delete newFilter[key]);
             this.setState({filter: newFilter});
             const {error, data: logsList} = await API.request('logs', 'list', {filter: newFilter});
-            if (!error)
-                this.setState({logsList});
-            else
-                Message.send('ошибка при обновлении списка логов, повторите попытку позже');
+            if (!error) this.setState({logsList});
+            else Message.send('ошибка при обновлении списка логов, повторите попытку позже');
         };
         this.checkAll = () => {
             const {logsList} = this.state;
@@ -71,10 +65,8 @@ export default class List extends React.Component {
 
     async getInitialDataFromSrv() {
         const {error, data: logsList} = await API.request('logs', 'list');
-        if (!error)
-            this.setState({loading: false, logsList});
-        else
-            Message.send('ошибка при получении списка логов, повторите попытку позже', Message.type.danger);
+        if (!error) this.setState({loading: false, logsList});
+        else Message.send('ошибка при получении списка логов, повторите попытку позже', Message.type.danger);
     };
 
     renderList() {
