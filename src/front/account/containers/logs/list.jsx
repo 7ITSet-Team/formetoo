@@ -130,6 +130,10 @@ export default class List extends React.Component {
                 <div key={key}>
                     <div>Controller: {currentLog.method.controller}</div>
                     <div>Action: {currentLog.method.action}</div>
+                    <div>
+                        View:
+                        {currentLog.view && <div dangerouslySetInnerHTML={{__html: currentLog.view}}/>}
+                    </div>
                     {currentLog.method.data && (
                         <>
                             <button onClick={() => this.setState({showJSON: true})}>see json</button>
