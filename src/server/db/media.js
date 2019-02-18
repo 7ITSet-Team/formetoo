@@ -32,7 +32,10 @@ export default db => {
             else {
                 const media = await this.getByID(data._id);
                 fs.unlinkSync(`build/public${media.url}`);
-                ok = (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+                const categoriesOk = (await db.category.removeMedia(media._id)).ok;
+                const mediaOk = (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+                if (categoriesOk && mediaOk)
+                    ok = 1;
             }
         else {
             result._id = (await this.create(data))._id;

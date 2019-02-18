@@ -17,17 +17,15 @@ export default db => {
     }, {collection: __modelName, autoIndex: false});
 
     schema.statics.getAll = async function () {
-        const categories = await this.find({}, {__v: 0});
-        const mediaIDs = [];
-        categories.forEach(({img}) => (img !== '') && (!mediaIDs.includes(img)) && mediaIDs.push(img));
-        const media = await db.media.getByID(mediaIDs);
-        const mediaHash = {};
-        media.forEach(item => mediaHash[item._id] = item);
-        return categories.map(category => ({...category.toJSON(), img: mediaHash[(category.toJSON()).img]}));
+        return await this.find({}, {__v: 0});
     };
 
     schema.statics.getBySlug = async function (slug) {
         return await this.findOne({slug}, {__v: 0});
+    };
+
+    schema.statics.removeMedia = async function (id) {
+        return this.updateMany({img: id}, {$set: {img: ''}});
     };
 
     schema.statics.update = async function (data) {

@@ -1,17 +1,23 @@
 import fs from 'fs';
+import mongoose from 'mongoose';
 
 export default async (db, req, res, data) => {
     let category = data;
-    const isEdit = (data.changes && Object.keys(data.changes).includes('img') && data.changes.img.url);
-    const isCreate = (Object.keys(data).includes('img') && data.img.url);
-    if (isEdit || isCreate) {
+    const isEdit = (data.changes && Object.keys(data.changes).includes('img'));
+    const isCreate = (Object.keys(data).includes('img'));
+    // ObjectId.isValid returns false if argument is not objectId type
+    const mediaIsUpload = !mongoose.Types.ObjectId.isValid((isEdit ? data.changes : data).img);
+    if ((isEdit || isCreate) && mediaIsUpload) {
         // thanks stackoverflow
-        const matches = (isEdit ? data.changes : data).img.url.match(/^data:.+\/(.+);base64,(.*)$/);
+        const matches = (isEdit ? data.changes : data).img.match(/^data:.+\/(.+);base64,(.*)$/);
         const imgData = matches[2];
+        const ext = matches[1];
         const buffer = new Buffer(imgData, 'base64');
+        const date = new Date();
+        const name = `${date.getDate()}${date.getHours()}${date.getMinutes()}${date.getSeconds()}${date.getMilliseconds()}`;
         // I'm not sure that using synchronous functions is right way.
-        fs.writeFileSync(`build/public/uploads/${(isEdit ? data.changes : data).img.name}`, buffer);
-        const {isSuccess, _id} = await db.media.update({url: `/uploads/${(isEdit ? data.changes : data).img.name}`});
+        fs.writeFileSync(`build/public/uploads/${name}.${ext}`, buffer);
+        const {isSuccess, _id} = await db.media.update({url: `/uploads/${name}.${ext}`});
         if (!isSuccess) return {error: true};
         category = isEdit
             ? {...data, changes: {...data.changes, img: _id}}

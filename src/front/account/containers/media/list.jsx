@@ -18,15 +18,12 @@ export default class List extends React.Component {
         this.updateMediaList = async () => {
             this.setState({loading: true});
             const {error, data: mediaList} = await API.request('media', 'list');
-            if (!error)
-                this.setState({loading: false, mediaList});
-            else
-                Modal.send('ошибка при обновлении списка картинок, повторите попытку позже', Message.type.danger);
+            if (!error) this.setState({loading: false, mediaList});
+            else Modal.send('ошибка при обновлении списка картинок, повторите попытку позже', Message.type.danger);
         };
         this.deleteMedia = async (mediaID = this.state.currentMedia._id) => {
             const {error} = await API.request('media', 'update', {_id: mediaID});
-            if (error)
-                Message.send('ошибка при удалении картиннки, повторите попытку позже', Message.type.danger);
+            if (error) Message.send('ошибка при удалении картиннки, повторите попытку позже', Message.type.danger);
             else {
                 this.updateMediaList();
                 Message.send('картинка успешно удалена', Message.type.success);
@@ -52,16 +49,16 @@ export default class List extends React.Component {
 
     async getInitialDataFromSrv() {
         const {error, data: mediaList} = await API.request('media', 'list');
-        if (!error)
-            this.setState({loading: false, mediaList});
-        else
-            Message.send('ошибка при получении списка категорий, повторите попытку позже', Message.type.danger);
+        if (!error) this.setState({loading: false, mediaList});
+        else Message.send('ошибка при получении списка категорий, повторите попытку позже', Message.type.danger);
     };
 
     renderList() {
         const {mediaList = []} = this.state;
         return mediaList.map((img, key) => (
             <div className='a--list-item' key={key}>
+                {img.categories && img.categories.map((category, key) => <div key={key}><a
+                    href={category.url}>{category.name}</a></div>)}
                 <img width='200' height='200' src={img.url}/>
                 <span onClick={() => this.deleteMedia(img._id)} className='icon remove-button'/>
             </div>
@@ -70,8 +67,7 @@ export default class List extends React.Component {
 
     render() {
         const {loading} = this.state;
-        if (loading)
-            return <Loading/>;
+        if (loading) return <Loading/>;
         return (
             <>
                 {this.renderList()}

@@ -15,10 +15,14 @@ export default class List extends React.Component {
             categories: undefined,
             currentCategory: undefined,
             changes: undefined,
-            show: undefined
+            show: undefined,
+            showMediaDialog: undefined,
+            media: undefined,
+            mediaHash: {}
         };
         this.show = (page, currentCategory = {}) => this.setState({show: page, currentCategory});
         this.close = () => this.setState({show: undefined, currentCategory: undefined, changes: undefined});
+        this.closeMediaDialog = () => this.setState({showMediaDialog: false});
         this.updateCategories = async () => {
             this.setState({loading: true});
             const {error, data: categories} = await API.request('categories', 'list');
@@ -74,8 +78,13 @@ export default class List extends React.Component {
     };
 
     async getInitialDataFromSrv() {
-        const {error, data: categories} = await API.request('categories', 'list');
-        if (!error) this.setState({loading: false, categories});
+        const {errorC, data: categories} = await API.request('categories', 'list');
+        const {errorM, data: media} = await API.request('media', 'list');
+        const mediaHash = {};
+        media.forEach(img => (!Object.keys(mediaHash).includes(img._id) && (mediaHash[img._id] = img)));
+        if (!errorC)
+            if (!errorM) this.setState({loading: false, categories, media, mediaHash});
+            else Message.send('ошибка при получении списка фотографий, повторите попытку позже', Message.type.danger);
         else Message.send('ошибка при получении списка категорий, повторите попытку позже', Message.type.danger);
     };
 
@@ -92,7 +101,7 @@ export default class List extends React.Component {
     };
 
     renderPropMedia(prop, key) {
-        const {currentCategory = {}, changes = {}, show} = this.state;
+        const {currentCategory = {}, changes = {}, show, mediaHash} = this.state;
         // here's crazy conditions
         const wasImgChanged = !!(changes[prop] || changes[prop] === '');
         const isExistInCategory = !!currentCategory[prop];
@@ -100,8 +109,17 @@ export default class List extends React.Component {
         return (
             <div key={key}>
                 {wasImgChanged
-                    ? isExistInChanges && <img width='400' height='400' src={changes[prop].url} alt='img'/>
-                    : isExistInCategory && <img width='400' height='400' src={currentCategory[prop].url} alt='img'/>}
+                    ? isExistInChanges && (
+                    <img width='400' height='400'
+                         src={mediaHash[changes[prop]] ? mediaHash[changes[prop]].url : changes[prop]}
+                         alt='img'/>
+                )
+                    : isExistInCategory && (
+                    <img width='400' height='400'
+                         src={mediaHash[currentCategory[prop]] ? mediaHash[currentCategory[prop]].url : currentCategory[prop]}
+                         alt='img'/>
+                )
+                }
                 {(isExistInChanges || (isExistInCategory && !wasImgChanged)) && (
                     <span onClick={() => {
                         const newChanges = {...changes, [prop]: ''};
@@ -113,24 +131,16 @@ export default class List extends React.Component {
                     const file = e.target.files[0];
                     if (file.size < 10 * 1024 * 1024) {
                         const reader = new FileReader();
-                        reader.onload = r => {
+                        reader.onload = () => {
                             const dataURL = reader.result;
-                            if (show === 'editPage') this.setState({
-                                changes: {
-                                    ...changes,
-                                    img: {name: file.name, url: dataURL}
-                                }
-                            });
-                            else this.setState({
-                                currentCategory: {
-                                    ...currentCategory,
-                                    img: {name: file.name, url: dataURL}
-                                }
-                            });
+                            if (show === 'editPage') this.setState({changes: {...changes, img: dataURL}});
+                            else this.setState({currentCategory: {...currentCategory, img: dataURL}});
                         };
                         reader.readAsDataURL(file);
                     } else Message.send('файл слишком большой', Message.types.danger);
                 }}/>
+                <div>Или выбрать из существующих:</div>
+                <button onClick={() => this.setState({showMediaDialog: true})}>Выбрать</button>
             </div>
         )
     };
@@ -163,7 +173,7 @@ export default class List extends React.Component {
     };
 
     render() {
-        const {loading, show, currentCategory, sendLoading} = this.state;
+        const {loading, show, currentCategory, sendLoading, showMediaDialog, media} = this.state;
         if (loading) return <Loading/>;
         let actions = this.buttons;
         if ((show === 'editPage') && (currentCategory.slug !== 'root'))
@@ -180,6 +190,26 @@ export default class List extends React.Component {
                         <div>
                             {this.renderProps()}
                             {sendLoading && <Loading/>}
+                        </div>
+                    </Modal>
+                )}
+                {showMediaDialog && (
+                    <Modal title='Медиа' show={true} buttons={[{
+                        name: 'закрыть',
+                        types: 'secondary',
+                        handler: this.closeMediaDialog
+                    }]} onClose={this.close}>
+                        <div>
+                            {media.map((img, key) => (
+                                <div className='a--list-item' key={key} onClick={() => {
+                                    const {changes} = this.state;
+                                    if (show === 'editPage') this.setState({changes: {...changes, img: img._id}});
+                                    else this.setState({currentCategory: {...currentCategory, img: img._id}});
+                                    this.closeMediaDialog();
+                                }}>
+                                    <img width='200' height='200' src={img.url}/>
+                                </div>
+                            ))}
                         </div>
                     </Modal>
                 )}
