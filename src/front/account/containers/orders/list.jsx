@@ -12,9 +12,9 @@ export default class List extends React.Component {
         this.state = {
             loading: true,
             currentOrder: undefined,
-            orders: undefined,
-            products: undefined,
-            productsHash: undefined,
+            orders: [],
+            products: [],
+            productsHash: {},
             currentProduct: undefined,
             changes: undefined,
             show: undefined
@@ -26,10 +26,12 @@ export default class List extends React.Component {
         this.close = () => this.setState({show: undefined, currentOrder: undefined, changes: undefined});
         this.saveChanges = async () => {
             const {changes = {}, currentOrder} = this.state;
-            if (Object.keys(changes).length === 0) return this.close();
+            if (!Object.keys(changes).length)
+                return this.close();
             const data = {_id: currentOrder._id, changes};
             const {error} = await API.request('orders', 'update', data);
-            if (error) Message.send(`ошибка при редактировании заказа, повторите попытку позже`, Message.type.danger);
+            if (error)
+                Message.send(`ошибка при редактировании заказа, повторите попытку позже`, Message.type.danger);
             else {
                 Message.send(`заказ успешно изменен`, Message.type.success);
                 this.updateOrders();
@@ -39,22 +41,20 @@ export default class List extends React.Component {
         this.updateOrders = async () => {
             this.setState({loading: true});
             const {error, data: orders} = await API.request('orders', 'list');
-            if (!error) this.setState({loading: false, orders});
-            else Modal.send('ошибка при обновлении списка заказов, повторите попытку позже', Message.type.danger);
+            if (!error)
+                this.setState({loading: false, orders});
+            else
+                Modal.send('ошибка при обновлении списка заказов, повторите попытку позже', Message.type.danger);
         };
         this.deleteOrder = async (orderID = this.state.currentOrder._id) => {
             const {error} = await API.request('orders', 'update', {_id: orderID});
-            if (error) Message.send('ошибка при удалении заказа, повторите попытку позже', Message.type.danger);
+            if (error)
+                Message.send('ошибка при удалении заказа, повторите попытку позже', Message.type.danger);
             else {
                 Message.send('заказ успешно удален', Message.type.success);
                 this.updateOrders();
             }
             this.close();
-        };
-        this.generateHash = data => {
-            const hash = {};
-            data.forEach(item => hash[item._id] = item);
-            return data;
         };
         this.buttons = [
             {
@@ -73,6 +73,7 @@ export default class List extends React.Component {
                 handler: this.deleteOrder
             }
         ];
+        this.fields = ['createDate', 'products', 'status', 'statusDate', 'deliveryAddress', 'comment'];
     };
 
     componentWillMount() {
@@ -81,16 +82,15 @@ export default class List extends React.Component {
 
     async getInitialDataFromSrv() {
         const {errorO, data: orders} = await API.request('orders', 'list');
-        const {errorP, data: products} = await API.request('products', 'list');
-        const productsHash = this.generateHash(products);
-        if (!errorO)
-            if (!errorP) this.setState({loading: false, orders, products, productsHash});
-            else Message.send('ошибка при получении списка продуктов, повторите попытку позже', Message.type.danger);
-        else Message.send('ошибка при получении списка заказов, повторите попытку позже', Message.type.danger);
+        const {errorP, data: {products, productsHash}} = await API.request('products', 'list', {hash: true});
+        if (!errorO && !errorP)
+            this.setState({loading: false, orders, products, productsHash});
+        else
+            Message.send('ошибка при получении списка заказов, повторите попытку позже', Message.type.danger);
     };
 
     renderList() {
-        const {orders = []} = this.state;
+        const {orders} = this.state;
         return orders.map((order, key) => (
             <div className='a--list-item' key={key}>
                 <span>{order.status}</span>
@@ -101,7 +101,7 @@ export default class List extends React.Component {
     };
 
     renderProductsProp(prop, key) {
-        const {changes = {}, currentOrder, products = [], productsHash} = this.state;
+        const {changes = {}, currentOrder, products, productsHash} = this.state;
         return (
             <div key={key}>
                 {(changes.products || currentOrder.products || []).map(({count, _id}, index) => (
@@ -133,7 +133,7 @@ export default class List extends React.Component {
                     </div>
                 ))}
                 <select onChange={e => this.setState({currentProduct: e.target.value})}>
-                    {products.map((product, key) => <option value={product._id} key={key}>{product.name}</option>)}
+                    {products.map(product => <option value={product._id} key={product._id}>{product.name}</option>)}
                 </select>
                 <button onClick={() => {
                     const {currentProduct} = this.state;
@@ -151,7 +151,8 @@ export default class List extends React.Component {
     };
 
     renderProp(prop, key) {
-        if (prop === 'products') return this.renderProductsProp(prop, key);
+        if (prop === 'products')
+            return this.renderProductsProp(prop, key);
         if (['statusDate', 'createDate'].includes(prop)) {
             const {currentOrder} = this.state;
             const date = new Date(currentOrder[prop]);
@@ -175,12 +176,13 @@ export default class List extends React.Component {
     };
 
     renderProps() {
-        return ['createDate', 'products', 'status', 'statusDate', 'deliveryAddress', 'comment'].map((prop, key) => this.renderProp(prop, key));
+        return this.fields.map((prop, key) => this.renderProp(prop, key));
     };
 
     render() {
         const {loading, show} = this.state;
-        if (loading) return <Loading/>;
+        if (loading)
+            return <Loading/>;
         return (
             <>
                 {this.renderList()}

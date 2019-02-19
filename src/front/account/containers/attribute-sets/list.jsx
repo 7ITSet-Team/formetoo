@@ -11,58 +11,69 @@ export default class List extends React.Component {
         super(props);
         this.state = {
             loading: true,
-            setList: undefined,
+            sets: [],
+            attributes: [],
+            attributesHash: {},
             currentSet: undefined,
-            attributes: undefined,
-            currentAttribute: undefined, // chosen attribute in <select>
             changes: undefined,
+            currentAttribute: undefined, // default value for <select>
             show: undefined
         };
-        this.show = (page, currentSet = {}) => this.setState({show: page, currentSet: currentSet});
+        this.show = (page, currentSet = {}) => this.setState({show: page, currentSet});
         this.close = () => this.setState({show: undefined, currentSet: undefined, changes: undefined});
-        this.updateSetList = async () => {
+        this.updateSets = async () => {
             this.setState({loading: true});
-            const {error, data: setList} = await API.request('attribute-sets', 'list');
-            if (!error) this.setState({loading: false, setList});
-            else Modal.send('ошибка при обновлении списка ннаборов атрибутов, повторите попытку позже', Message.type.danger);
+            const {error, data: sets} = await API.request('attribute-sets', 'list');
+            if (!error)
+                this.setState({loading: false, sets});
+            else
+                Modal.send('ошибка при обновлении списка наборов атрибутов, повторите попытку позже', Message.type.danger);
         };
         this.saveChanges = async () => {
-            const {changes = {}, currentSet, show} = this.state;
-            const isChangesExist = !!(Object.keys(changes).length);
-            const isEdit = (show === 'editPage');
-            if (isEdit && !isChangesExist) return this.close();
-            let data = currentSet;
-            if (isEdit) data = {_id: currentSet._id, changes};
-            const isNotValid = ['name', 'title', 'attributes']
-                .map(prop => {
-                    const isPropNotExist = ((currentSet[prop] == null) || (currentSet[prop] === ''));
-                    const isPropEmpty = ((Array.isArray(currentSet[prop]) && !currentSet[prop].length));
-                    return (isPropNotExist || isPropEmpty);
-                }) // the existence of "true" element means that user printed data is not valid
+            const {changes, currentSet, show} = this.state;
+            const isChangesExist = !!(Object.keys(changes || {}).length);
+            const isEditPage = (show === 'editPage');
+
+            if (isEditPage && !isChangesExist)
+                return this.close();
+
+            const data = (isEditPage) ? {_id: currentSet._id, changes} : currentSet;
+
+            const dataIsNotValid = this.requiredFields
+                .map(field => {
+                    let isNotValid;
+                    if (Array.isArray(currentSet[field]))
+                        isNotValid = !(currentSet[field].length);
+                    else
+                        isNotValid = ((currentSet[field] == null) || (currentSet[field] === ''));
+                    return isNotValid;
+                })
                 .includes(true);
-            if (!isEdit && isNotValid) return Message.send('Введены не все обязательные поля', Message.type.danger);
+
+            if (!isEditPage && dataIsNotValid)
+                return Message.send('Введены не все обязательные поля', Message.type.danger);
+
             const {error} = await API.request('attribute-sets', 'update', data);
             this.close();
-            if (error) Message.send(`ошибка при ${isEdit ? 'редактировании' : 'создании'} набора атрибутов, повторите попытку позже`, Message.type.danger);
+            if (error)
+                Message.send(`ошибка при ${(isEditPage) ? 'редактировании' : 'создании'} набора атрибутов, повторите попытку позже`, Message.type.danger);
             else {
-                Message.send(`набор атрибутов успешно ${isEdit ? 'изменен' : 'создан'}`, Message.type.success);
-                this.updateSetList();
+                Message.send(`набор атрибутов успешно ${(isEditPage) ? 'изменен' : 'создан'}`, Message.type.success);
+                this.updateSets();
             }
         };
         this.deleteSet = async (setID = this.state.currentSet._id) => {
             const {show} = this.state;
             const {error} = await API.request('attribute-sets', 'update', {_id: setID});
-            if (error) Message.send('ошибка при удалении набора атрибутов, повторите попытку позже', Message.type.danger);
+
+            if (error)
+                Message.send('ошибка при удалении набора атрибутов, повторите попытку позже', Message.type.danger);
             else {
-                if (show === 'editPage') this.close();
-                this.updateSetList();
+                if (show === 'editPage')
+                    this.close();
+                this.updateSets();
                 Message.send('набор атрибутов успешно удален', Message.type.success);
             }
-        };
-        this.generateHash = (data) => {
-            const hash = {};
-            data.forEach(item => hash[item._id] = item);
-            return hash;
         };
         this.buttons = [
             {
@@ -76,6 +87,8 @@ export default class List extends React.Component {
                 handler: this.close
             }
         ];
+        this.requiredFields = ['name', 'title', 'attributes'];
+        this.fields = this.requiredFields;
     };
 
     componentWillMount() {
@@ -84,49 +97,60 @@ export default class List extends React.Component {
 
     async getInitialDataFromSrv() {
         const setPromise = API.request('attribute-sets', 'list');
-        const attrPromise = API.request('attributes', 'list');
-        const {errorS, data: setList} = await setPromise;
-        const {errorA, data: attributes} = await attrPromise;
-        const attributesHash = this.generateHash(attributes);
-        if (!errorS)
-            if (!errorA)
-                this.setState({
-                    loading: false,
-                    setList,
-                    attributes,
-                    attributesHash,
-                    currentAttribute: attributes[0]._id // default value for <select>
-                });
-            else Message.send('ошибка при получении списка атрибутов, повторите попытку позже', Message.type.danger);
-        else Message.send('ошибка при получении списка наборов атрибутов, повторите попытку позже', Message.type.danger);
+        const attrPromise = API.request('attributes', 'list', {hash: true});
+        const {error: errorS, data: sets} = await setPromise;
+        const {error: errorA, data: {attributes, attributesHash}} = await attrPromise;
+        if (!errorS && !errorA)
+            this.setState({
+                loading: false,
+                sets,
+                attributes,
+                attributesHash,
+                currentAttribute: attributes[0]._id
+            });
+        else
+            Message.send('ошибка при получении списка наборов атрибутов, повторите попытку позже', Message.type.danger);
     };
 
     renderAttributes(prop, key) {
-        const {attributes, currentAttribute, currentSet, show, changes = {}, attributesHash} = this.state;
+        const {attributes, attributesHash, currentAttribute, currentSet, show, changes = {}} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
                 <select onChange={e => this.setState({currentAttribute: e.target.value})}>
-                    {attributes.map(({_id, title}, index) => <option value={_id} key={index}>{title}</option>)}
+                    {attributes.map(({_id, title}) => <option value={_id} key={_id}>{title}</option>)}
                 </select>
                 <button onClick={() => {
-                    const newChanges = {...changes, [prop]: [...(changes[prop] || currentSet[prop] || [])]};
-                    if (!newChanges[prop].includes(currentAttribute)) newChanges[prop].push(currentAttribute);
-                    else Message.send('Такой атрибут уже добавлен', Message.type.info);
-                    if (show === 'editPage') this.setState({changes: newChanges});
-                    else this.setState({currentSet: {...currentSet, ...newChanges}});
-                }}>
-                    add
+                    const newChanges = {
+                        ...changes,
+                        [prop]: [...(changes[prop] || currentSet[prop] || [])]
+                    };
+
+                    if (!newChanges[prop].includes(currentAttribute))
+                        newChanges[prop].push(currentAttribute);
+                    else
+                        Message.send('Такой атрибут уже добавлен', Message.type.info);
+
+                    if (show === 'editPage')
+                        this.setState({changes: newChanges});
+                    else
+                        this.setState({currentSet: {...currentSet, ...newChanges}});
+                }}>add
                 </button>
-                {(changes.attributes || currentSet.attributes || []).map((attributeID, index) => (
-                    <div key={index}>
+                {(changes.attributes || currentSet.attributes || []).map(attributeID => (
+                    <div key={attributeID}>
                         <span>{attributesHash[attributeID].title}</span>
                         <span onClick={() => {
                             const newAttributes = [...(changes.attributes || currentSet.attributes)];
                             newAttributes.splice(index, 1);
-                            const newChanges = {...changes, [prop]: newAttributes};
-                            if (show === 'editPage') this.setState({changes: newChanges});
-                            else this.setState({currentSet: {...currentSet, ...newChanges}});
+                            const newChanges = {
+                                ...changes,
+                                [prop]: newAttributes
+                            };
+                            if (show === 'editPage')
+                                this.setState({changes: newChanges});
+                            else
+                                this.setState({currentSet: {...currentSet, ...newChanges}});
                         }} className='icon remove-button'/>
                     </div>
                 ))}
@@ -135,30 +159,35 @@ export default class List extends React.Component {
     };
 
     renderProp(prop, key) {
-        if (prop === 'attributes') return this.renderAttributes(prop, key);
+        if (prop === 'attributes')
+            return this.renderAttributes(prop, key);
         const {currentSet, show, changes = {}} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
-                <Input value={(show === 'editPage') ? (changes[prop] || currentSet[prop]) : undefined}
+                <Input value={!(changes[prop] == null) ? changes[prop] : (currentSet[prop] || '')}
                        onChange={value => {
-                           const newChanges = {...changes, [prop]: value};
-
-                           if (show === 'editPage') this.setState({changes: newChanges});
-                           else this.setState({currentSet: {...currentSet, ...newChanges}});
+                           const newChanges = {
+                               ...changes,
+                               [prop]: value
+                           };
+                           if (show === 'editPage')
+                               this.setState({changes: newChanges});
+                           else
+                               this.setState({currentSet: {...currentSet, ...newChanges}});
                        }}/>
             </div>
         )
     };
 
     renderProps() {
-        return ['name', 'title', 'attributes'].map((prop, key) => this.renderProp(prop, key));
+        return this.fields.map((prop, key) => this.renderProp(prop, key));
     };
 
     renderList() {
-        const {setList = []} = this.state;
-        return setList.map((set, key) => (
-            <div className='a--list-item' key={key}>
+        const {sets} = this.state;
+        return sets.map(set => (
+            <div className='a--list-item' key={set._id}>
                 <span>{set.title}</span>
                 <span onClick={() => this.show('editPage', set)} className='icon pencil'/>
                 <span onClick={() => this.deleteSet(set._id)} className='icon remove-button'/>
@@ -168,10 +197,11 @@ export default class List extends React.Component {
 
     render() {
         const {loading, show} = this.state;
-        if (loading) return <Loading/>;
-        let actions = this.buttons;
-        if (show === 'editPage')
-            actions = [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deleteSet}];
+        if (loading)
+            return <Loading/>;
+        const actions = (show === 'editPage')
+            ? [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deleteSet}]
+            : this.buttons;
         return (
             <>
                 <div className='c--items-group'>

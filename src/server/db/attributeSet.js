@@ -15,8 +15,8 @@ export default db => {
         attributes: [mongoose.Schema.Types.ObjectId]
     }, {collection: __modelName, autoIndex: false});
 
-    schema.statics.getAll = async function (options = {projection: {__v: 0}}) {
-        return await this.find({}, options.projection);
+    schema.statics.getAll = async function () {
+        return await this.find({}, {__v: 0});
     };
 
     schema.statics.removeAttribute = async function ({_id}) {

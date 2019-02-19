@@ -19,7 +19,7 @@ export default db => {
         if (Array.isArray(ids))
             return await this.find({_id: {$in: ids}}, {__v: 0});
         else
-            return await this.findOne({_id: {$in: ids}}, {__v: 0});
+            return await this.findOne({_id: ids}, {__v: 0});
     };
 
     schema.statics.update = async function (data) {
@@ -38,8 +38,12 @@ export default db => {
                     ok = 1;
             }
         else {
-            result._id = (await this.create(data))._id;
-            if (!!result._id)
+            const insertedData = await this.create(data);
+            if (Array.isArray(insertedData))
+                result.ids = insertedData.map(item => item._id);
+            else
+                result._id = insertedData._id;
+            if (result.ids || result._id)
                 ok = 1;
         }
         result.isSuccess = (ok === 1);

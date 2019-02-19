@@ -11,7 +11,7 @@ export default class List extends React.Component {
         super(props);
         this.state = {
             loading: true,
-            settings: undefined,
+            settings: [],
             currentSetting: undefined,
             changes: undefined,
             show: undefined
@@ -21,12 +21,15 @@ export default class List extends React.Component {
         this.updateSettings = async () => {
             this.setState({loading: true});
             const {error, data: settings} = await API.request('settings', 'list');
-            if (!error) this.setState({loading: false, settings});
-            else Modal.send('ошибка при обновлении списка настроек, повторите попытку позже', Message.type.danger);
+            if (!error)
+                this.setState({loading: false, settings});
+            else
+                Modal.send('ошибка при обновлении списка настроек, повторите попытку позже', Message.type.danger);
         };
         this.saveChanges = async () => {
             const {changes = {}, currentSetting, show} = this.state;
-            if (show && (Object.keys(changes).length === 0)) return this.close();
+            if (show && !Object.keys(changes).length)
+                return this.close();
             const data = {_id: currentSetting._id, changes};
             const {error} = await API.request('settings', 'update', data);
             if (error) {
@@ -50,6 +53,7 @@ export default class List extends React.Component {
                 handler: this.close
             }
         ];
+        this.fields = ['isPrivate', 'name', 'title', 'value'];
     };
 
     componentWillMount() {
@@ -58,12 +62,14 @@ export default class List extends React.Component {
 
     async getInitialDataFromSrv() {
         const {error, data: settings} = await API.request('settings', 'list');
-        if (!error) this.setState({loading: false, settings});
-        else Message.send('ошибка при получении списка настроек, повторите попытку позже', Message.type.danger);
+        if (!error)
+            this.setState({loading: false, settings});
+        else
+            Message.send('ошибка при получении списка настроек, повторите попытку позже', Message.type.danger);
     };
 
     renderList() {
-        const {settings = []} = this.state;
+        const {settings} = this.state;
         return (
             <>
                 {settings.map((setting, key) => (
@@ -82,9 +88,10 @@ export default class List extends React.Component {
             <div key={key}>
                 {prop}
                 {prop === 'isPrivate'
-                    ? <input type="checkbox" defaultChecked={changes[prop] || (currentSetting && currentSetting[prop])}
+                    ? <input type="checkbox"
+                             checked={!(changes[prop] == null) ? changes[prop] : (currentSetting[prop] || false)}
                              disabled/>
-                    : <Input value={changes[prop] || (currentSetting && currentSetting[prop])}
+                    : <Input value={!(changes[prop] == null) ? changes[prop] : (currentSetting[prop] || '')}
                              onChange={(prop === 'value')
                                  ? value => {
                                      const newChanges = {...changes, [prop]: value};
@@ -96,12 +103,13 @@ export default class List extends React.Component {
     };
 
     renderProps() {
-        return ['isPrivate', 'name', 'title', 'value'].map((prop, key) => this.renderProp(prop, key));
+        return this.fields.map((prop, key) => this.renderProp(prop, key));
     };
 
     render() {
         const {loading, show} = this.state;
-        if (loading) return <Loading/>;
+        if (loading)
+            return <Loading/>;
         return (
             <>
                 {this.renderList()}

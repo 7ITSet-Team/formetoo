@@ -38,7 +38,8 @@ export default db => {
                 const category = await this.findOne({_id: data._id});
                 if (category.img !== '') {
                     const mediaOk = (await db.media.update({_id: new mongoose.Types.ObjectId(category.img)})).isSuccess;
-                    if (!mediaOk) return false
+                    if (!mediaOk)
+                        return false
                 }
                 const rmCatPromise = this.remove({_id: new mongoose.Types.ObjectId(data._id)});
                 const rmCatProductPromise = db.product.removeCategory(data);

@@ -11,7 +11,7 @@ export default class List extends React.Component {
         super(props);
         this.state = {
             loading: true,
-            logsList: undefined,
+            logs: [],
             currentLog: undefined,
             show: false,
             filter: {},
@@ -20,43 +20,53 @@ export default class List extends React.Component {
         };
         this.show = currentLog => this.setState({show: true, currentLog});
         this.close = () => this.setState({show: false, currentLog: undefined});
-        this.updateLogsList = async () => {
+        this.updateLogs = async () => {
             const {filter} = this.state;
             this.setState({loading: true});
-            const {error, data: logsList} = filter ? await API.request('logs', 'list', {filter}) : await API.request('logs', 'list');
-            if (!error) this.setState({loading: false, logsList});
-            else Message.send('ошибка при обновлении списка логов, повторите попытку позже');
+            const {error, data: logs} = filter ? await API.request('logs', 'list', {filter}) : await API.request('logs', 'list');
+            if (!error)
+                this.setState({loading: false, logs});
+            else
+                Message.send('ошибка при обновлении списка логов, повторите попытку позже');
         };
         this.deleteLogs = async () => {
             const {error} = await API.request('logs', 'delete-all');
             if (!error) {
-                this.updateLogsList();
+                this.updateLogs();
                 Message.send('логи успешно удалены', Message.type.success);
-            } else Message.send('ошибка при удалении логов, повторите попытку позже', Message.type.danger);
+            } else
+                Message.send('ошибка при удалении логов, повторите попытку позже', Message.type.danger);
         };
         this.deleteCheckedLogs = async () => {
             const {checkedLogs} = this.state;
             const {error} = await API.request('logs', 'update', {ids: checkedLogs});
             if (!error) {
-                this.updateLogsList();
+                this.updateLogs();
                 Message.send('логи успешно удалены', Message.type.success);
-            } else Message.send('ошибка при удалении логов, повторите попытку позже', Message.type.danger);
+            } else
+                Message.send('ошибка при удалении логов, повторите попытку позже', Message.type.danger);
         };
         this.acceptFilter = async (filterBy, value) => {
             const {filter} = this.state;
             const newFilter = {...filter};
-            newFilter[filterBy] = (value || undefined);
-            for (const key in newFilter) (newFilter[key] === undefined) && (delete newFilter[key]);
+            newFilter[filterBy] = value;
+            for (const key in newFilter)
+                if (newFilter[key] === undefined)
+                    delete newFilter[key];
             this.setState({filter: newFilter});
-            const {error, data: logsList} = await API.request('logs', 'list', {filter: newFilter});
-            if (!error) this.setState({logsList});
-            else Message.send('ошибка при обновлении списка логов, повторите попытку позже');
+            const {error, data: logs} = await API.request('logs', 'list', {filter: newFilter});
+            if (!error)
+                this.setState({logs});
+            else
+                Message.send('ошибка при обновлении списка логов, повторите попытку позже');
         };
         this.checkAll = () => {
-            const {logsList} = this.state;
-            const checkedLogs = logsList.map(log => log._id);
+            const {logs} = this.state;
+            const checkedLogs = logs.map(log => log._id);
             this.setState({checkedLogs});
         };
+        this.filters = ['user.email', 'method.action', 'method.controller', 'time'];
+        this.fields = ['time', 'user', 'method'];
     };
 
     componentWillMount() {
@@ -64,16 +74,18 @@ export default class List extends React.Component {
     };
 
     async getInitialDataFromSrv() {
-        const {error, data: logsList} = await API.request('logs', 'list');
-        if (!error) this.setState({loading: false, logsList});
-        else Message.send('ошибка при получении списка логов, повторите попытку позже', Message.type.danger);
+        const {error, data: logs} = await API.request('logs', 'list');
+        if (!error)
+            this.setState({loading: false, logs});
+        else
+            Message.send('ошибка при получении списка логов, повторите попытку позже', Message.type.danger);
     };
 
     renderList() {
-        const {logsList = [], checkedLogs, filter} = this.state;
+        const {logs, checkedLogs, filter} = this.state;
         return (
             <>
-                {['user.email', 'method.action', 'method.controller', 'time'].map((filterBy, key) => {
+                {this.filters.map((filterBy, key) => {
                     if (filterBy === 'time')
                         return (
                             <div key={key}>
@@ -90,7 +102,7 @@ export default class List extends React.Component {
                                value={filter[filterBy] || ''}/>
                     );
                 })}
-                {logsList.map((log, key) => (
+                {logs.map((log, key) => (
                     <div key={key}>
                         <input type='checkbox' onChange={e => {
                             if (e.target.checked)
@@ -112,43 +124,44 @@ export default class List extends React.Component {
 
     renderProp(prop, key) {
         const {currentLog} = this.state;
-        if (prop === 'time')
-            return (
-                <div key={key}>
-                    <div>Time: {(new Date(currentLog.time)).toLocaleString()}</div>
-                </div>
-            );
-        else if (prop === 'user')
-            return (
-                <div key={key}>
-                    <div>User: {currentLog.user.email}</div>
-                </div>
-            );
-        else if (prop === 'method') {
-            const {showJSON} = this.state;
-            return (
-                <div key={key}>
-                    <div>Controller: {currentLog.method.controller}</div>
-                    <div>Action: {currentLog.method.action}</div>
-                    <div>
-                        View:
-                        {currentLog.view && <div dangerouslySetInnerHTML={{__html: currentLog.view}}/>}
+        switch (prop) {
+            case 'time':
+                return (
+                    <div key={key}>
+                        <div>Time: {(new Date(currentLog.time)).toLocaleString()}</div>
                     </div>
-                    {currentLog.method.data && (
-                        <>
-                            <button onClick={() => this.setState({showJSON: true})}>see json</button>
-                            <button onClick={() => this.setState({showJSON: false})}>hide json</button>
-                            {showJSON && <pre
-                                style={{backgroundColor: 'tomato'}}>{JSON.stringify(currentLog.method.data, null, 2)}</pre>}
-                        </>
-                    )}
-                </div>
-            );
+                );
+            case 'user':
+                return (
+                    <div key={key}>
+                        <div>User: {currentLog.user.email}</div>
+                    </div>
+                );
+            case 'method':
+                const {showJSON} = this.state;
+                return (
+                    <div key={key}>
+                        <div>Controller: {currentLog.method.controller}</div>
+                        <div>Action: {currentLog.method.action}</div>
+                        <div>
+                            View:
+                            {currentLog.view && <div dangerouslySetInnerHTML={{__html: currentLog.view}}/>}
+                        </div>
+                        {currentLog.method.data && (
+                            <>
+                                <button onClick={() => this.setState({showJSON: true})}>see json</button>
+                                <button onClick={() => this.setState({showJSON: false})}>hide json</button>
+                                {showJSON && <pre
+                                    style={{backgroundColor: 'tomato'}}>{JSON.stringify(currentLog.method.data, null, 2)}</pre>}
+                            </>
+                        )}
+                    </div>
+                );
         }
     };
 
     renderProps() {
-        return ['time', 'user', 'method'].map((prop, key) => this.renderProp(prop, key));
+        return this.fields.map((prop, key) => this.renderProp(prop, key));
     };
 
     render() {
