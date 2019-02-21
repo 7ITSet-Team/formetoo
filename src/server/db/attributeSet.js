@@ -19,6 +19,10 @@ export default db => {
         return await this.find({}, {__v: 0});
     };
 
+    schema.statics.getByID = async function (_id) {
+        return await this.findOne({_id}, {__v: 0});
+    };
+
     schema.statics.removeAttribute = async function ({_id}) {
         return await this.updateMany(
             {},

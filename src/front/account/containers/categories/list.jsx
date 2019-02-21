@@ -54,7 +54,7 @@ export default class List extends React.Component {
             if (isEdit)
                 data = {_id: currentCategory._id, changes};
 
-            const isNotValid = ['slug', 'name']
+            const isNotValid = this.requiredFields
                 .map(prop => ((currentCategory[prop] == null) || (currentCategory[prop] === '')))
                 .includes(true);
 

@@ -68,9 +68,6 @@ export default db => {
         let filterByUser;
 
         if (data.filter) {
-            for (const prop in data.filter)
-                if (data.filter[prop] === '')
-                    delete data.filter[prop];
             if (data.filter['time.after']) {
                 data.filter.time = {...(data.filter.time || {}), $gte: data.filter['time.after']};
                 delete data.filter['time.after'];

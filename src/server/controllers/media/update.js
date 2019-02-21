@@ -18,12 +18,13 @@ export default async (db, req, res, data) => {
 };
 
 export const logView = async (data, db) => {
-    if (data.changes)
-        return `<span>This item was changed.</span>`;
-    else {
-        if (Object.keys(data).length > 1)
-            return `<span>This item was created.</span>`;
-        else
+    if (data.changes) {
+        const media = await db.media.getByID(data._id);
+        return `<span>The <a href="${media.url}">image</a> was changed.</span>`;
+    } else {
+        if (Object.keys(data).length > 1) {
+            return `<span>The <a href="${data.url}">image</a> was created.</span>`;
+        } else
             return '<span>This item was deleted</span>';
     }
 };

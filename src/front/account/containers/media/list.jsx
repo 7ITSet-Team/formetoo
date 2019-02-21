@@ -4,6 +4,7 @@ import API from '@common/core/api';
 import Loading from '@components/ui/loading';
 import Modal from '@components/ui/modal';
 import Message from '@components/ui/message';
+import Input from '@components/ui/input';
 
 export default class List extends React.Component {
     constructor(props) {
@@ -13,7 +14,8 @@ export default class List extends React.Component {
             media: undefined,
             sendLoading: false, // we use this flag for rendering a spinner in the edit modal window because sending an image takes a lot of time
             currentMedia: undefined,
-            show: undefined
+            show: undefined,
+            filter: {}
         };
         this.show = (page, currentMedia = {}) => this.setState({show: page, currentMedia});
         this.close = () => this.setState({currentMedia: undefined, show: undefined});
@@ -49,6 +51,22 @@ export default class List extends React.Component {
                 this.updateMedia();
             }
         };
+        this.acceptFilter = async (filterBy, value) => {
+            const {filter} = this.state;
+            let newFilter = {...filter};
+            newFilter[filterBy] = (value || undefined);
+            for (const filter in newFilter)
+                if (newFilter[filter] === undefined)
+                    delete newFilter[filter];
+            if (!Object.keys(newFilter).length)
+                newFilter = undefined;
+            this.setState({filter: newFilter});
+            const {error, data: media} = await API.request('media', 'list', {filter: newFilter});
+            if (!error)
+                this.setState({media});
+            else
+                Message.send('ошибка при обновлении списка логов, повторите попытку позже');
+        };
         this.buttons = [
             {
                 name: 'сохранить',
@@ -61,6 +79,7 @@ export default class List extends React.Component {
                 handler: this.close
             }
         ];
+        this.filters = ['product', 'category'];
     }
 
     componentWillMount() {
@@ -91,7 +110,7 @@ export default class List extends React.Component {
     };
 
     render() {
-        const {loading, show, currentMedia, changes = {}, sendLoading} = this.state;
+        const {loading, show, currentMedia, changes = {}, sendLoading, filter = {}} = this.state;
         if (loading)
             return <Loading/>;
         let actions = this.buttons;
@@ -99,6 +118,12 @@ export default class List extends React.Component {
             actions = [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deletePage}];
         return (
             <>
+                {this.filters.map((filterBy, key) => {
+                    return (
+                        <Input key={key} placeholder={filterBy} onChange={value => this.acceptFilter(filterBy, value)}
+                               value={filter[filterBy] || ''}/>
+                    );
+                })}
                 {this.renderList()}
                 {show && (
                     <Modal title={(show === 'editPage') ? 'Редактирование' : 'Создание'} show={true} buttons={actions}

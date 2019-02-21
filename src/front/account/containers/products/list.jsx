@@ -125,11 +125,13 @@ export default class List extends React.Component {
         };
         this.acceptFilter = async (filterBy, value) => {
             const {filter} = this.state;
-            const newFilter = {...filter};
-            newFilter[filterBy] = value;
-            for (const key in newFilter)
-                if (newFilter[key] === undefined)
-                    delete newFilter[key];
+            let newFilter = {...filter};
+            newFilter[filterBy] = (value || undefined);
+            for (const filter in newFilter)
+                if (newFilter[filter] === undefined)
+                    delete newFilter[filter];
+            if (!Object.keys(newFilter).length)
+                newFilter = undefined;
             this.setState({filter: newFilter});
             const {error, data: products} = await API.request('products', 'list', {filter: newFilter});
             if (!error)
@@ -399,7 +401,7 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {products, filter} = this.state;
+        const {products, filter = {}} = this.state;
         return (
             <>
                 {this.filters.map((filterBy, key) => {
@@ -478,12 +480,13 @@ export default class List extends React.Component {
                                                     }
                                                 });
                                             }
-                                        } else this.setState({
-                                            changes: {
-                                                ...changes,
-                                                media: [...currentProduct.media, img._id]
-                                            }
-                                        });
+                                        } else
+                                            this.setState({
+                                                changes: {
+                                                    ...changes,
+                                                    media: [...currentProduct.media, img._id]
+                                                }
+                                            });
                                     } else {
                                         if (currentProduct.media) {
                                             if (!currentProduct.media.includes(img._id)) {

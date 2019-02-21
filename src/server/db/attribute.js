@@ -26,8 +26,11 @@ export default db => {
         return await this.find({}, {__v: 0});
     };
 
-    schema.statics.getByID = async function (ids) {
-        return await this.find({_id: {$in: ids}}, {__v: 0});
+    schema.statics.getByID = async function (_id) {
+        if (Array.isArray(_id))
+            return await this.find({_id: {$in: _id}}, {__v: 0});
+        else
+            return await this.findOne({_id}, {__v: 0});
     };
 
     schema.statics.update = async function (attribute) {

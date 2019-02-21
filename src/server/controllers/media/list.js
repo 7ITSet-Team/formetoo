@@ -6,17 +6,30 @@ export default async (db, req, res, data) => {
     media.forEach(img => {
         const imageCategories = [];
         const imageProducts = [];
-        categories.forEach(category => ((category.img === String(img._id)) && imageCategories.push({
-            name: category.name,
-            url: `/catalog/${category.slug}`
-        })));
-        products.forEach(product => {
-            ((product.media.includes(String(img._id))) && imageProducts.push({
-                name: product.name,
-                url: `/catalog/product/${product.slug}`
-            }))
+        let categoryIsExist = false;
+        let productIsExist = false;
+        categories.forEach(category => {
+            if (category.img === String(img._id)) {
+                imageCategories.push({
+                    name: category.name,
+                    url: `/catalog/${category.slug}`
+                });
+                if (data.filter && data.filter.category && (category.name === data.filter.category))
+                    categoryIsExist = true;
+            }
         });
-        result.push({...(img.toJSON()), categories: imageCategories, products: imageProducts});
+        products.forEach(product => {
+            if (product.media.includes(String(img._id))) {
+                imageProducts.push({
+                    name: product.name,
+                    url: `/catalog/product/${product.slug}`
+                });
+                if (data.filter && data.filter.product && (product.name === data.filter.product))
+                    productIsExist = true;
+            }
+        });
+        if ((categoryIsExist || productIsExist) || !data.filter)
+            result.push({...(img.toJSON()), categories: imageCategories, products: imageProducts});
     });
 
     if (data.hash) {

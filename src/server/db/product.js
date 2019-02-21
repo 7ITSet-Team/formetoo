@@ -74,9 +74,6 @@ export default db => {
     schema.statics.getAll = async function (data = {}) {
         let products;
         if (data.filter) {
-            for (const prop in data.filter)
-                if (data.filter[prop] === '')
-                    delete data.filter[prop];
             if (data.filter['price.after']) {
                 data.filter.price = {...(data.filter.price || {}), $gte: data.filter['price.after']};
                 delete data.filter['price.after'];

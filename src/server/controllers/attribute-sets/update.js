@@ -5,10 +5,11 @@ export default async (db, req, res, data) => {
 
 export const logView = async (data, db) => {
     if (data.changes) {
-        return `<span>This item was changed.</span>`;
+        const set = (await db.attributeSet.getByID(data._id)) || {};
+        return `<span>The "${set.name}" attribute set was changed.</span>`;
     } else {
         if (Object.keys(data).length > 1) {
-            return `<span>"` + data.title + `" set was created.</span>`;
+            return `<span>The "${data.title}" attribute set was created.</span>`;
         } else {
             return '<span>The item was deleted</span>';
         }

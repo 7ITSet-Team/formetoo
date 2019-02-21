@@ -41,6 +41,10 @@ export default db => {
         return await this.find({}, {__v: 0})
     };
 
+    schema.statics.getByID = async function (_id) {
+        return await this.findOne({_id}, {__v: 0});
+    };
+
     schema.statics.update = async function (data) {
         const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(data._id)});
         let ok;

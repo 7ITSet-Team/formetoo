@@ -24,6 +24,10 @@ export default db => {
         return await this.findOne({slug}, {__v: 0});
     };
 
+    schema.statics.getByID = async function (_id) {
+        return await this.findOne({_id}, {__v: 0});
+    };
+
     schema.statics.removeMedia = async function (id) {
         return this.updateMany({img: id}, {$set: {img: ''}});
     };
