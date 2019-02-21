@@ -11,10 +11,12 @@ export default class List extends React.Component {
         this.state = {
             loading: true,
             media: undefined,
-            currentMedia: undefined
+            sendLoading: false, // we use this flag for rendering a spinner in the edit modal window because sending an image takes a lot of time
+            currentMedia: undefined,
+            show: undefined
         };
-        this.show = (page, currentMedia = {}) => this.setState({currentMedia});
-        this.close = () => this.setState({currentMedia: undefined});
+        this.show = (page, currentMedia = {}) => this.setState({show: page, currentMedia});
+        this.close = () => this.setState({currentMedia: undefined, show: undefined});
         this.updateMedia = async () => {
             this.setState({loading: true});
             const {error, data: media} = await API.request('media', 'list');
@@ -25,15 +27,19 @@ export default class List extends React.Component {
         };
         this.deleteMedia = async (mediaID = this.state.currentMedia._id) => {
             const {error} = await API.request('media', 'update', {_id: mediaID});
-            if (error) Message.send('ошибка при удалении картиннки, повторите попытку позже', Message.type.danger);
+            if (error)
+                Message.send('ошибка при удалении картиннки, повторите попытку позже', Message.type.danger);
             else {
                 this.updateMedia();
                 Message.send('картинка успешно удалена', Message.type.success);
             }
         };
         this.saveChanges = async () => {
-            const {currentMedia} = this.state;
-            const {error} = await API.request('media', 'update', currentMedia);
+            this.setState({sendLoading: true});
+            const {changes, currentMedia} = this.state;
+            const data = {_id: currentMedia._id, changes};
+            const {error} = await API.request('media', 'update', data);
+            this.setState({sendLoading: false});
             if (error) {
                 Message.send(`ошибка при редактировании картинки, повторите попытку позже`, Message.type.danger);
                 this.close();
@@ -43,6 +49,18 @@ export default class List extends React.Component {
                 this.updateMedia();
             }
         };
+        this.buttons = [
+            {
+                name: 'сохранить',
+                types: 'primary',
+                handler: this.saveChanges
+            },
+            {
+                name: 'закрыть',
+                types: 'secondary',
+                handler: this.close
+            }
+        ];
     }
 
     componentWillMount() {
@@ -67,17 +85,45 @@ export default class List extends React.Component {
                     href={product.url}>{product.name}</a></div>)}
                 <img width='200' height='200' src={img.url} alt=''/>
                 <span onClick={() => this.deleteMedia(img._id)} className='icon remove-button'/>
+                <span onClick={() => this.show('editPage', img)} className='icon pencil'/>
             </div>
         ))
     };
 
     render() {
-        const {loading} = this.state;
+        const {loading, show, currentMedia, changes = {}, sendLoading} = this.state;
         if (loading)
             return <Loading/>;
+        let actions = this.buttons;
+        if (show === 'editPage')
+            actions = [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deletePage}];
         return (
             <>
                 {this.renderList()}
+                {show && (
+                    <Modal title={(show === 'editPage') ? 'Редактирование' : 'Создание'} show={true} buttons={actions}
+                           onClose={this.close}>
+                        <div>
+                            <img src={changes.url || currentMedia.url} width='200' height='200' alt=''/>
+                            <input type='file' onChange={e => {
+                                const file = e.target.files[0];
+                                if (file.size < 10 * 1024 * 1024) {
+                                    const reader = new FileReader();
+                                    reader.onload = () => {
+                                        const dataURL = reader.result;
+                                        if (show === 'editPage')
+                                            this.setState({changes: {...changes, url: dataURL}});
+                                        else
+                                            this.setState({currentMedia: {...currentMedia, url: dataURL}});
+                                    };
+                                    reader.readAsDataURL(file);
+                                } else
+                                    Message.send('файл слишком большой', Message.types.danger);
+                            }}/>
+                            {sendLoading && <Loading/>}
+                        </div>
+                    </Modal>
+                )}
             </>
         )
     }

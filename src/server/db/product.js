@@ -71,8 +71,23 @@ export default db => {
         );
     };
 
-    schema.statics.getAll = async function (options = {__v: 0}) {
-        const products = await this.find({}, options);
+    schema.statics.getAll = async function (data = {}) {
+        let products;
+        if (data.filter) {
+            for (const prop in data.filter)
+                if (data.filter[prop] === '')
+                    delete data.filter[prop];
+            if (data.filter['price.after']) {
+                data.filter.price = {...(data.filter.price || {}), $gte: data.filter['price.after']};
+                delete data.filter['price.after'];
+            }
+            if (data.filter['price.before']) {
+                data.filter.price = {...(data.filter.price || {}), $lte: data.filter['price.before']};
+                delete data.filter['price.before'];
+            }
+            products = await this.find(data.filter, {__v: 0});
+        } else
+            products = await this.find({}, {__v: 0});
         const attributeIDs = [];
         products.forEach(product => {
             const props = product.props;

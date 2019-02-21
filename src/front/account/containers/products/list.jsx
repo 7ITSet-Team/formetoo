@@ -11,6 +11,7 @@ export default class List extends React.Component {
         super(props);
         this.state = {
             loading: true,
+            sendLoading: false, // we use this flag for rendering a spinner in the edit modal window because sending an image takes a lot of time
             products: [],
             attributes: [],
             sets: [],
@@ -22,7 +23,8 @@ export default class List extends React.Component {
             attributesHash: undefined,
             changes: undefined,
             show: undefined,
-            showMediaDialog: undefined
+            showMediaDialog: undefined,
+            filter: {}
         };
         this.show = (page, currentProduct) => {
             const {categories} = this.state;
@@ -66,7 +68,9 @@ export default class List extends React.Component {
                 .includes(true);
             if (!isEdit && isNotValid)
                 return Message.send(msg, Message.type.danger);
+            this.setState({sendLoading: true});
             const {error} = await API.request('products', 'update', data);
+            this.setState({sendLoading: false});
             if (error)
                 Message.send(`ошибка при ${isEdit ? 'редактировании' : 'создании'} продукта, повторите попытку позже`, Message.type.danger);
             else {
@@ -119,6 +123,20 @@ export default class List extends React.Component {
                 document.body.removeChild(a);
             }
         };
+        this.acceptFilter = async (filterBy, value) => {
+            const {filter} = this.state;
+            const newFilter = {...filter};
+            newFilter[filterBy] = value;
+            for (const key in newFilter)
+                if (newFilter[key] === undefined)
+                    delete newFilter[key];
+            this.setState({filter: newFilter});
+            const {error, data: products} = await API.request('products', 'list', {filter: newFilter});
+            if (!error)
+                this.setState({products});
+            else
+                Message.send('ошибка при обновлении списка продуктов, повторите попытку позже');
+        };
         this.buttons = [
             {
                 name: 'сохранить',
@@ -133,6 +151,7 @@ export default class List extends React.Component {
         ];
         this.requiredFields = ['categoryID', 'code', 'name', 'slug', 'price'];
         this.fields = [...this.requiredFields, 'media', 'props'];
+        this.filters = ['name', 'price.after', 'price.before', 'code', 'slug', 'categoryID'];
     };
 
     componentWillMount() {
@@ -380,9 +399,26 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {products = []} = this.state;
+        const {products, filter} = this.state;
         return (
             <>
+                {this.filters.map((filterBy, key) => {
+                    if (filterBy === 'categoryID') {
+                        const {categories} = this.state;
+                        return (
+                            <select onChange={e => this.acceptFilter(filterBy, e.target.value)} key={key}>
+                                <option value=''>Любая категория</option>
+                                {categories.map(category => (
+                                    <option value={category._id} key={category._id}>{category.name}</option>
+                                ))}
+                            </select>
+                        );
+                    }
+                    return (
+                        <Input key={key} placeholder={filterBy} onChange={value => this.acceptFilter(filterBy, value)}
+                               value={filter[filterBy] || ''}/>
+                    );
+                })}
                 {products.map((product, key) => (
                     <div key={key}>
                         <span>{product.name}</span>
@@ -399,7 +435,7 @@ export default class List extends React.Component {
     };
 
     render() {
-        const {loading, show, showMediaDialog, media} = this.state;
+        const {loading, show, showMediaDialog, media, sendLoading} = this.state;
         if (loading) return <Loading/>;
         let actions = this.buttons;
         if (show === 'editPage')
@@ -416,7 +452,10 @@ export default class List extends React.Component {
                 {show && (
                     <Modal title={(show === 'editPage') ? 'Редактирование' : 'Создание'} show={true} buttons={actions}
                            onClose={this.close}>
-                        <div>{this.renderProps()}</div>
+                        <div>
+                            {this.renderProps()}
+                            {sendLoading && <Loading/>}
+                        </div>
                     </Modal>
                 )}
                 {showMediaDialog && (
