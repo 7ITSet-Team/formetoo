@@ -24,40 +24,36 @@ export default class List extends React.Component {
             changes: undefined,
             show: undefined,
             showMediaDialog: undefined,
-            filter: {}
+            filter: {},
+            sort: {}
         };
-        this.show = (page, currentProduct) => {
-            const {categories} = this.state;
-            let newState = {show: page};
-            if (page === 'editPage') {
-                const props = currentProduct.props.map(prop => ({attribute: prop.attribute._id, value: prop.value}));
-                newState.currentProduct = {...currentProduct, props};
-            } else
-                newState.currentProduct = {categoryID: categories[0]._id};
-            this.setState(newState);
-        };
+        this.show = (page, currentProduct = {categoryID: this.state.categories[0]._id}) =>
+            this.setState({
+                show: page,
+                currentProduct
+            });
         this.close = () => this.setState({show: undefined, currentProduct: undefined, changes: undefined});
         this.closeMediaDialog = () => this.setState({showMediaDialog: false});
         this.updateProducts = async () => {
+            const {sort, filter} = this.state;
             this.setState({loading: true});
-            const {errorP, data: products} = await API.request('products', 'list');
-            const {errorM, data: {mediaHash}} = await API.request('media', 'list', {hash: true});
-            if (!errorP && !errorM)
-                this.setState({loading: false, products, mediaHash});
+            const {error, data: products} = await API.request('products', 'list', {sort, filter});
+            if (!error)
+                this.setState({loading: false, products});
             else
                 Message.send('ошибка при обновлении списка продуктов, повторите попытку позже');
         };
         this.saveChanges = async () => {
-            const {currentProduct, changes, show} = this.state;
+            const {currentProduct, changes = {}, show} = this.state;
             const isEdit = (show === 'editPage');
-            if (isEdit && (Object.keys(changes || {}).length === 0))
+            if (isEdit && !Object.keys(changes).length)
                 return this.close();
-            const data = (isEdit) ? {_id: currentProduct._id, changes} : currentProduct;
+            const data = isEdit ? {_id: currentProduct._id, changes} : currentProduct;
             let msg;
             const isNotValid = this.requiredFields
-                .map(prop => {
-                        const isNull = (currentProduct[prop] == null) || (currentProduct[prop] === '');
-                        if ((prop === 'price') && !isNull && isNaN(currentProduct[prop])) {
+                .map(field => {
+                    const isNull = (currentProduct[field] == null) || (currentProduct[field] === '');
+                    if ((field === 'price') && !isNull && isNaN(currentProduct[field])) {
                             msg = 'Ошибка валидации: цена - число';
                             return true;
                         }
@@ -70,7 +66,11 @@ export default class List extends React.Component {
                 return Message.send(msg, Message.type.danger);
             this.setState({sendLoading: true});
             const {error} = await API.request('products', 'update', data);
-            this.setState({sendLoading: false});
+            const {error: errorM, data: {mediaHash}} = await API.request('media', 'list', {hash: true});
+            if (!errorM)
+                this.setState({sendLoading: false, mediaHash});
+            else
+                return Message.send('ошибка при обновлении списка продуктов, повторите попытку позже');
             if (error)
                 Message.send(`ошибка при ${isEdit ? 'редактировании' : 'создании'} продукта, повторите попытку позже`, Message.type.danger);
             else {
@@ -126,18 +126,32 @@ export default class List extends React.Component {
         this.acceptFilter = async (filterBy, value) => {
             const {filter} = this.state;
             let newFilter = {...filter};
-            newFilter[filterBy] = (value || undefined);
-            for (const filter in newFilter)
+            if (filterBy === 'price.after') {
+                newFilter.price = {...(newFilter.price || {}), $gte: (value || undefined)};
+                delete newFilter['price.after'];
+            } else if (filterBy === 'price.before') {
+                newFilter.price = {...(newFilter.price || {}), $lte: (value || undefined)};
+                delete newFilter['price.before'];
+            } else
+                newFilter[filterBy] = (value || undefined);
+            // remove empty fields in the filter object
+            for (const filter in newFilter) {
+                if (filter === 'price') {
+                    if ((newFilter.price.$gte == null) || (newFilter.price.$gte === ''))
+                        delete newFilter.price.$gte;
+                    if ((newFilter.price.$lte == null) || (newFilter.price.$lte === ''))
+                        delete newFilter.price.$lte;
+                }
                 if (newFilter[filter] === undefined)
                     delete newFilter[filter];
+            }
             if (!Object.keys(newFilter).length)
                 newFilter = undefined;
-            this.setState({filter: newFilter});
-            const {error, data: products} = await API.request('products', 'list', {filter: newFilter});
-            if (!error)
-                this.setState({products});
-            else
-                Message.send('ошибка при обновлении списка продуктов, повторите попытку позже');
+            this.setState({filter: newFilter}, this.updateProducts);
+        };
+        this.acceptSort = sortBy => {
+            const {sort} = this.state;
+            this.setState({sort: {/*...sort, */[sortBy]: (sort[sortBy] === 1) ? -1 : 1}}, this.updateProducts);
         };
         this.buttons = [
             {
@@ -190,9 +204,8 @@ export default class List extends React.Component {
             <>
                 <div>
                     <select onChange={e => this.setState({currentAttribute: e.target.value})}>
-                        {attributes.map(attribute => (
-                            <option value={attribute._id} key={attribute._id}>{attribute.title}</option>
-                        ))}
+                        {attributes.map(attribute => <option value={attribute._id}
+                                                             key={attribute._id}>{attribute.title}</option>)}
                     </select>
                     <button onClick={() => {
                         const newChanges = {...changes};
@@ -284,7 +297,13 @@ export default class List extends React.Component {
                                             media: [...(changes.media || currentProduct.media), ...media]
                                         }
                                     });
-                                else this.setState({currentProduct: {...currentProduct, media}});
+                                else
+                                    this.setState({
+                                        currentProduct: {
+                                            ...currentProduct,
+                                            media: [...(currentProduct.media || []), ...media]
+                                        }
+                                    });
                         };
                         reader.readAsDataURL(files[key])
                     });
@@ -301,11 +320,15 @@ export default class List extends React.Component {
         let {changes} = this.state;
         return ((changes && changes.props) || (currentProduct && currentProduct.props) || []).map((prop, index) => {
             let propInput;
-            let propValue = (show === 'editPage')
-                ? (changes && changes.props && changes.props[index])
-                    ? changes.props[index].value
-                    : currentProduct.props[index].value
-                : undefined;
+            let propValue;
+            if (show === 'editPage') {
+                if (changes && changes.props && changes.props[index])
+                    propValue = changes.props[index].value;
+                else
+                    propValue = currentProduct.props[index].value
+            } else if (currentProduct.props[index])
+                propValue = currentProduct.props[index].value;
+            propValue = (propValue || '');
             let propOnChange = arg => {
                 changes = changes || {props: [...currentProduct.props]};
                 if (typeof arg === 'object')
@@ -336,18 +359,25 @@ export default class List extends React.Component {
                         else
                             this.setState({currentProduct: {...currentProduct, ...changes}});
                     };
-                    propInput = [{title: 'от', trans: 'after'}, {title: 'до', trans: 'before'}]
-                        .map(({title, trans}, key) => (
+                    const getValue = (ref => {
+                        let value;
+                        if (show === 'editPage') {
+                            if (changes && changes.props && changes.props[index])
+                                value = changes.props[index].value[ref];
+                            else
+                                value = currentProduct.props[index].value[ref];
+                        } else
+                            value = currentProduct.props[index].value[ref];
+                        return (value || '');
+                    });
+                    propInput = [{title: 'от', ref: 'after'}, {title: 'до', ref: 'before'}]
+                        .map(({title, ref}, key) => (
                             <div key={key}>
                                 <span>{title}</span>
                                 <input
                                     type='number'
-                                    value={(show === 'editPage')
-                                        ? (changes && changes.props && changes.props[index])
-                                            ? (changes.props[index].value[trans] || '')
-                                            : (currentProduct.props[index].value[trans] || '')
-                                        : undefined}
-                                    onChange={value => propOnChange(value, trans)}/>
+                                    value={getValue(ref)}
+                                    onChange={value => propOnChange(value, ref)}/>
                             </div>
                         ));
                     break;
@@ -382,7 +412,8 @@ export default class List extends React.Component {
                     {this.renderPropList()}
                 </div>
             );
-        if (prop === 'media') return <div key={key}>{this.renderMedia()}</div>;
+        if (prop === 'media')
+            return <div key={key}>{this.renderMedia()}</div>;
         const {currentProduct, changes = {}, show} = this.state;
         return (
             <div key={key}>
@@ -401,29 +432,14 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {products, filter = {}} = this.state;
+        const {loading, products} = this.state;
+        if (loading)
+            return <Loading/>;
         return (
             <>
-                {this.filters.map((filterBy, key) => {
-                    if (filterBy === 'categoryID') {
-                        const {categories} = this.state;
-                        return (
-                            <select onChange={e => this.acceptFilter(filterBy, e.target.value)} key={key}>
-                                <option value=''>Любая категория</option>
-                                {categories.map(category => (
-                                    <option value={category._id} key={category._id}>{category.name}</option>
-                                ))}
-                            </select>
-                        );
-                    }
-                    return (
-                        <Input key={key} placeholder={filterBy} onChange={value => this.acceptFilter(filterBy, value)}
-                               value={filter[filterBy] || ''}/>
-                    );
-                })}
                 {products.map((product, key) => (
                     <div key={key}>
-                        <span>{product.name}</span>
+                        <span>{product.name} || {product.price}</span>
                         <span onClick={() => this.show('editPage', product)} className='icon pencil'/>
                         <span onClick={() => this.deleteProduct(product._id)} className='icon remove-button'/>
                     </div>
@@ -436,12 +452,8 @@ export default class List extends React.Component {
         return this.fields.map((prop, key) => this.renderProp(prop, key));
     };
 
-    render() {
-        const {loading, show, showMediaDialog, media, sendLoading} = this.state;
-        if (loading) return <Loading/>;
-        let actions = this.buttons;
-        if (show === 'editPage')
-            actions = [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deleteProduct}];
+    renderToolbar() {
+        const {filter = {}} = this.state;
         return (
             <>
                 <div className='c--items-group'>
@@ -450,6 +462,47 @@ export default class List extends React.Component {
                     <span>Import  csv</span>
                     <input type='file' onChange={this.handleUpload}/>
                 </div>
+
+                {this.filters.map((filterBy, key) => {
+                    if (filterBy === 'categoryID') {
+                        const {categories} = this.state;
+                        return (
+                            <select onChange={e => this.acceptFilter(filterBy, e.target.value)} key={key}>
+                                <option value=''>Любая категория</option>
+                                {categories.map(category => (
+                                    <option value={category._id} key={category._id}>{category.name}</option>
+                                ))}
+                            </select>
+                        );
+                    }
+                    let value;
+                    if (filterBy === 'price.after')
+                        value = (filter.price && filter.price.$gte);
+                    else if (filterBy === 'price.before')
+                        value = (filter.price && filter.price.$lte);
+                    else
+                        value = filter[filterBy] || '';
+                    return (
+                        <Input key={key} placeholder={filterBy} onChange={value => this.acceptFilter(filterBy, value)}
+                               value={value}/>
+                    );
+                })}
+
+                <div>sort by:</div>
+                <button onClick={() => this.acceptSort('price')}>price</button>
+                <button onClick={() => this.acceptSort('name')}>name</button>
+            </>
+        )
+    };
+
+    render() {
+        const {show, showMediaDialog, media, sendLoading} = this.state;
+        let actions = this.buttons;
+        if (show === 'editPage')
+            actions = [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deleteProduct}];
+        return (
+            <>
+                {this.renderToolbar()}
                 {this.renderList()}
                 {show && (
                     <Modal title={(show === 'editPage') ? 'Редактирование' : 'Создание'} show={true} buttons={actions}
@@ -465,40 +518,21 @@ export default class List extends React.Component {
                         name: 'закрыть',
                         types: 'secondary',
                         handler: this.closeMediaDialog
-                    }]} onClose={this.close}>
+                    }]} onClose={this.closeMediaDialog}>
                         <div>
                             {media.map((img, key) => (
                                 <div className='a--list-item' key={key} onClick={() => {
                                     const {changes = {}, currentProduct} = this.state;
-                                    if (show === 'editPage') {
-                                        if (changes.media) {
-                                            if (!changes.media.includes(img._id)) {
-                                                this.setState({
-                                                    changes: {
-                                                        ...changes,
-                                                        media: [...changes.media, img._id]
-                                                    }
-                                                });
-                                            }
-                                        } else
-                                            this.setState({
-                                                changes: {
-                                                    ...changes,
-                                                    media: [...currentProduct.media, img._id]
-                                                }
-                                            });
-                                    } else {
-                                        if (currentProduct.media) {
-                                            if (!currentProduct.media.includes(img._id)) {
-                                                this.setState({
-                                                    currentProduct: {
-                                                        ...changes,
-                                                        media: [...currentProduct.media, img._id]
-                                                    }
-                                                });
-                                            }
-                                        } else this.setState({currentProduct: {...currentProduct, media: [img._id]}});
-                                    }
+                                    let newMedia;
+                                    const oldMedia = (show === 'editPage') ? changes.media : currentProduct.media;
+                                    if (oldMedia && !oldMedia.includes(img._id))
+                                        newMedia = [...oldMedia, img._id];
+                                    else
+                                        newMedia = (show === 'editPage') ? [...currentProduct.media, img._id] : [img._id];
+                                    if (show === 'editPage')
+                                        this.setState({changes: {...changes, media: newMedia}});
+                                    else
+                                        this.setState({currentProduct: {...currentProduct, media: newMedia}});
                                     this.closeMediaDialog();
                                 }}>
                                     <img width='200' height='200' src={img.url} alt=''/>

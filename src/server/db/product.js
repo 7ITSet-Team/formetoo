@@ -72,31 +72,7 @@ export default db => {
     };
 
     schema.statics.getAll = async function (data = {}) {
-        let products;
-        if (data.filter) {
-            if (data.filter['price.after']) {
-                data.filter.price = {...(data.filter.price || {}), $gte: data.filter['price.after']};
-                delete data.filter['price.after'];
-            }
-            if (data.filter['price.before']) {
-                data.filter.price = {...(data.filter.price || {}), $lte: data.filter['price.before']};
-                delete data.filter['price.before'];
-            }
-            products = await this.find(data.filter, {__v: 0});
-        } else
-            products = await this.find({}, {__v: 0});
-        const attributeIDs = [];
-        products.forEach(product => {
-            const props = product.props;
-            props.forEach(prop => (!attributeIDs.includes(prop.attribute) && attributeIDs.push(prop.attribute)));
-        });
-        const attributes = await db.attribute.getByID(attributeIDs);
-        let attributesHash = {};
-        attributes.forEach(attribute => attributesHash[attribute._id] = attribute);
-        return products.map(product => ({
-            ...product.toJSON(),
-            props: (product.toJSON()).props.map(prop => ({...prop, attribute: attributesHash[prop.attribute]}))
-        }));
+        return await this.find((data.filter || {}), {__v: 0}).sort(data.sort || {});
     };
 
     schema.statics.update = async function (data) {
