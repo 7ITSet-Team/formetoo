@@ -188,8 +188,7 @@ export default class List extends React.Component {
     };
 
     async getInitialDataFromSrv() {
-        const {page} = this.state;
-        const {errorP, data: {products, pages: totalPages}} = await API.request('products', 'list', {page});
+        const {errorP, data: {products, pages: totalPages}} = await API.request('products', 'list', {page: this.state.page});
         const {errorA, data: {attributes, attributesHash}} = await API.request('attributes', 'list', {hash: true});
         const {errorC, data: categories} = await API.request('categories', 'list');
         const {errorS, data: sets} = await API.request('attribute-sets', 'list');

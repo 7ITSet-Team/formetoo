@@ -176,7 +176,6 @@ export default class List extends React.Component {
             <>
                 <div className='c--items-group'>
                     <button className='c--btn c--btn--primary' onClick={() => this.show('createPage')}>add new</button>
-                    <button className='c--btn c--btn--primary'>any task</button>
                 </div>
                 {this.renderList()}
                 {show && (
