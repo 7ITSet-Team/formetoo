@@ -72,8 +72,9 @@ export default db => {
     };
 
     schema.statics.getAll = async function (data = {}, options = {__v: 0}) {
-        const perPage = 10;
-        let result = {};
+        let {value: perPage} = await db.setting.getByName('pagination');
+        perPage = Number(perPage) || 5;
+        const result = {};
         result.products = await this
             .find((data.filter || {}), options)
             .sort(data.sort || {})

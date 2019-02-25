@@ -50,6 +50,13 @@ export default db => {
         return await this.find({}, {__v: 0, password: 0});
     };
 
+    schema.statics.getHash = async function () {
+        const users = await this.find({}, {__v: 0, password: 0});
+        const hash = {};
+        users.forEach(user => hash[user._id] = user);
+        return hash;
+    };
+
     schema.statics.getByID = async function (id) {
 	    if (Array.isArray(id))
             return await this.find({_id: {$in: id}});

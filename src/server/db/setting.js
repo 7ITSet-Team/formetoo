@@ -25,6 +25,10 @@ export default db => {
         return await this.find({isPrivate: false}, {__v: 0});
     };
 
+    schema.statics.getByName = async function (name) {
+        return await this.findOne({name}, {__v: 0});
+    };
+
     schema.statics.update = async function (data) {
         const ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok;
         return (ok === 1);

@@ -64,33 +64,33 @@ export default db => {
     }, {collection: __modelName, autoIndex: false});
 
     schema.statics.getAll = async function (data) {
-        let filterByUser;
-        if (data.filter) {
-            filterByUser = data.filter['user.email'];
-            delete data.filter['user.email'];
+        let filterByUser = {};
+        if (data.filter && data.filter['user.email']) {
+            filterByUser = await db.user.getByEmail(data.filter['user.email']);
+            if (filterByUser) {
+                data.filter.user = filterByUser._id;
+                delete data.filter['user.email'];
+            } else
+                return {logs: [], pages: 0};
         }
-        const logs = await this.find(data.filter || {}, {__v: 0});
-        const userIDs = [];
-        logs.forEach(log => (!userIDs.includes(String(log.user))) && userIDs.push(String(log.user)));
-        let users = [];
-        if (filterByUser) {
-            const user = await db.user.getByEmail(filterByUser);
-            if (user)
-                users.push(user);
-        } else
-            users = await db.user.getByID(userIDs);
-        const usersHash = {};
-        users.forEach(user => usersHash[user._id] = user);
+        let {value: perPage} = await db.setting.getByName('pagination');
+        perPage = Number(perPage) || 5;
+        const logs = await this
+            .find(data.filter || {}, {__v: 0})
+            .skip((perPage * data.page) - perPage)
+            .limit(perPage);
+        const usersHash = await db.user.getHash({});
         let newLogs = [];
-        for (const log of logs) {
-            if (usersHash[log.user])
-                newLogs.push({
-                    ...(log.toJSON()),
-                    user: usersHash[log.user],
-                    view: await ((views[log.method.controller] || {})[log.method.action] || (() => undefined))(log.method.data, db)
-                });
-        }
-        return newLogs;
+        for (const log of logs)
+            newLogs.push({
+                ...(log.toJSON()),
+                user: usersHash[log.user],
+                view: await ((views[log.method.controller] || {})[log.method.action] || (() => undefined))(log.method.data, db)
+            });
+        return {
+            logs: newLogs,
+            pages: Math.ceil((await this.find(data.filter || {})).length / perPage)
+        };
     };
 
     schema.statics.insert = async function (controller, action, data) {

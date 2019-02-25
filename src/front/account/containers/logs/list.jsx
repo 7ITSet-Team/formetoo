@@ -5,6 +5,7 @@ import Loading from '@components/ui/loading';
 import Modal from '@components/ui/modal';
 import Message from '@components/ui/message';
 import Input from '@components/ui/input';
+import Pagination from '@components/ui/pagination';
 
 export default class List extends React.Component {
     constructor(props) {
@@ -14,18 +15,20 @@ export default class List extends React.Component {
             logs: [],
             currentLog: undefined,
             show: false,
-            filter: {},
+            filter: undefined,
             checkedLogs: [],
-            showJSON: false
+            showJSON: false,
+            page: 1,
+            totalPages: 1
         };
         this.show = currentLog => this.setState({show: true, currentLog});
         this.close = () => this.setState({show: false, currentLog: undefined});
-        this.updateLogs = async () => {
+        this.updateLogs = async (page = this.state.page) => {
             const {filter} = this.state;
             this.setState({loading: true});
-            const {error, data: logs} = filter ? await API.request('logs', 'list', {filter}) : await API.request('logs', 'list');
+            const {error, data: {logs, pages: totalPages}} = await API.request('logs', 'list', {filter, page});
             if (!error)
-                this.setState({loading: false, logs});
+                this.setState({loading: false, logs, page, totalPages});
             else
                 Message.send('ошибка при обновлении списка логов, повторите попытку позже');
         };
@@ -71,12 +74,7 @@ export default class List extends React.Component {
                     delete newFilter[filter];
             if (!Object.keys(newFilter).length)
                 newFilter = undefined;
-            this.setState({filter: newFilter});
-            const {error, data: logs} = await API.request('logs', 'list', {filter: newFilter});
-            if (!error)
-                this.setState({logs});
-            else
-                Message.send('ошибка при обновлении списка логов, повторите попытку позже');
+            this.setState({filter: newFilter, page: 1}, this.updateLogs);
         };
         this.checkAll = () => {
             const {logs} = this.state;
@@ -92,17 +90,24 @@ export default class List extends React.Component {
     };
 
     async getInitialDataFromSrv() {
-        const {error, data: logs} = await API.request('logs', 'list');
+        const {error, data: {logs, pages: totalPages}} = await API.request('logs', 'list', {page: this.state.page});
         if (!error)
-            this.setState({loading: false, logs});
+            this.setState({loading: false, logs, totalPages});
         else
             Message.send('ошибка при получении списка логов, повторите попытку позже', Message.type.danger);
     };
 
-    renderList() {
-        const {logs, checkedLogs, filter = {}} = this.state;
+    renderToolbar() {
+        const {filter = {}} = this.state;
         return (
             <>
+                <div className='c--items-group'>
+                    <button className='c--btn c--btn--danger' onClick={this.deleteLogs}>delete all logs</button>
+                    <button className='c--btn c--btn--info' onClick={this.checkAll}>check all checkboxes</button>
+                    <button className='c--btn c--btn--danger' onClick={this.deleteCheckedLogs}>delete ONLY CHECKED BY
+                        FUCKING BOOLEAN CHECKBOXES logs
+                    </button>
+                </div>
                 {this.filters.map((filterBy, key) => {
                     if (filterBy === 'time')
                         return (
@@ -120,24 +125,30 @@ export default class List extends React.Component {
                                value={filter[filterBy] || ''}/>
                     );
                 })}
-                {logs.map((log, key) => (
-                    <div key={key}>
-                        <input type='checkbox' onChange={e => {
-                            if (e.target.checked)
-                                this.setState({checkedLogs: [...checkedLogs, log._id]});
-                            else {
-                                const newCheckedLogs = [...checkedLogs];
-                                newCheckedLogs.splice(newCheckedLogs.indexOf(log._id), 1);
-                                this.setState({checkedLogs: newCheckedLogs});
-                            }
-                        }} checked={checkedLogs.includes(log._id)}/>
-                        <span style={{color: 'green'}}>{log.user.email}</span> <span
-                        style={{color: 'red'}}>{log.method.action} {log.method.controller}</span> {(new Date(log.time)).toLocaleString()}
-                        <span onClick={() => this.show(log)} className='icon pencil'/>
-                    </div>
-                ))}
             </>
         )
+    };
+
+    renderList() {
+        const {logs, checkedLogs, loading} = this.state;
+        if (loading)
+            return <Loading/>;
+        return logs.map((log, key) => (
+            <div key={key}>
+                <input type='checkbox' onChange={e => {
+                    if (e.target.checked)
+                        this.setState({checkedLogs: [...checkedLogs, log._id]});
+                    else {
+                        const newCheckedLogs = [...checkedLogs];
+                        newCheckedLogs.splice(newCheckedLogs.indexOf(log._id), 1);
+                        this.setState({checkedLogs: newCheckedLogs});
+                    }
+                }} checked={checkedLogs.includes(log._id)}/>
+                <span style={{color: 'green'}}>{log.user.email}</span> <span
+                style={{color: 'red'}}>{log.method.action} {log.method.controller}</span> {(new Date(log.time)).toLocaleString()}
+                <span onClick={() => this.show(log)} className='icon pencil'/>
+            </div>
+        ))
     };
 
     renderProp(prop, key) {
@@ -183,24 +194,17 @@ export default class List extends React.Component {
     };
 
     render() {
-        const {loading, show} = this.state;
-        if (loading)
-            return <Loading/>;
+        const {show, page, totalPages} = this.state;
         return (
             <>
-                <div className='c--items-group'>
-                    <button className='c--btn c--btn--danger' onClick={this.deleteLogs}>delete all logs</button>
-                    <button className='c--btn c--btn--info' onClick={this.checkAll}>check all checkboxes</button>
-                    <button className='c--btn c--btn--danger' onClick={this.deleteCheckedLogs}>delete ONLY CHECKED BY
-                        FUCKING BOOLEAN CHECKBOXES logs
-                    </button>
-                </div>
+                {this.renderToolbar()}
                 {this.renderList()}
                 {show && (
                     <Modal title='Редактирование' show={true} buttons={this.buttons} onClose={this.close}>
                         <div>{this.renderProps()}</div>
                     </Modal>
                 )}
+                <Pagination page={page} totalPages={totalPages} goToPage={goTo => this.updateLogs(goTo)}/>
             </>
         );
     };

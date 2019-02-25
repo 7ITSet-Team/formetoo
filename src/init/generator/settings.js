@@ -16,5 +16,11 @@ export default [
         name: 'phone',
         title: 'Телефон',
         value: '+74953789296'
+    },
+    {
+        isPrivate: false,
+        name: 'pagination',
+        title: 'Навигация',
+        value: 3
     }
 ];
