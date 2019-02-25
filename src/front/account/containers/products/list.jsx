@@ -5,6 +5,7 @@ import Loading from '@components/ui/loading';
 import Modal from '@components/ui/modal';
 import Message from '@components/ui/message';
 import Input from '@components/ui/input';
+import Pagination from '@components/ui/pagination';
 
 export default class List extends React.Component {
     constructor(props) {
@@ -24,46 +25,56 @@ export default class List extends React.Component {
             changes: undefined,
             show: undefined,
             showMediaDialog: undefined,
-            filter: {},
-            sort: {}
+            filter: undefined,
+            sort: undefined,
+            page: 1,
+            totalPages: 1
         };
-        this.show = (page, currentProduct = {categoryID: this.state.categories[0]._id}) =>
+        this.show = (page, currentProduct = {}) =>
             this.setState({
                 show: page,
                 currentProduct
             });
         this.close = () => this.setState({show: undefined, currentProduct: undefined, changes: undefined});
         this.closeMediaDialog = () => this.setState({showMediaDialog: false});
-        this.updateProducts = async () => {
+        this.updateProducts = async (page = this.state.page) => {
             const {sort, filter} = this.state;
             this.setState({loading: true});
-            const {error, data: products} = await API.request('products', 'list', {sort, filter});
+            const {error, data: {pages: totalPages, products}} = await API.request('products', 'list', {
+                sort,
+                filter,
+                page
+            });
             if (!error)
-                this.setState({loading: false, products});
+                this.setState({loading: false, products, totalPages, page});
             else
                 Message.send('ошибка при обновлении списка продуктов, повторите попытку позже');
         };
         this.saveChanges = async () => {
-            const {currentProduct, changes = {}, show} = this.state;
+            const {currentProduct, changes = {}, show, categories} = this.state;
             const isEdit = (show === 'editPage');
             if (isEdit && !Object.keys(changes).length)
                 return this.close();
-            const data = isEdit ? {_id: currentProduct._id, changes} : currentProduct;
+            const data = (isEdit)
+                ? {_id: currentProduct._id, changes}
+                : {categoryID: categories[0]._id, ...currentProduct};
             let msg;
-            const isNotValid = this.requiredFields
-                .map(field => {
-                    const isNull = (currentProduct[field] == null) || (currentProduct[field] === '');
-                    if ((field === 'price') && !isNull && isNaN(currentProduct[field])) {
-                            msg = 'Ошибка валидации: цена - число';
-                            return true;
+            if (!isEdit) {
+                const isNotValid = this.requiredFields
+                    .map(field => {
+                            const isNull = (data[field] == null) || (data[field] === '');
+                            if ((field === 'price') && !isNull && isNaN(data[field])) {
+                                msg = 'Ошибка валидации: цена - число';
+                                return true;
+                            }
+                            msg = 'Введены не все обязательные поля';
+                            return isNull;
                         }
-                        msg = 'Введены не все обязательные поля';
-                        return isNull;
-                    }
-                )
-                .includes(true);
-            if (!isEdit && isNotValid)
-                return Message.send(msg, Message.type.danger);
+                    )
+                    .includes(true);
+                if (isNotValid)
+                    return Message.send(msg, Message.type.danger);
+            }
             this.setState({sendLoading: true});
             const {error} = await API.request('products', 'update', data);
             const {error: errorM, data: {mediaHash}} = await API.request('media', 'list', {hash: true});
@@ -141,16 +152,18 @@ export default class List extends React.Component {
                         delete newFilter.price.$gte;
                     if ((newFilter.price.$lte == null) || (newFilter.price.$lte === ''))
                         delete newFilter.price.$lte;
+                    if (!Object.keys(newFilter[filter]).length)
+                        delete newFilter[filter];
                 }
                 if (newFilter[filter] === undefined)
                     delete newFilter[filter];
             }
             if (!Object.keys(newFilter).length)
                 newFilter = undefined;
-            this.setState({filter: newFilter}, this.updateProducts);
+            this.setState({filter: newFilter, page: 1}, this.updateProducts);
         };
         this.acceptSort = sortBy => {
-            const {sort} = this.state;
+            const {sort = {}} = this.state;
             this.setState({sort: {/*...sort, */[sortBy]: (sort[sortBy] === 1) ? -1 : 1}}, this.updateProducts);
         };
         this.buttons = [
@@ -175,7 +188,8 @@ export default class List extends React.Component {
     };
 
     async getInitialDataFromSrv() {
-        const {errorP, data: products} = await API.request('products', 'list');
+        const {page} = this.state;
+        const {errorP, data: {products, pages: totalPages}} = await API.request('products', 'list', {page});
         const {errorA, data: {attributes, attributesHash}} = await API.request('attributes', 'list', {hash: true});
         const {errorC, data: categories} = await API.request('categories', 'list');
         const {errorS, data: sets} = await API.request('attribute-sets', 'list');
@@ -190,6 +204,7 @@ export default class List extends React.Component {
                 attributesHash,
                 mediaHash,
                 media,
+                totalPages,
                 currentAttribute: (attributes[0] && attributes[0]._id),
                 currentSet: (sets[0] && sets[0]._id)
             });
@@ -477,9 +492,9 @@ export default class List extends React.Component {
                     }
                     let value;
                     if (filterBy === 'price.after')
-                        value = (filter.price && filter.price.$gte);
+                        value = (filter.price && filter.price.$gte) || '';
                     else if (filterBy === 'price.before')
-                        value = (filter.price && filter.price.$lte);
+                        value = (filter.price && filter.price.$lte) || '';
                     else
                         value = filter[filterBy] || '';
                     return (
@@ -496,7 +511,7 @@ export default class List extends React.Component {
     };
 
     render() {
-        const {show, showMediaDialog, media, sendLoading} = this.state;
+        const {show, showMediaDialog, media, sendLoading, page, totalPages} = this.state;
         let actions = this.buttons;
         if (show === 'editPage')
             actions = [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deleteProduct}];
@@ -541,6 +556,7 @@ export default class List extends React.Component {
                         </div>
                     </Modal>
                 )}
+                <Pagination page={page} totalPages={totalPages} goToPage={goTo => this.updateProducts(goTo)}/>
             </>
         );
     };

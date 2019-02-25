@@ -1,7 +1,7 @@
 export default async (db, req, res, data) => {
     const media = await db.media.getAll();
     const categories = await db.category.getAll();
-    const products = await db.product.getAll();
+    const {products} = await db.product.getAll();
     let result = [];
     media.forEach(img => {
         const imageCategories = [];

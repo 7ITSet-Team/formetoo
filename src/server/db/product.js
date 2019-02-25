@@ -71,8 +71,16 @@ export default db => {
         );
     };
 
-    schema.statics.getAll = async function (data = {}) {
-        return await this.find((data.filter || {}), {__v: 0}).sort(data.sort || {});
+    schema.statics.getAll = async function (data = {}, options = {__v: 0}) {
+        const perPage = 10;
+        let result = {};
+        result.products = await this
+            .find((data.filter || {}), options)
+            .sort(data.sort || {})
+            .skip((perPage * data.page) - perPage)
+            .limit(perPage);
+        result.pages = Math.ceil((await this.find((data.filter || {}), options)).length / perPage);
+        return result;
     };
 
     schema.statics.update = async function (data) {

@@ -1,7 +1,7 @@
 export default async (db, req, res, data) => {
-    const products = await db.product.getAll(data);
+    const {products, pages} = await db.product.getAll(data);
 
-    let result = products;
+    let result = {products, pages};
 
     if (data.hash) {
         const productsHash = {};
