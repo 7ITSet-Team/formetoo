@@ -64,38 +64,23 @@ export default db => {
     }, {collection: __modelName, autoIndex: false});
 
     schema.statics.getAll = async function (data) {
-        let logs = await this.find({}, {__v: 0});
         let filterByUser;
-
         if (data.filter) {
-            if (data.filter['time.after']) {
-                data.filter.time = {...(data.filter.time || {}), $gte: data.filter['time.after']};
-                delete data.filter['time.after'];
-            }
-            if (data.filter['time.before']) {
-                data.filter.time = {...(data.filter.time || {}), $lte: data.filter['time.before']};
-                delete data.filter['time.before'];
-            }
             filterByUser = data.filter['user.email'];
-            if (data.filter['user.email'])
-                delete data.filter['user.email'];
-            logs = await this.find(data.filter, {__v: 0});
-        } else
-            logs = await this.find({}, {__v: 0});
-
+            delete data.filter['user.email'];
+        }
+        const logs = await this.find(data.filter || {}, {__v: 0});
         const userIDs = [];
-        logs.forEach(log => (!userIDs.includes(log.user)) && userIDs.push(log.user));
-
-        let users;
-
-        if (filterByUser)
-            users = await db.user.getByID(userIDs, {email: filterByUser});
-        else
+        logs.forEach(log => (!userIDs.includes(String(log.user))) && userIDs.push(String(log.user)));
+        let users = [];
+        if (filterByUser) {
+            const user = await db.user.getByEmail(filterByUser);
+            if (user)
+                users.push(user);
+        } else
             users = await db.user.getByID(userIDs);
-
         const usersHash = {};
         users.forEach(user => usersHash[user._id] = user);
-
         let newLogs = [];
         for (const log of logs) {
             if (usersHash[log.user])

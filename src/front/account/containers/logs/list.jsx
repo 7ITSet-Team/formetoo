@@ -49,9 +49,25 @@ export default class List extends React.Component {
         this.acceptFilter = async (filterBy, value) => {
             const {filter} = this.state;
             let newFilter = {...filter};
-            newFilter[filterBy] = (value || undefined);
+            newFilter[filterBy] = value;
+            if (!(newFilter['time.after'] == null)) {
+                if (newFilter['time.after'])
+                    newFilter.time = {...(newFilter.time || {}), $gte: newFilter['time.after']};
+                else
+                    delete newFilter.time.$gte;
+                delete newFilter['time.after'];
+            }
+            if (!(newFilter['time.before'] == null)) {
+                if (newFilter['time.before'])
+                    newFilter.time = {...(newFilter.time || {}), $lte: newFilter['time.before']};
+                else
+                    delete newFilter.time.$lte;
+                delete newFilter['time.before'];
+            }
+            if (!Object.keys(newFilter.time || {}).length)
+                delete newFilter.time;
             for (const filter in newFilter)
-                if (newFilter[filter] === undefined)
+                if (((typeof newFilter[filter] === 'object') && !Object.keys(newFilter[filter])) || !newFilter[filter])
                     delete newFilter[filter];
             if (!Object.keys(newFilter).length)
                 newFilter = undefined;
@@ -93,10 +109,10 @@ export default class List extends React.Component {
                             <div key={key}>
                                 от:
                                 <input type='date' onChange={e => this.acceptFilter('time.after', e.target.value)}
-                                       value={filter['time.after'] || ''}/>
+                                       value={(filter.time && filter.time.$gte) || ''}/>
                                 до:
                                 <input type='date' onChange={e => this.acceptFilter('time.before', e.target.value)}
-                                       value={filter['time.before'] || ''}/>
+                                       value={(filter.time && filter.time.$lte) || ''}/>
                             </div>
                         );
                     return (
