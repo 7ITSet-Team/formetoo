@@ -7,7 +7,7 @@
     "pm2-restart": "pm2 delete new-formetoo && pm2 start build/server.js --name new-formetoo",
     "pm2-start": "pm2 start build/server.js --name new-formetoo",
     "start": "node build/server.js",
-    "dev": "node NODE_ENV=development config/webpack.build.js",
+    "dev": "NODE_ENV=development node config/webpack.build.js",
     "prod": "node config/webpack.build.js",
     "init": "node build/init.js"
   },
