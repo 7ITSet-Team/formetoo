@@ -11,14 +11,13 @@ export default class List extends React.Component {
         super(props);
         this.state = {
             loading: true,
-            sendLoading: false, // we use this flag for rendering a spinner in the edit modal window because sending an image takes a lot of time
-            categories: [],
+            sendLoading: false,
+            categories: undefined,
             currentCategory: undefined,
             changes: undefined,
             show: undefined,
             showMediaDialog: undefined,
-            media: undefined,
-            mediaHash: {}
+            media: undefined
         };
         this.show = (page, currentCategory = {}) => this.setState({show: page, currentCategory});
         this.close = () => this.setState({show: undefined, currentCategory: undefined, changes: undefined});
@@ -26,9 +25,9 @@ export default class List extends React.Component {
         this.updateCategories = async () => {
             this.setState({loading: true});
             const {error: errorC, data: categories} = await API.request('categories', 'list');
-            const {error: errorM, data: {media, mediaHash}} = await API.request('media', 'list', {hash: true});
+            const {error: errorM, data: media} = await API.request('media', 'list');
             if (!errorC && !errorM)
-                this.setState({loading: false, categories, media, mediaHash});
+                this.setState({loading: false, categories, media});
             else
                 Modal.send('ошибка при обновлении списка категорий, повторите попытку позже', Message.type.danger);
         };
@@ -55,8 +54,7 @@ export default class List extends React.Component {
                 data = {_id: currentCategory._id, changes};
 
             const isNotValid = this.requiredFields
-                .map(prop => ((currentCategory[prop] == null) || (currentCategory[prop] === '')))
-                .includes(true);
+                .some(prop => ((currentCategory[prop] == null) || (currentCategory[prop] === '')));
 
             if (!isEdit && isNotValid)
                 return Message.send('Введены не все обязательные поля', Message.type.danger);
@@ -95,15 +93,15 @@ export default class List extends React.Component {
 
     async getInitialDataFromSrv() {
         const {error: errorC, data: categories} = await API.request('categories', 'list');
-        const {error: errorM, data: {media, mediaHash}} = await API.request('media', 'list', {hash: true});
+        const {error: errorM, data: media} = await API.request('media', 'list');
         if (!errorC && !errorM)
-            this.setState({loading: false, categories, media, mediaHash});
+            this.setState({loading: false, categories, media});
         else
             Message.send('ошибка при получении списка категорий, повторите попытку позже', Message.type.danger);
     };
 
     renderList() {
-        const {categories} = this.state;
+        const {categories = []} = this.state;
         return categories.map(category => (
             <div className='a--list-item' key={category._id}>
                 <span>{category.name}</span>
@@ -115,7 +113,7 @@ export default class List extends React.Component {
     };
 
     renderPropMedia(prop, key) {
-        const {currentCategory = {}, changes = {}, show, mediaHash} = this.state;
+        const {currentCategory = {}, changes = {}, show} = this.state;
         // here's crazy conditions
         const wasImgChanged = !(changes[prop] == null);
         const isExistInCategory = !!currentCategory[prop];
@@ -123,16 +121,9 @@ export default class List extends React.Component {
         return (
             <div key={key}>
                 {wasImgChanged
-                    ? isExistInChanges && (
-                    <img width='400' height='400'
-                         src={mediaHash[changes[prop]] ? mediaHash[changes[prop]].url : changes[prop]}
-                         alt='img'/>
-                )
-                    : isExistInCategory && (
-                    <img width='400' height='400'
-                         src={mediaHash[currentCategory[prop]] ? mediaHash[currentCategory[prop]].url : currentCategory[prop]}
-                         alt='img'/>
-                )
+                    ? isExistInChanges && <img width='400' height='400' src={changes[prop]} alt='img'/>
+                    : isExistInCategory &&
+                    <img width='400' height='400' src={currentCategory[prop].url || currentCategory[prop]} alt='img'/>
                 }
                 {(isExistInChanges || (isExistInCategory && !wasImgChanged)) && (
                     <span onClick={() => {
@@ -223,16 +214,16 @@ export default class List extends React.Component {
                         handler: this.closeMediaDialog
                     }]} onClose={this.close}>
                         <div>
-                            {media.map((img, key) => (
+                            {media.map(({url}, key) => (
                                 <div className='a--list-item' key={key} onClick={() => {
                                     const {changes} = this.state;
                                     if (show === 'editPage')
-                                        this.setState({changes: {...changes, img: img._id}});
+                                        this.setState({changes: {...changes, img: url}});
                                     else
-                                        this.setState({currentCategory: {...currentCategory, img: img._id}});
+                                        this.setState({currentCategory: {...currentCategory, img: url}});
                                     this.closeMediaDialog();
                                 }}>
-                                    <img width='200' height='200' src={img.url} alt=''/>
+                                    <img width='200' height='200' src={url} alt=''/>
                                 </div>
                             ))}
                         </div>

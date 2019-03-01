@@ -1,4 +1,5 @@
 import React from 'react';
+import {Redirect} from 'react-router-dom';
 
 import API from '@common/core/api';
 import Loading from '@components/ui/loading';
@@ -11,13 +12,14 @@ export default class List extends React.Component {
         super(props);
         this.state = {
             loading: true,
-            sets: [],
-            attributes: [],
+            sets: undefined,
+            attributes: undefined,
             attributesHash: {},
             currentSet: undefined,
             changes: undefined,
-            currentAttribute: undefined, // default value for <select>
-            show: undefined
+            currentAttribute: undefined,
+            show: undefined,
+            redirectTo: undefined
         };
         this.show = (page, currentSet = {}) => this.setState({show: page, currentSet});
         this.close = () => this.setState({show: undefined, currentSet: undefined, changes: undefined});
@@ -30,25 +32,26 @@ export default class List extends React.Component {
                 Modal.send('ошибка при обновлении списка наборов атрибутов, повторите попытку позже', Message.type.danger);
         };
         this.saveChanges = async () => {
-            const {changes, currentSet, show} = this.state;
-            const isChangesExist = !!(Object.keys(changes || {}).length);
+            const {changes = {}, currentSet, show} = this.state;
+            const isChangesExist = !!(Object.keys(changes).length);
             const isEditPage = (show === 'editPage');
 
             if (isEditPage && !isChangesExist)
                 return this.close();
 
-            const data = (isEditPage) ? {_id: currentSet._id, changes} : currentSet;
+            const data = (isEditPage)
+                ? {_id: currentSet._id, changes}
+                : currentSet;
 
             const dataIsNotValid = this.requiredFields
-                .map(field => {
+                .some(field => {
                     let isNotValid;
                     if (Array.isArray(currentSet[field]))
                         isNotValid = !(currentSet[field].length);
                     else
                         isNotValid = ((currentSet[field] == null) || (currentSet[field] === ''));
                     return isNotValid;
-                })
-                .includes(true);
+                });
 
             if (!isEditPage && dataIsNotValid)
                 return Message.send('Введены не все обязательные поля', Message.type.danger);
@@ -62,9 +65,9 @@ export default class List extends React.Component {
                 this.updateSets();
             }
         };
-        this.deleteSet = async (setID = this.state.currentSet._id) => {
+        this.deleteSet = async (_id = this.state.currentSet._id) => {
             const {show} = this.state;
-            const {error} = await API.request('attribute-sets', 'update', {_id: setID});
+            const {error} = await API.request('attribute-sets', 'update', {_id});
 
             if (error)
                 Message.send('ошибка при удалении набора атрибутов, повторите попытку позже', Message.type.danger);
@@ -100,6 +103,13 @@ export default class List extends React.Component {
         const attrPromise = API.request('attributes', 'list', {hash: true});
         const {error: errorS, data: sets} = await setPromise;
         const {error: errorA, data: {attributes, attributesHash}} = await attrPromise;
+        if (!attributes.length) {
+            Message.send('необходимо сначала добавить атрибуты', Message.type.info);
+            return this.setState({
+                loading: false,
+                redirectTo: '/account/client/info'
+            });
+        }
         if (!errorS && !errorA)
             this.setState({
                 loading: false,
@@ -113,7 +123,7 @@ export default class List extends React.Component {
     };
 
     renderAttributes(prop, key) {
-        const {attributes, attributesHash, currentAttribute, currentSet, show, changes = {}} = this.state;
+        const {attributes = [], attributesHash, currentAttribute, currentSet, show, changes = {}} = this.state;
         return (
             <div key={key}>
                 <span>{prop}</span>
@@ -137,9 +147,9 @@ export default class List extends React.Component {
                         this.setState({currentSet: {...currentSet, ...newChanges}});
                 }}>add
                 </button>
-                {(changes.attributes || currentSet.attributes || []).map(attributeID => (
-                    <div key={attributeID}>
-                        <span>{attributesHash[attributeID].title}</span>
+                {(changes.attributes || currentSet.attributes || []).map((attribute, index) => (
+                    <div key={attribute._id || attribute}>
+                        <span>{attributesHash[attribute] ? attributesHash[attribute].title : attribute.title}</span>
                         <span onClick={() => {
                             const newAttributes = [...(changes.attributes || currentSet.attributes)];
                             newAttributes.splice(index, 1);
@@ -185,7 +195,7 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {sets} = this.state;
+        const {sets = []} = this.state;
         return sets.map(set => (
             <div className='a--list-item' key={set._id}>
                 <span>{set.title}</span>
@@ -196,9 +206,11 @@ export default class List extends React.Component {
     };
 
     render() {
-        const {loading, show} = this.state;
+        const {loading, show, redirectTo} = this.state;
         if (loading)
             return <Loading/>;
+        if (redirectTo)
+            return <Redirect to={redirectTo}/>;
         const actions = (show === 'editPage')
             ? [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deleteSet}]
             : this.buttons;

@@ -6,8 +6,7 @@ export default db => {
     const schema = new mongoose.Schema({
         url: {
             type: String,
-            require: true,
-            unique: true
+            require: true
         }
     }, {collection: __modelName, autoIndex: false});
 
@@ -22,20 +21,27 @@ export default db => {
             return await this.findOne({_id: ids}, {__v: 0});
     };
 
+    schema.statics.getByUrl = async function (url) {
+        return await this.findOne({url}, {__v: 0});
+    };
+
     schema.statics.update = async function (data) {
         const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(data._id)});
         const result = {};
-        let ok;
         if (isExist)
-            if (data.changes)
-                ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok;
-            else {
+            if (data.changes) {
+                const ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok;
+                if (!ok)
+                    return {isSuccess: false};
+            } else {
                 const media = await this.getByID(data._id);
                 fs.unlinkSync(`build/public${media.url}`);
-                const categoriesOk = (await db.category.removeMedia(media._id)).ok;
-                const mediaOk = (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
-                if (categoriesOk && mediaOk)
-                    ok = 1;
+                const cOk = (await db.category.removeMedia(media._id)).ok;
+                if (!cOk)
+                    return {isSuccess: false};
+                const mOk = (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+                if (!mOk)
+                    return {isSuccess: false};
             }
         else {
             const insertedData = await this.create(data);
@@ -43,15 +49,23 @@ export default db => {
                 result.ids = insertedData.map(item => item._id);
             else
                 result._id = insertedData._id;
-            if (result.ids || result._id)
-                ok = 1;
+            if (!result.ids && !result._id)
+                return {isSuccess: false};
         }
-        result.isSuccess = (ok === 1);
+        result.isSuccess = true;
         return result;
     };
 
     schema.methods.getProducts = async function () {
-        return await db.product.getByCategoryID(this._id);
+        return await db.product.find({media: {$in: this._id}}, {__v: 0});
+    };
+
+    // schema.methods.getProducts = async function () {
+    //     return await db.product.getByCategoryID(this._id);
+    // };
+
+    schema.methods.getCategories = async function () {
+        return await db.category.find({img: this._id}, {__v: 0});
     };
 
     schema.set('autoIndex', false);

@@ -1,15 +1,10 @@
 export default async (db, req, res, data) => {
-    const {products, pages} = await db.product.getAll(data);
-
-    let result = {products, pages};
+    const result = await db.product.getAll(data);
 
     if (data.hash) {
         const productsHash = {};
-        products.forEach(product => (productsHash[product._id] = product));
-        result = {
-            products,
-            productsHash
-        }
+        result.products.forEach(product => (productsHash[product._id] = product));
+        result.productsHash = productsHash;
     }
 
     return {result};

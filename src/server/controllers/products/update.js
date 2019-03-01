@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import fs from 'fs';
 
 export default async (db, req, res, data) => {
@@ -7,12 +6,19 @@ export default async (db, req, res, data) => {
     const refs = [];
     const upload = [];
     const productMedia = (isEdit ? data.changes : data).media;
-    productMedia && productMedia.forEach(img => {
-        if (mongoose.Types.ObjectId.isValid(img)) refs.push(img);
-        else upload.push(img);
-    });
-    let product = data;
-    if ((isEdit || isCreate) && (upload.length > 0)) {
+    if (productMedia)
+        for (const img of productMedia) {
+            if (typeof img === 'object')
+                refs.push(img._id);
+            else {
+                const image = await db.media.getByUrl(img);
+                if (image)
+                    refs.push(image._id);
+                else
+                    upload.push(img);
+            }
+        }
+    if ((isEdit || isCreate) && upload.length) {
         const media = [];
         upload.forEach(img => {
             const matches = img.match(/^data:.+\/(.+);base64,(.*)$/);
@@ -26,11 +32,11 @@ export default async (db, req, res, data) => {
         });
         const {isSuccess, ids} = await db.media.update(media);
         if (!isSuccess) return {error: true};
-        product = isEdit
-            ? {...data, changes: {...data.changes, media: [...refs, ...ids]}}
-            : {...data, media: [...refs, ...ids]};
-    }
-    const isSuccess = await db.product.update(product);
+        (isEdit ? data.changes : data).media = [...refs, ...ids];
+    } else if (!upload.length)
+        (isEdit ? data.changes : data).media = refs;
+
+    const isSuccess = await db.product.update(data);
     return {error: !isSuccess};
 };
 

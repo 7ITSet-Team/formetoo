@@ -35,21 +35,28 @@ export default db => {
 
     schema.statics.update = async function (attribute) {
         const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(attribute._id)});
-        let ok;
         if (isExist)
-            if (attribute.changes)
-                ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(attribute._id)}, {$set: attribute.changes})).ok;
-            else {
-                const rmAttrPromise = this.remove({_id: new mongoose.Types.ObjectId(attribute._id)});
-                const rmAttrSetPromise = db.attributeSet.removeAttribute(attribute);
-                const rmAttrProductPromise = db.product.removeAttribute(attribute);
-                ok = ((await rmAttrPromise).ok && (await rmAttrSetPromise).ok && (await rmAttrProductPromise).ok) ? 1 : 0;
+            if (attribute.changes) {
+                const ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(attribute._id)}, {$set: attribute.changes})).ok;
+                if (!ok)
+                    return false;
+            } else {
+                const attrOk = (await this.remove({_id: new mongoose.Types.ObjectId(attribute._id)})).ok;
+                if (!attrOk)
+                    return false;
+                const setOk = (await db.attributeSet.removeAttribute(attribute)).ok;
+                if (!setOk)
+                    return false;
+                const prodOk = (await db.product.removeAttribute(attribute)).ok;
+                if (!prodOk)
+                    return false;
             }
         else {
             const {_id} = await this.create(attribute);
-            ok = _id ? 1 : 0;
+            if (!_id)
+                return false;
         }
-        return (ok === 1);
+        return true;
     };
 
     schema.set('autoIndex', false);

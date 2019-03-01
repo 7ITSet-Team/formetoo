@@ -12,8 +12,8 @@ export default class List extends React.Component {
         this.state = {
             loading: true,
             currentOrder: undefined,
-            orders: [],
-            products: [],
+            orders: undefined,
+            products: undefined,
             productsHash: {},
             currentProduct: undefined,
             changes: undefined,
@@ -90,7 +90,7 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {orders} = this.state;
+        const {orders = []} = this.state;
         return orders.map((order, key) => (
             <div className='a--list-item' key={key}>
                 <span>{order.status}</span>
@@ -101,7 +101,7 @@ export default class List extends React.Component {
     };
 
     renderProductsProp(prop, key) {
-        const {changes = {}, currentOrder, products, productsHash} = this.state;
+        const {changes = {}, currentOrder, products = [], productsHash} = this.state;
         return (
             <div key={key}>
                 {(changes.products || currentOrder.products || []).map(({count, _id}, index) => (

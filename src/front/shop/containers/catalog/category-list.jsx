@@ -35,7 +35,7 @@ export default class CategoryList extends React.Component {
                     categoryList.map((item, key) => (
                         <div key={key} className='item'>
                             <div>
-                                <img alt={item.name} src={item.img}/>
+                                <img alt={item.name} src={item.img ? item.img.url : undefined}/>
                             </div>
                             <div>
                                 <Link to={`/catalog/${item.slug}`}>{item.name}</Link>

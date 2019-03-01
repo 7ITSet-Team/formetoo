@@ -28,17 +28,19 @@ export default class Pagination extends React.Component {
         for (let i = start; i <= end; i++)
             links.push(i);
 
-        return (
-            <>
-                <span onClick={() => (page > 1) && goToPage(page - 1)}> Назад </span>
-                {links.map(link => {
-                    if (link === page)
-                        return <span style={{color: 'red'}} onClick={() => goToPage(link)} key={link}> {link} </span>;
-                    return <span onClick={() => goToPage(link)} key={link}> {link} </span>;
-                })}
-                <span onClick={() => (page < totalPages) && goToPage(page + 1)}> Вперед </span>
-            </>
-        )
+        if (totalPages > 1)
+            return (
+                <>
+                    <span onClick={() => (page > 1) && goToPage(page - 1)}> Назад </span>
+                    {links.map(link => {
+                        if (link === page)
+                            return <span style={{color: 'red'}} onClick={() => goToPage(link)}
+                                         key={link}> {link} </span>;
+                        return <span onClick={() => goToPage(link)} key={link}> {link} </span>;
+                    })}
+                    <span onClick={() => (page < totalPages) && goToPage(page + 1)}> Вперед </span>
+                </>
+            )
     };
 
     render() {

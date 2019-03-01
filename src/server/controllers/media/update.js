@@ -8,9 +8,7 @@ export default async (db, req, res, data) => {
         const buffer = new Buffer(imgData, 'base64');
         const date = new Date();
         const name = `${date.getDate()}${date.getHours()}${date.getMinutes()}${date.getSeconds()}${date.getMilliseconds()}`;
-        // I'm not sure that using synchronous functions like this one is a right way.
         fs.writeFileSync(`build/public/uploads/${name}.${ext}`, buffer);
-        //
         data.changes = {url: `/uploads/${name}.${ext}`};
     }
     const {isSuccess} = await db.media.update(data);

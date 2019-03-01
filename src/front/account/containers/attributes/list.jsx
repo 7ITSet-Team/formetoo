@@ -11,7 +11,7 @@ export default class List extends React.Component {
         super(props);
         this.state = {
             loading: true,
-            attributes: [],
+            attributes: undefined,
             currentAttribute: undefined,
             changes: undefined,
             show: undefined
@@ -42,10 +42,10 @@ export default class List extends React.Component {
             }
 
             const isNotValid = this.requiredFields
-                .map(field => ((currentAttribute[field] == null) || (currentAttribute[field] === '')))
-                .includes(true);
+                .some(field => ((currentAttribute[field] == null) || (currentAttribute[field] === '')));
 
-            if (!isEdit && isNotValid) return Message.send('Введены не все обязательные поля', Message.type.danger);
+            if (!isEdit && isNotValid)
+                return Message.send('Введены не все обязательные поля', Message.type.danger);
 
             const {error} = await API.request('attributes', 'update', data);
             this.close();
@@ -137,7 +137,7 @@ export default class List extends React.Component {
         )
     };
 
-    renderIsTabCheckBox(prop, key) {
+    renderTabCheckBox(prop, key) {
         const {currentAttribute, show, changes = {}} = this.state;
         return (
             <div key={key}>
@@ -162,7 +162,7 @@ export default class List extends React.Component {
         if (prop === 'type')
             return this.renderTypeDropDown(prop, key);
         if (prop === 'isTab')
-            return this.renderIsTabCheckBox(prop, key);
+            return this.renderTabCheckBox(prop, key);
         const {currentAttribute, show, changes = {}} = this.state;
         return (
             <div key={key}>
@@ -188,7 +188,7 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {attributes} = this.state;
+        const {attributes = []} = this.state;
         return attributes.map(attribute => (
             <div className='a--list-item' key={attribute._id}>
                 <span>{attribute.title}</span>

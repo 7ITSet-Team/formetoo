@@ -11,7 +11,7 @@ export default class List extends React.Component {
         super(props);
         this.state = {
             loading: true,
-            pages: [],
+            pages: undefined,
             show: undefined,
             currentPage: undefined,
             changes: undefined
@@ -96,7 +96,7 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {pages} = this.state;
+        const {pages = []} = this.state;
         return pages.map((page, key) => (
             <div key={key}>
                 {page.name}

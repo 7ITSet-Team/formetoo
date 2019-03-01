@@ -12,11 +12,11 @@ export default class List extends React.Component {
         super(props);
         this.state = {
             loading: true,
-            logs: [],
+            logs: undefined,
             currentLog: undefined,
             show: false,
             filter: undefined,
-            checkedLogs: [],
+            checkedLogs: undefined,
             showJSON: false,
             page: 1,
             totalPages: 1
@@ -25,10 +25,12 @@ export default class List extends React.Component {
         this.close = () => this.setState({show: false, currentLog: undefined});
         this.updateLogs = async (page = this.state.page) => {
             const {filter} = this.state;
-            this.setState({loading: true});
+            this.setState({loading: true, page});
             const {error, data: {logs, pages: totalPages}} = await API.request('logs', 'list', {filter, page});
+            if (totalPages && (page > totalPages))
+                return this.updateLogs(1);
             if (!error)
-                this.setState({loading: false, logs, page, totalPages});
+                this.setState({loading: false, logs, totalPages});
             else
                 Message.send('ошибка при обновлении списка логов, повторите попытку позже');
         };
@@ -104,8 +106,7 @@ export default class List extends React.Component {
                 <div className='c--items-group'>
                     <button className='c--btn c--btn--danger' onClick={this.deleteLogs}>delete all logs</button>
                     <button className='c--btn c--btn--info' onClick={this.checkAll}>check all checkboxes</button>
-                    <button className='c--btn c--btn--danger' onClick={this.deleteCheckedLogs}>delete ONLY CHECKED BY
-                        FUCKING BOOLEAN CHECKBOXES logs
+                    <button className='c--btn c--btn--danger' onClick={this.deleteCheckedLogs}>delete checked logs
                     </button>
                 </div>
                 {this.filters.map((filterBy, key) => {
@@ -130,7 +131,7 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {logs, checkedLogs, loading} = this.state;
+        const {logs = [], checkedLogs = [], loading} = this.state;
         if (loading)
             return <Loading/>;
         return logs.map((log, key) => (

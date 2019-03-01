@@ -54,8 +54,7 @@ export default class List extends React.Component {
             let data = currentRole;
             if (isEdit) data = {_id: currentRole._id, changes};
             const isNotValid = this.requiredFields
-                .map(prop => ((currentRole[prop] == null) || (currentRole[prop] === '') || (Array.isArray(currentRole[prop]) && currentRole[prop].length === 0)))
-                .includes(true);
+                .some(prop => ((currentRole[prop] == null) || (currentRole[prop] === '') || (Array.isArray(currentRole[prop]) && !currentRole[prop].length)));
             if (!isEdit && isNotValid)
                 return Message.send('Введены не все обязательные поля', Message.type.danger);
             const {error} = await API.request('roles', 'update', data);
@@ -74,7 +73,8 @@ export default class List extends React.Component {
             if (error)
                 Message.send('ошибка при удалении роли, повторите попытку позже', Message.type.danger);
             else {
-                if (show === 'editPage') this.close();
+                if (show === 'editPage')
+                    this.close();
                 this.updateRoles();
                 Message.send('роль успешно удалена', Message.type.success);
             }

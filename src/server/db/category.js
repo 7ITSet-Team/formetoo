@@ -5,19 +5,20 @@ export default db => {
     const schema = new mongoose.Schema({
         name: {
             type: String,
-            required: true,
-            unique: true
+            required: true
         },
-        img: String,
+        img: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'media'
+        },
         slug: {
             type: String,
-            required: true,
-            unique: true
+            required: true
         }
     }, {collection: __modelName, autoIndex: false});
 
     schema.statics.getAll = async function () {
-        return await this.find({}, {__v: 0});
+        return await this.find({}, {__v: 0}).populate('img', 'url');
     };
 
     schema.statics.getBySlug = async function (slug) {
@@ -29,31 +30,44 @@ export default db => {
     };
 
     schema.statics.removeMedia = async function (id) {
-        return this.updateMany({img: id}, {$set: {img: ''}});
+        return this.updateMany({img: id}, {$unset: {img: ''}});
     };
 
     schema.statics.update = async function (data) {
         const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(data._id)});
-        let ok;
         if (isExist)
-            if (data.changes)
-                ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok;
-            else {
+            if (data.changes) {
+                if (data.changes.img === '') {
+                    const ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$unset: {img: ''}})).ok;
+                    if (!ok)
+                        return false;
+                    delete data.changes.img;
+                }
+                if (Object.keys(data.changes).length) {
+                    const ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok;
+                    if (!ok)
+                        return false;
+                }
+            } else {
                 const category = await this.findOne({_id: data._id});
                 if (category.img !== '') {
-                    const mediaOk = (await db.media.update({_id: new mongoose.Types.ObjectId(category.img)})).isSuccess;
-                    if (!mediaOk)
+                    const {isSuccess} = await db.media.update({_id: new mongoose.Types.ObjectId(category.img)});
+                    if (!isSuccess)
                         return false
                 }
-                const rmCatPromise = this.remove({_id: new mongoose.Types.ObjectId(data._id)});
-                const rmCatProductPromise = db.product.removeCategory(data);
-                ok = ((await rmCatPromise).ok && (await rmCatProductPromise).ok) ? 1 : 0;
+                const ok = (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+                if (!ok)
+                    return false;
+                const pOk = (await db.product.removeCategory(data)).ok;
+                if (!pOk)
+                    return false;
             }
         else {
-            const {_id} = await this.create(data);
-            ok = _id ? 1 : 0;
+            const insertedCategory = await this.create(data);
+            if (!insertedCategory)
+                return false;
         }
-        return (ok === 1);
+        return true;
     };
 
     schema.methods.getProducts = async function () {

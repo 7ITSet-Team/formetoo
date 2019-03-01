@@ -1,45 +1,28 @@
 export default async (db, req, res, data) => {
     const media = await db.media.getAll();
-    const categories = await db.category.getAll();
-    const {products} = await db.product.getAll();
     let result = [];
-    media.forEach(img => {
-        const imageCategories = [];
-        const imageProducts = [];
-        let categoryIsExist = false;
-        let productIsExist = false;
-        categories.forEach(category => {
-            if (category.img === String(img._id)) {
-                imageCategories.push({
-                    name: category.name,
-                    url: `/catalog/${category.slug}`
-                });
-                if (data.filter && data.filter.category && (category.name === data.filter.category))
-                    categoryIsExist = true;
+    for (const img of media) {
+        const imageCategories = await img.getCategories();
+        const imageProducts = await img.getProducts();
+        let needToPush = true;
+        if (data.filter) {
+            if (data.filter.category) {
+                const isCatExist = imageCategories.some(category => category.name === data.filter.category);
+                if (!isCatExist)
+                    needToPush = false;
             }
-        });
-        products.forEach(product => {
-            if (product.media.includes(String(img._id))) {
-                imageProducts.push({
-                    name: product.name,
-                    url: `/catalog/product/${product.slug}`
-                });
-                if (data.filter && data.filter.product && (product.name === data.filter.product))
-                    productIsExist = true;
+            if (needToPush && data.filter.product) {
+                const isProdExist = imageProducts.some(product => product.name === data.filter.product);
+                if (!isProdExist)
+                    needToPush = false;
             }
-        });
-        if ((categoryIsExist || productIsExist) || !data.filter)
-            result.push({...(img.toJSON()), categories: imageCategories, products: imageProducts});
-    });
-
-    if (data.hash) {
-        const mediaHash = {};
-        media.forEach(img => (!Object.keys(mediaHash).includes(img._id) && (mediaHash[img._id] = img)));
-        result = {
-            media: result,
-            mediaHash
         }
+        if (needToPush)
+            result.push({
+                ...(img.toJSON()),
+                categories: imageCategories,
+                products: imageProducts
+            });
     }
-
     return {result};
 };

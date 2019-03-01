@@ -12,12 +12,12 @@ export default class List extends React.Component {
         super(props);
         this.state = {
             loading: true,
-            sendLoading: false, // we use this flag for rendering a spinner in the edit modal window because sending an image takes a lot of time
-            products: [],
-            attributes: [],
-            sets: [],
-            categories: [],
-            media: [],
+            sendLoading: false,
+            products: undefined,
+            attributes: undefined,
+            sets: undefined,
+            categories: undefined,
+            media: undefined,
             currentProduct: undefined,
             currentAttribute: undefined,
             currentSet: undefined,
@@ -39,14 +39,18 @@ export default class List extends React.Component {
         this.closeMediaDialog = () => this.setState({showMediaDialog: false});
         this.updateProducts = async (page = this.state.page) => {
             const {sort, filter} = this.state;
-            this.setState({loading: true});
+            this.setState({loading: true, page});
             const {error, data: {pages: totalPages, products}} = await API.request('products', 'list', {
                 sort,
                 filter,
                 page
             });
+
+            if (totalPages && (page > totalPages))
+                return this.updateProducts(1);
+
             if (!error)
-                this.setState({loading: false, products, totalPages, page});
+                this.setState({loading: false, products, totalPages});
             else
                 Message.send('ошибка при обновлении списка продуктов, повторите попытку позже');
         };
@@ -77,11 +81,7 @@ export default class List extends React.Component {
             }
             this.setState({sendLoading: true});
             const {error} = await API.request('products', 'update', data);
-            const {error: errorM, data: {mediaHash}} = await API.request('media', 'list', {hash: true});
-            if (!errorM)
-                this.setState({sendLoading: false, mediaHash});
-            else
-                return Message.send('ошибка при обновлении списка продуктов, повторите попытку позже');
+            this.setState({sendLoading: false});
             if (error)
                 Message.send(`ошибка при ${isEdit ? 'редактировании' : 'создании'} продукта, повторите попытку позже`, Message.type.danger);
             else {
@@ -124,7 +124,9 @@ export default class List extends React.Component {
             if (error)
                 Message.send('ошибка при экспорте продуктов, повторите попытку позже', Message.type.danger);
             else {
-                // ================АХТУНГ!||ACHTUNG!||WTF?!
+                /*
+                    временное решение.
+                 */
                 const a = window.document.createElement('a');
                 a.href = window.URL.createObjectURL(new Blob([data], {type: 'text/csv'}));
                 const time = new Date();
@@ -145,7 +147,6 @@ export default class List extends React.Component {
                 delete newFilter['price.before'];
             } else
                 newFilter[filterBy] = (value || undefined);
-            // remove empty fields in the filter object
             for (const filter in newFilter) {
                 if (filter === 'price') {
                     if ((newFilter.price.$gte == null) || (newFilter.price.$gte === ''))
@@ -192,7 +193,7 @@ export default class List extends React.Component {
         const {errorA, data: {attributes, attributesHash}} = await API.request('attributes', 'list', {hash: true});
         const {errorC, data: categories} = await API.request('categories', 'list');
         const {errorS, data: sets} = await API.request('attribute-sets', 'list');
-        const {errorM, data: {media, mediaHash}} = await API.request('media', 'list', {hash: true});
+        const {errorM, data: media} = await API.request('media', 'list');
         if (!errorP && !errorA && !errorC && !errorS && !errorM)
             this.setState({
                 loading: false,
@@ -201,7 +202,6 @@ export default class List extends React.Component {
                 categories,
                 sets,
                 attributesHash,
-                mediaHash,
                 media,
                 totalPages,
                 currentAttribute: (attributes[0] && attributes[0]._id),
@@ -212,8 +212,7 @@ export default class List extends React.Component {
     };
 
     renderPropDropDown() {
-        // Рендер дропдауна с кнопкой добавления атрибутов
-        const {attributes, currentProduct, currentAttribute, sets, currentSet, show, changes = {}, attributesHash} = this.state;
+        const {attributes = [], currentProduct, currentAttribute, sets = [], currentSet, show, changes = {}, attributesHash} = this.state;
         return (
             <>
                 <div>
@@ -263,8 +262,7 @@ export default class List extends React.Component {
     };
 
     renderCategoryDropDown() {
-        // Рендер дропдауна для категорий
-        const {categories, currentProduct, show, changes = {}} = this.state;
+        const {categories = [], currentProduct, show, changes = {}} = this.state;
         return (
             <select
                 onChange={e => {
@@ -280,12 +278,12 @@ export default class List extends React.Component {
     };
 
     renderMedia() {
-        const {currentProduct, changes = {}, show, mediaHash} = this.state;
+        const {currentProduct, changes = {}, show} = this.state;
         return (
             <>
                 {(changes.media || currentProduct.media || []).map((image, key) => (
                     <div key={key}>
-                        <img src={mediaHash[image] ? mediaHash[image].url : image} width='200' height='200'/>
+                        <img src={image.url || image} width='200' height='200' alt=''/>
                         <div className="icon remove-button" onClick={() => {
                             const newChanges = {
                                 ...changes,
@@ -329,8 +327,7 @@ export default class List extends React.Component {
     };
 
     renderPropList() {
-        // Рендер списка атрибутов с их значениями
-        const {currentProduct, show, attributesHash} = this.state;
+        const {currentProduct, show} = this.state;
         let {changes} = this.state;
         return ((changes && changes.props) || (currentProduct && currentProduct.props) || []).map((prop, index) => {
             let propInput;
@@ -354,7 +351,7 @@ export default class List extends React.Component {
                 else
                     this.setState({currentProduct: {...currentProduct, ...changes}});
             };
-            switch (attributesHash[prop.attribute].type) {
+            switch (prop.attribute.type) {
                 case 'textField':
                     propInput = <Input value={propValue} onChange={propOnChange}/>;
                     break;
@@ -398,7 +395,7 @@ export default class List extends React.Component {
             }
             return (
                 <div key={index}>
-                    <span>{attributesHash[prop.attribute].title}</span>
+                    <span>{prop.attribute.title}</span>
                     {propInput}
                     <span onClick={() => {
                         const newChanges = {
@@ -446,7 +443,7 @@ export default class List extends React.Component {
     };
 
     renderList() {
-        const {loading, products} = this.state;
+        const {loading, products = []} = this.state;
         if (loading)
             return <Loading/>;
         return (
@@ -479,7 +476,7 @@ export default class List extends React.Component {
 
                 {this.filters.map((filterBy, key) => {
                     if (filterBy === 'categoryID') {
-                        const {categories} = this.state;
+                        const {categories = []} = this.state;
                         return (
                             <select onChange={e => this.acceptFilter(filterBy, e.target.value)} key={key}>
                                 <option value=''>Любая категория</option>
@@ -510,7 +507,7 @@ export default class List extends React.Component {
     };
 
     render() {
-        const {show, showMediaDialog, media, sendLoading, page, totalPages} = this.state;
+        const {show, showMediaDialog, media = [], sendLoading, page, totalPages} = this.state;
         let actions = this.buttons;
         if (show === 'editPage')
             actions = [...this.buttons, {name: 'удалить', types: 'danger', handler: this.deleteProduct}];
@@ -539,10 +536,10 @@ export default class List extends React.Component {
                                     const {changes = {}, currentProduct} = this.state;
                                     let newMedia;
                                     const oldMedia = (show === 'editPage') ? changes.media : currentProduct.media;
-                                    if (oldMedia && !oldMedia.includes(img._id))
-                                        newMedia = [...oldMedia, img._id];
+                                    if (oldMedia && !oldMedia.includes(img.url))
+                                        newMedia = [...oldMedia, img.url];
                                     else
-                                        newMedia = (show === 'editPage') ? [...currentProduct.media, img._id] : [img._id];
+                                        newMedia = (show === 'editPage') ? [...currentProduct.media, img.url] : [img.url];
                                     if (show === 'editPage')
                                         this.setState({changes: {...changes, media: newMedia}});
                                     else

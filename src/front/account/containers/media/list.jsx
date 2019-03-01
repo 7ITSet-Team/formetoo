@@ -12,7 +12,7 @@ export default class List extends React.Component {
         this.state = {
             loading: true,
             media: undefined,
-            sendLoading: false, // we use this flag for rendering a spinner in the edit modal window because sending an image takes a lot of time
+            sendLoading: false,
             currentMedia: undefined,
             show: undefined,
             filter: {}
@@ -27,8 +27,8 @@ export default class List extends React.Component {
             else
                 Modal.send('ошибка при обновлении списка картинок, повторите попытку позже', Message.type.danger);
         };
-        this.deleteMedia = async (mediaID = this.state.currentMedia._id) => {
-            const {error} = await API.request('media', 'update', {_id: mediaID});
+        this.deleteMedia = async (_id = this.state.currentMedia._id) => {
+            const {error} = await API.request('media', 'update', {_id});
             if (error)
                 Message.send('ошибка при удалении картиннки, повторите попытку позже', Message.type.danger);
             else {
@@ -37,9 +37,9 @@ export default class List extends React.Component {
             }
         };
         this.saveChanges = async () => {
-            this.setState({sendLoading: true});
             const {changes, currentMedia} = this.state;
             const data = {_id: currentMedia._id, changes};
+            this.setState({sendLoading: true});
             const {error} = await API.request('media', 'update', data);
             this.setState({sendLoading: false});
             if (error) {
@@ -53,6 +53,7 @@ export default class List extends React.Component {
         };
         this.acceptFilter = async (filterBy, value) => {
             const {filter} = this.state;
+
             let newFilter = {...filter};
             newFilter[filterBy] = (value || undefined);
             for (const filter in newFilter)
@@ -60,6 +61,7 @@ export default class List extends React.Component {
                     delete newFilter[filter];
             if (!Object.keys(newFilter).length)
                 newFilter = undefined;
+
             this.setState({filter: newFilter});
             const {error, data: media} = await API.request('media', 'list', {filter: newFilter});
             if (!error)
@@ -98,10 +100,10 @@ export default class List extends React.Component {
         const {media} = this.state;
         return media.map((img, key) => (
             <div className='a--list-item' key={key}>
-                {img.categories && img.categories.map((category, key) => <div key={key}><a
-                    href={category.url}>{category.name}</a></div>)}
-                {img.products && img.products.map((product, key) => <div key={key}><a
-                    href={product.url}>{product.name}</a></div>)}
+                {img.categories && img.categories.map(category => <div key={category._id}><a
+                    href={`/catalog/${category.slug}`}>{category.name}</a></div>)}
+                {img.products && img.products.map(product => <div key={product._id}><a
+                    href={`/catalog/product/${product.slug}`}>{product.name}</a></div>)}
                 <img width='200' height='200' src={img.url} alt=''/>
                 <span onClick={() => this.deleteMedia(img._id)} className='icon remove-button'/>
                 <span onClick={() => this.show('editPage', img)} className='icon pencil'/>

@@ -15,7 +15,6 @@ export default db => {
         },
         name: {
             type: String,
-            unique: true,
             required: true
         },
         slug: {
@@ -27,10 +26,14 @@ export default db => {
             type: Number,
             required: true
         },
-        media: [String],
+        media: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'media'
+        }],
         props: [{
             attribute: {
                 type: mongoose.Schema.Types.ObjectId,
+                ref: 'attribute',
                 required: true
             },
             value: {
@@ -39,6 +42,21 @@ export default db => {
             }
         }]
     }, {collection: __modelName});
+
+    schema.statics.getAll = async function (data = {}, options = {__v: 0}) {
+        let {value: perPage} = await db.setting.getByName('pagination');
+        perPage = Number(perPage) || 5;
+        const result = {};
+        result.products = await this
+            .find((data.filter || {}), options)
+            .sort(data.sort || {})
+            .skip((perPage * data.page) - perPage)
+            .limit(perPage)
+            .populate('media', 'url')
+            .populate('props.attribute', '-__v');
+        result.pages = Math.ceil((await this.find((data.filter || {}), options)).length / perPage);
+        return result;
+    };
 
     schema.statics.getBySlug = async function (slug) {
         return await this.findOne({slug}, {__v: 0});
@@ -71,31 +89,24 @@ export default db => {
         );
     };
 
-    schema.statics.getAll = async function (data = {}, options = {__v: 0}) {
-        let {value: perPage} = await db.setting.getByName('pagination');
-        perPage = Number(perPage) || 5;
-        const result = {};
-        result.products = await this
-            .find((data.filter || {}), options)
-            .sort(data.sort || {})
-            .skip((perPage * data.page) - perPage)
-            .limit(perPage);
-        result.pages = Math.ceil((await this.find((data.filter || {}), options)).length / perPage);
-        return result;
-    };
-
     schema.statics.update = async function (data) {
         const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(data._id)});
-        let ok;
         if (isExist)
-            ok = data.changes
-                ? (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok
-                : (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+            if (data.changes) {
+                const ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok;
+                if (!ok)
+                    return false;
+            } else {
+                const ok = (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+                if (!ok)
+                    return false;
+            }
         else {
-            await this.create(data);
-            ok = 1;
+            const insertedProduct = await this.create(data);
+            if (!insertedProduct)
+                return false;
         }
-        return (ok === 1);
+        return true;
     };
 
     schema.statics.upload = async function (data) {

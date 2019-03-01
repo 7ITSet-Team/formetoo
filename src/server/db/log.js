@@ -45,6 +45,7 @@ export default db => {
         },
         user: {
             type: mongoose.Types.ObjectId,
+            ref: 'user',
             required: true
         },
         method: {
@@ -78,13 +79,12 @@ export default db => {
         const logs = await this
             .find(data.filter || {}, {__v: 0})
             .skip((perPage * data.page) - perPage)
-            .limit(perPage);
-        const usersHash = await db.user.getHash({});
+            .limit(perPage)
+            .populate('user', '-__v');
         let newLogs = [];
         for (const log of logs)
             newLogs.push({
                 ...(log.toJSON()),
-                user: usersHash[log.user],
                 view: await ((views[log.method.controller] || {})[log.method.action] || (() => undefined))(log.method.data, db)
             });
         return {
@@ -97,7 +97,7 @@ export default db => {
         const method = {controller, action, data: {...data}};
         delete method.data.userByToken;
         const user = data.userByToken._id;
-        await this.create({time: new Date(), user, method});
+        return await this.create({time: new Date(), user, method});
     };
 
     schema.statics.deleteAll = async function () {
