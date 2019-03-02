@@ -2,7 +2,7 @@ import fs from 'fs';
 
 export default async (db, req, res, data) => {
     if (data.changes) {
-        const matches = data.changes.url.match(/^data:.+\/(.+);base64,(.*)$/);
+        const matches = data.changes.url.match(/^data:[^\/]+\/([^;]+);base64,(.*)$/);
         const imgData = matches[2];
         const ext = matches[1];
         const buffer = new Buffer(imgData, 'base64');

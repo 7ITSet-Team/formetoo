@@ -5,6 +5,7 @@ import Loading from '@components/ui/loading';
 import Modal from '@components/ui/modal';
 import Message from '@components/ui/message';
 import Input from '@components/ui/input';
+import MultiplePhoto from '@components/multiple-photo';
 
 export default class List extends React.Component {
     constructor(props) {
@@ -104,7 +105,9 @@ export default class List extends React.Component {
                     href={`/catalog/${category.slug}`}>{category.name}</a></div>)}
                 {img.products && img.products.map(product => <div key={product._id}><a
                     href={`/catalog/product/${product.slug}`}>{product.name}</a></div>)}
-                <img width='200' height='200' src={img.url} alt=''/>
+                {Array.isArray(img.url)
+                    ? <MultiplePhoto frames={img.url}/>
+                    : <img src={img.url} width='200' height='200' alt=''/>}
                 <span onClick={() => this.deleteMedia(img._id)} className='icon remove-button'/>
                 <span onClick={() => this.show('editPage', img)} className='icon pencil'/>
             </div>

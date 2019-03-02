@@ -71,7 +71,10 @@ export default db => {
     };
 
     schema.statics.getByCategoryID = async function (categoryID) {
-        return await this.find({categoryID: new mongoose.Types.ObjectId(categoryID)}, {__v: 0});
+        return await this
+            .find({categoryID: new mongoose.Types.ObjectId(categoryID)}, {__v: 0})
+            .populate('media', 'url')
+            .populate('props.attribute', '-__v');
     };
 
     schema.statics.removeAttribute = async function (data) {

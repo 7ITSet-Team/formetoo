@@ -1,0 +1,28 @@
+.multiple-photo-container {
+  position: relative;
+  font-weight: bold;
+  width: 200px;
+  height: 200px;
+
+  > div {
+    position: absolute;
+    bottom: 5px;
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
+  > .back {
+    left: 0;
+  }
+
+  > .pause {
+    left: 50%;
+    transform: translate(-50%, 0);
+  }
+
+  > .forward {
+    right: 0;
+  }
+}

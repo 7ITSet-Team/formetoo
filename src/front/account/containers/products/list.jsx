@@ -6,6 +6,7 @@ import Modal from '@components/ui/modal';
 import Message from '@components/ui/message';
 import Input from '@components/ui/input';
 import Pagination from '@components/ui/pagination';
+import MultiplePhoto from '@components/multiple-photo';
 
 export default class List extends React.Component {
     constructor(props) {
@@ -283,7 +284,9 @@ export default class List extends React.Component {
             <>
                 {(changes.media || currentProduct.media || []).map((image, key) => (
                     <div key={key}>
-                        <img src={image.url || image} width='200' height='200' alt=''/>
+                        {Array.isArray(image.url)
+                            ? <MultiplePhoto frames={image.url}/>
+                            : <img src={image.url || image} width='200' height='200' alt=''/>}
                         <div className="icon remove-button" onClick={() => {
                             const newChanges = {
                                 ...changes,
@@ -294,6 +297,7 @@ export default class List extends React.Component {
                         }}/>
                     </div>
                 ))}
+                <div>Загрузить фотографии или 3D картинки:</div>
                 <input type='file' onChange={e => {
                     const files = e.target.files;
                     const media = [];

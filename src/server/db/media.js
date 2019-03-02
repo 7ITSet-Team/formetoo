@@ -1,11 +1,12 @@
 import fs from 'fs';
 import mongoose from 'mongoose';
+import rimraf from 'rimraf';
 
 const __modelName = 'media';
 export default db => {
     const schema = new mongoose.Schema({
         url: {
-            type: String,
+            type: {},
             require: true
         }
     }, {collection: __modelName, autoIndex: false});
@@ -35,13 +36,30 @@ export default db => {
                     return {isSuccess: false};
             } else {
                 const media = await this.getByID(data._id);
-                fs.unlinkSync(`build/public${media.url}`);
-                const cOk = (await db.category.removeMedia(media._id)).ok;
-                if (!cOk)
-                    return {isSuccess: false};
-                const mOk = (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
-                if (!mOk)
-                    return {isSuccess: false};
+
+                if (Array.isArray(media.url)) {
+                    const folder = media.url[0].match(/\/uploads\/(.*)\/(.*)/)[1];
+                    return new Promise((resolve, reject) => {
+                        rimraf(`build/public/uploads/${folder}`, async () => {
+                            const cOk = (await db.category.removeMedia(media._id)).ok;
+                            if (!cOk)
+                                reject({isSuccess: false});
+                            const mOk = (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+                            if (!mOk)
+                                reject({isSuccess: false});
+                            result.isSuccess = true;
+                            resolve(result);
+                        });
+                    });
+                } else {
+                    fs.unlinkSync(`build/public${media.url}`);
+                    const cOk = (await db.category.removeMedia(media._id)).ok;
+                    if (!cOk)
+                        return {isSuccess: false};
+                    const mOk = (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+                    if (!mOk)
+                        return {isSuccess: false};
+                }
             }
         else {
             const insertedData = await this.create(data);

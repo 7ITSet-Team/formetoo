@@ -27,7 +27,13 @@ export default class ProductItem extends React.Component {
             <div className='s--product-item'>
                 <div>
                     <Link to={`/catalog/product/${item.slug}`}>
-                        <img alt={item.name} src={item.media[0]}/>
+                        <img
+                            alt={item.name}
+                            src={item.media[0]
+                                ? Array.isArray(item.media[0].url)
+                                    ? item.media[0].url[0]
+                                    : item.media[0].url
+                                : undefined}/>
                     </Link>
                     <div className='code' title={`Артикул:${item.code}`}>{item.code}</div>
                     <div className='price' title={`Цена:${item.price}`}>{`${item.price} р.`}</div>
