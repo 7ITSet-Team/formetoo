@@ -1,5 +1,6 @@
 import fs from 'fs';
 import decompress from 'decompress';
+import mongoose from 'mongoose';
 
 export default async (db, req, res, data) => {
     const isEdit = (data.changes && Object.keys(data.changes).includes('media'));
@@ -9,15 +10,14 @@ export default async (db, req, res, data) => {
     const productMedia = (isEdit ? data.changes : data).media;
     if (productMedia)
         for (const img of productMedia) {
-            if (typeof img === 'object')
-                refs.push(img._id);
-            else {
-                const image = await db.media.getByUrl(img);
+            if (mongoose.Types.ObjectId.isValid(img)) {
+                const image = await db.media.getByID(img);
                 if (image)
-                    refs.push(image._id);
+                    refs.push(img);
                 else
                     upload.push(img);
-            }
+            } else
+                upload.push(img);
         }
     if ((isEdit || isCreate) && upload.length) {
         const media = [];

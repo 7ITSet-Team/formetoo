@@ -58,25 +58,29 @@ export default class List extends React.Component {
         this.saveChanges = async () => {
             const {currentProduct, changes = {}, show, categories} = this.state;
             const isEdit = (show === 'editPage');
+
             if (isEdit && !Object.keys(changes).length)
                 return this.close();
+
             const data = (isEdit)
                 ? {_id: currentProduct._id, changes}
                 : {categoryID: categories[0]._id, ...currentProduct};
+
+            const media = (isEdit ? data.changes : data).media;
+            if (media)
+                media.forEach((media, index, _media) => (typeof media === 'object') && (_media[index] = media._id));
             let msg;
             if (!isEdit) {
                 const isNotValid = this.requiredFields
-                    .map(field => {
-                            const isNull = (data[field] == null) || (data[field] === '');
-                            if ((field === 'price') && !isNull && isNaN(data[field])) {
-                                msg = 'Ошибка валидации: цена - число';
-                                return true;
-                            }
-                            msg = 'Введены не все обязательные поля';
-                            return isNull;
+                    .some(field => {
+                        const isNull = (data[field] == null) || (data[field] === '');
+                        if ((field === 'price') && !isNull && isNaN(data[field])) {
+                            msg = 'Ошибка валидации: цена - число';
+                            return true;
                         }
-                    )
-                    .includes(true);
+                        msg = 'Введены не все обязательные поля';
+                        return isNull;
+                    });
                 if (isNotValid)
                     return Message.send(msg, Message.type.danger);
             }
@@ -540,17 +544,23 @@ export default class List extends React.Component {
                                     const {changes = {}, currentProduct} = this.state;
                                     let newMedia;
                                     const oldMedia = (show === 'editPage') ? changes.media : currentProduct.media;
-                                    if (oldMedia && !oldMedia.includes(img.url))
-                                        newMedia = [...oldMedia, img.url];
-                                    else
-                                        newMedia = (show === 'editPage') ? [...currentProduct.media, img.url] : [img.url];
+
+                                    if (oldMedia && (Array.isArray(img.url) && !oldMedia.includes(img.url[0]) || !oldMedia.includes(img.url))) {
+                                        newMedia = [...oldMedia, img];
+                                    } else
+                                        newMedia = (show === 'editPage')
+                                            ? Array.isArray(img.url) ? [...currentProduct.media, img] : [...currentProduct.media, img]
+                                            : [img];
+
                                     if (show === 'editPage')
                                         this.setState({changes: {...changes, media: newMedia}});
                                     else
                                         this.setState({currentProduct: {...currentProduct, media: newMedia}});
                                     this.closeMediaDialog();
                                 }}>
-                                    <img width='200' height='200' src={img.url} alt=''/>
+                                    {Array.isArray(img.url)
+                                        ? <MultiplePhoto frames={img.url}/>
+                                        : <img src={img.url || img} width='200' height='200' alt=''/>}
                                 </div>
                             ))}
                         </div>

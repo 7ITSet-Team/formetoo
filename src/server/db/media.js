@@ -22,10 +22,6 @@ export default db => {
             return await this.findOne({_id: ids}, {__v: 0});
     };
 
-    schema.statics.getByUrl = async function (url) {
-        return await this.findOne({url}, {__v: 0});
-    };
-
     schema.statics.update = async function (data) {
         const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(data._id)});
         const result = {};

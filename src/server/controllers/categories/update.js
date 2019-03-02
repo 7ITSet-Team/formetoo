@@ -1,10 +1,14 @@
 import fs from 'fs';
+import mongoose from 'mongoose';
 
 export default async (db, req, res, data) => {
     const isEdit = (data.changes && Object.keys(data.changes).includes('img'));
     const isCreate = (Object.keys(data).includes('img'));
 
-    const image = await db.media.getByUrl((isEdit ? data.changes : data).img);
+    let image;
+    const img = (isEdit ? data.changes : data).img;
+    if (mongoose.Types.ObjectId.isValid(img))
+        image = await db.media.getByID(img);
     const mediaIsUpload = !image;
 
     if ((isEdit || isCreate) && mediaIsUpload && ((isEdit ? data.changes : data).img !== '')) {

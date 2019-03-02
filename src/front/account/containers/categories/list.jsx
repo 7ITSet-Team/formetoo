@@ -52,7 +52,9 @@ export default class List extends React.Component {
             let data = currentCategory;
             if (isEdit)
                 data = {_id: currentCategory._id, changes};
-
+            const media = (isEdit ? data.changes : data).img;
+            if (media && (typeof media === 'object'))
+                (isEdit ? data.changes : data).img = media._id;
             const isNotValid = this.requiredFields
                 .some(prop => ((currentCategory[prop] == null) || (currentCategory[prop] === '')));
 
@@ -121,7 +123,8 @@ export default class List extends React.Component {
         return (
             <div key={key}>
                 {wasImgChanged
-                    ? isExistInChanges && <img width='400' height='400' src={changes[prop]} alt='img'/>
+                    ? isExistInChanges &&
+                    <img width='400' height='400' src={changes[prop].url || changes[prop]} alt='img'/>
                     : isExistInCategory &&
                     <img width='400' height='400' src={currentCategory[prop].url || currentCategory[prop]} alt='img'/>
                 }
@@ -214,16 +217,16 @@ export default class List extends React.Component {
                         handler: this.closeMediaDialog
                     }]} onClose={this.close}>
                         <div>
-                            {media.map(({url}, key) => (
+                            {media.map((img, key) => (
                                 <div className='a--list-item' key={key} onClick={() => {
                                     const {changes} = this.state;
                                     if (show === 'editPage')
-                                        this.setState({changes: {...changes, img: url}});
+                                        this.setState({changes: {...changes, img}});
                                     else
-                                        this.setState({currentCategory: {...currentCategory, img: url}});
+                                        this.setState({currentCategory: {...currentCategory, img}});
                                     this.closeMediaDialog();
                                 }}>
-                                    <img width='200' height='200' src={url} alt=''/>
+                                    <img width='200' height='200' src={img.url} alt=''/>
                                 </div>
                             ))}
                         </div>
