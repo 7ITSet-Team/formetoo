@@ -11,8 +11,8 @@ export default async (db, req, res, data) => {
         image = await db.media.getByID(img);
     const mediaIsUpload = !image;
 
-    if ((isEdit || isCreate) && mediaIsUpload && ((isEdit ? data.changes : data).img !== '')) {
-        const matches = (isEdit ? data.changes : data).img.match(/^data:[^\/]+\/([^;]+);base64,(.*)$/);
+    if ((isEdit || isCreate) && mediaIsUpload && (img !== '')) {
+        const matches = img.match(/^data:[^\/]+\/([^;]+);base64,(.*)$/);
         const imgData = matches[2];
         const ext = matches[1];
         const buffer = new Buffer(imgData, 'base64');

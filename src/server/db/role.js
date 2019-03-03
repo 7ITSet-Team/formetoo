@@ -32,16 +32,22 @@ export default db => {
 
     schema.statics.update = async function (data) {
         const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(data._id)});
-        let ok;
         if (isExist)
-            ok = data.changes
-                ? (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok
-                : (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+            if (data.changes) {
+                const ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok;
+                if (!ok)
+                    return false;
+            } else {
+                const ok = (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+                if (!ok)
+                    return false;
+            }
         else {
-            await this.create(data);
-            ok = 1;
+            const insertedRole = await this.create(data);
+            if (!insertedRole)
+                return false;
         }
-        return (ok === 1);
+        return true;
     };
 
     schema.set('autoIndex', false);

@@ -26,9 +26,11 @@ export default class List extends React.Component {
         this.updateLogs = async (page = this.state.page) => {
             const {filter} = this.state;
             this.setState({loading: true, page});
+
             const {error, data: {logs, pages: totalPages}} = await API.request('logs', 'list', {filter, page});
             if (totalPages && (page > totalPages))
                 return this.updateLogs(1);
+
             if (!error)
                 this.setState({loading: false, logs, totalPages});
             else

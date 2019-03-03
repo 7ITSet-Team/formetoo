@@ -49,12 +49,15 @@ export default class List extends React.Component {
             const isEdit = (show === 'editPage');
             if (isEdit && !Object.keys(changes).length)
                 return this.close();
+
             let data = currentCategory;
             if (isEdit)
                 data = {_id: currentCategory._id, changes};
+
             const media = (isEdit ? data.changes : data).img;
             if (media && (typeof media === 'object'))
                 (isEdit ? data.changes : data).img = media._id;
+
             const isNotValid = this.requiredFields
                 .some(prop => ((currentCategory[prop] == null) || (currentCategory[prop] === '')));
 

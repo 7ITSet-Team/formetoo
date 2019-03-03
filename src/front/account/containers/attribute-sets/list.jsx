@@ -101,7 +101,6 @@ export default class List extends React.Component {
     async getInitialDataFromSrv() {
         const setPromise = API.request('attribute-sets', 'list');
         const attrPromise = API.request('attributes', 'list', {hash: true});
-        const {error: errorS, data: sets} = await setPromise;
         const {error: errorA, data: {attributes, attributesHash}} = await attrPromise;
         if (!attributes.length) {
             Message.send('необходимо сначала добавить атрибуты', Message.type.info);
@@ -110,6 +109,7 @@ export default class List extends React.Component {
                 redirectTo: '/account/client/info'
             });
         }
+        const {error: errorS, data: sets} = await setPromise;
         if (!errorS && !errorA)
             this.setState({
                 loading: false,
@@ -135,7 +135,6 @@ export default class List extends React.Component {
                         ...changes,
                         [prop]: [...(changes[prop] || currentSet[prop] || [])]
                     };
-
                     if (!newChanges[prop].includes(currentAttribute))
                         newChanges[prop].push(currentAttribute);
                     else
@@ -157,6 +156,7 @@ export default class List extends React.Component {
                                 ...changes,
                                 [prop]: newAttributes
                             };
+
                             if (show === 'editPage')
                                 this.setState({changes: newChanges});
                             else

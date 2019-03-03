@@ -58,11 +58,11 @@ export default db => {
                 }
             }
         else {
-            const insertedData = await this.create(data);
-            if (Array.isArray(insertedData))
-                result.ids = insertedData.map(item => item._id);
+            const insertedMedia = await this.create(data);
+            if (Array.isArray(insertedMedia))
+                result.ids = insertedMedia.map(item => item._id);
             else
-                result._id = insertedData._id;
+                result._id = insertedMedia._id;
             if (!result.ids && !result._id)
                 return {isSuccess: false};
         }
@@ -73,10 +73,6 @@ export default db => {
     schema.methods.getProducts = async function () {
         return await db.product.find({media: {$in: this._id}}, {__v: 0});
     };
-
-    // schema.methods.getProducts = async function () {
-    //     return await db.product.getByCategoryID(this._id);
-    // };
 
     schema.methods.getCategories = async function () {
         return await db.category.find({img: this._id}, {__v: 0});

@@ -97,10 +97,15 @@ export default db => {
     schema.statics.update = async function (data) {
         const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(data._id)});
         if (isExist) {
-            const ok = data.changes
-                ? (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok
-                : (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
-            return {error: (ok !== 1)};
+            if (data.changes) {
+                const ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(data._id)}, {$set: data.changes})).ok;
+                if (!ok)
+                    return {error: true}
+            } else {
+                const ok = (await this.remove({_id: new mongoose.Types.ObjectId(data._id)})).ok;
+                if (!ok)
+                    return {error: true}
+            }
         } else {
             const newUser = await this.create(data);
             return {newUser, error: !newUser};

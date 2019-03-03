@@ -43,12 +43,11 @@ export default class List extends React.Component {
             this.setState({sendLoading: true});
             const {error} = await API.request('media', 'update', data);
             this.setState({sendLoading: false});
+            this.close();
             if (error) {
                 Message.send(`ошибка при редактировании картинки, повторите попытку позже`, Message.type.danger);
-                this.close();
             } else {
                 Message.send(`картинка успешно изменена`, Message.type.success);
-                this.close();
                 this.updateMedia();
             }
         };

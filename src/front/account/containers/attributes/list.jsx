@@ -49,7 +49,6 @@ export default class List extends React.Component {
 
             const {error} = await API.request('attributes', 'update', data);
             this.close();
-
             if (error)
                 Message.send(`ошибка при ${isEdit ? 'редактировании' : 'создании'} атрибута, повторите попытку позже`, Message.type.danger);
             else {

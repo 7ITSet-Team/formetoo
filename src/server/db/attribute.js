@@ -52,8 +52,8 @@ export default db => {
                     return false;
             }
         else {
-            const {_id} = await this.create(attribute);
-            if (!_id)
+            const insertedAttribute = await this.create(attribute);
+            if (!insertedAttribute)
                 return false;
         }
         return true;

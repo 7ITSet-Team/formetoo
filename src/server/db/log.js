@@ -10,7 +10,7 @@ import {logView as rolesUpdateView} from '@server/controllers/roles/update';
 import {logView as settingsUpdateView} from '@server/controllers/settings/update';
 
 const views = {
-    'products': {
+    products: {
         'update': productsUpdateView
     },
     media: {
