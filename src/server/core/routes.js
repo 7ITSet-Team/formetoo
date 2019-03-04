@@ -40,7 +40,8 @@ import logsDelete from '@server/controllers/logs/delete';
 import logsUpdate from '@server/controllers/logs/update';
 import settingsList from '@server/controllers/settings/list';
 import settingsUpdate from '@server/controllers/settings/update';
-import clientInfo from '@server/controllers/client/info'
+import clientInfo from '@server/controllers/client/info';
+import treeList from '@server/controllers/tree/list';
 
 export default {
     guest: {
@@ -147,6 +148,11 @@ export default {
             'list': logsList,
             'delete-all': logsDelete,
             'update': logsUpdate
+        }
+    },
+    tree: {
+        tree: {
+            'list': treeList
         }
     }
 };

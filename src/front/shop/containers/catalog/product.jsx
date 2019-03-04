@@ -2,6 +2,7 @@ import React from 'react';
 
 import API from '@common/core/api';
 import Loading from '@components/ui/loading';
+import MultiplePhoto from '@components/multiple-photo';
 
 export default class Product extends React.Component {
     constructor(props) {
@@ -41,7 +42,13 @@ export default class Product extends React.Component {
                     product ? (
                         <div className='item'>
                             <div>
-                                <img alt={product.name} src={product.media[0]}/>
+                                {product.media.map(media => (
+                                    <div key={media._id}>
+                                        {Array.isArray(media.url)
+                                            ? <MultiplePhoto frames={media.url}/>
+                                            : <img alt={product.name} src={media.url} width='200' height='200'/>}
+                                    </div>
+                                ))}
                             </div>
                             <div>
                                 <h4 to={`/catalog/product/${product.slug}`}>{product.name}</h4>

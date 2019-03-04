@@ -44,22 +44,28 @@ export default db => {
     }, {collection: __modelName});
 
     schema.statics.getAll = async function (data = {}, options = {__v: 0}) {
-        let {value: perPage} = await db.setting.getByName('pagination');
-        perPage = Number(perPage) || 5;
-        const result = {};
-        result.products = await this
-            .find((data.filter || {}), options)
-            .sort(data.sort || {})
-            .skip((perPage * data.page) - perPage)
-            .limit(perPage)
-            .populate('media', 'url')
-            .populate('props.attribute', '-__v');
-        result.pages = Math.ceil((await this.find((data.filter || {}), options)).length / perPage);
-        return result;
+        if (data.page) {
+            let {value: perPage} = await db.setting.getByName('pagination');
+            perPage = Number(perPage) || 5;
+            const result = {};
+            result.products = await this
+                .find((data.filter || {}), options)
+                .sort(data.sort || {})
+                .skip((perPage * data.page) - perPage)
+                .limit(perPage)
+                .populate('media', 'url')
+                .populate('props.attribute', '-__v');
+            result.pages = Math.ceil((await this.find((data.filter || {}), options)).length / perPage);
+            return result;
+        } else
+            return await this.find({}, options);
     };
 
     schema.statics.getBySlug = async function (slug) {
-        return await this.findOne({slug}, {__v: 0});
+        return await this
+            .findOne({slug}, {__v: 0})
+            .populate('media', 'url')
+            .populate('props.attribute', '-__v');
     };
 
     schema.statics.getByID = async function (id) {
@@ -71,10 +77,16 @@ export default db => {
     };
 
     schema.statics.getByCategoryID = async function (categoryID) {
-        return await this
-            .find({categoryID: new mongoose.Types.ObjectId(categoryID)}, {__v: 0})
-            .populate('media', 'url')
-            .populate('props.attribute', '-__v');
+        if (Array.isArray(categoryID))
+            return await this
+                .find({categoryID: {$in: categoryID}}, {__v: 0})
+                .populate('media', 'url')
+                .populate('props.attribute', '-__v');
+        else
+            return await this
+                .find({categoryID: new mongoose.Types.ObjectId(categoryID)}, {__v: 0})
+                .populate('media', 'url')
+                .populate('props.attribute', '-__v');
     };
 
     schema.statics.removeAttribute = async function (data) {

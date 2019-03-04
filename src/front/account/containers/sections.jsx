@@ -24,7 +24,8 @@ export default class Sections extends React.Component {
             products: 'Продукты',
             pages: 'Страницы',
             settings: 'Настройки',
-            logs: 'Логи'
+            logs: 'Логи',
+            tree: 'Дерево'
         };
     };
 

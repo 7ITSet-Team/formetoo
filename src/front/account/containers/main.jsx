@@ -14,6 +14,7 @@ import Products from '@account/containers/products/layout';
 import Roles from '@account/containers/roles/layout';
 import Settings from '@account/containers/settings/layout';
 import Users from '@account/containers/users/layout';
+import Tree from '@account/containers/tree/layout';
 import UserModel from '@models/user';
 
 export default class Main extends React.Component {
@@ -53,6 +54,7 @@ export default class Main extends React.Component {
                     <Route path="/account/roles" component={Roles}/>
                     <Route path="/account/settings" component={Settings}/>
                     <Route path="/account/users" component={Users}/>
+                    <Route path="/account/tree" component={Tree}/>
                     <Route exact path="/account" render={props => (<Redirect to={`/account/${permissions[0]}`}/>)}/>
                 </Switch>
             </main>
