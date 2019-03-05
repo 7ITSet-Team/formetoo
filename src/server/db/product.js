@@ -13,6 +13,14 @@ export default db => {
             type: String,
             unique: true
         },
+        description: {
+            type: String,
+            required: true
+        },
+        shortDescription: {
+            type: String,
+            required: true
+        },
         name: {
             type: String,
             required: true

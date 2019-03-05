@@ -184,7 +184,7 @@ export default class List extends React.Component {
                 handler: this.close
             }
         ];
-        this.requiredFields = ['categoryID', 'code', 'name', 'slug', 'price'];
+        this.requiredFields = ['categoryID', 'code', 'name', 'slug', 'price', 'description', 'shortDescription'];
         this.fields = [...this.requiredFields, 'media', 'props'];
         this.filters = ['name', 'price.after', 'price.before', 'code', 'slug', 'categoryID'];
     };
