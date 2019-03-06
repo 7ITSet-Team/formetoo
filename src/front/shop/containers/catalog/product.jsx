@@ -32,8 +32,29 @@ export default class Product extends React.Component {
         }
     };
 
+    componentWillUnmount() {
+        const meta = [...document.getElementsByTagName('meta')];
+        for (const tag of meta)
+            if (['description', 'keywords'].includes(tag.name))
+                tag.parentNode.removeChild(tag);
+        document.title = document.previousTitle;
+        document.previousTitle = undefined;
+    }
+
     render() {
         const {product, loading} = this.state;
+        if (process.browser && product) {
+            document.previousTitle = document.title;
+            document.title = product.name;
+            const description = document.createElement('meta');
+            description.name = 'description';
+            description.content = product.description;
+            const keywords = document.createElement('meta');
+            keywords.name = 'keywords';
+            keywords.content = product.keywords;
+            document.getElementsByTagName('head')[0].appendChild(description);
+            document.getElementsByTagName('head')[0].appendChild(keywords);
+        }
         return (
             <div className='s--product'>
                 {loading ? (
@@ -51,7 +72,7 @@ export default class Product extends React.Component {
                                 ))}
                             </div>
                             <div>
-                                <h4 to={`/catalog/product/${product.slug}`}>{product.name}</h4>
+                                <h1 to={`/catalog/product/${product.slug}`}>{product.name}</h1>
                                 <div>Артикул:{product.code}</div>
                                 <div>Цена:{product.price}</div>
                                 {product.props.map((item, key) => (

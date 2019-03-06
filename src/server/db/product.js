@@ -21,6 +21,9 @@ export default db => {
             type: String,
             required: true
         },
+        keywords: {
+            type: String
+        },
         name: {
             type: String,
             required: true
