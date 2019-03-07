@@ -276,7 +276,8 @@ export default class List extends React.Component {
                         this.setState({changes: newChanges});
                     else
                         this.setState({currentProduct: {...currentProduct, ...newChanges}});
-                }}>
+                }}
+                value={changes.categoryID || currentProduct.categoryID || ''}>
                 {categories.map(category => <option value={category._id} key={category._id}>{category.name}</option>)}
             </select>
         )

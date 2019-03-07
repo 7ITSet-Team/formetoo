@@ -19,6 +19,16 @@ export default class Layout extends React.Component {
             else
                 Message.send('ошибка при получении дерева, повторите попытку позже', Message.type.danger);
         };
+        this.changeParentCategory = async product => {
+            const {error} = await API.request('products', 'update', {
+                _id: product._id,
+                changes: {categoryID: this.state.onDragTarget}
+            });
+            if (!error)
+                this.updateTree();
+            else
+                Message.send('ошибка при изменении дерева, повторите попытку позже', Message.type.danger);
+        };
         this.deleteCategory = async categoryID => {
             const {error} = await API.request('categories', 'update', {_id: categoryID});
             if (!error) {
@@ -65,6 +75,10 @@ export default class Layout extends React.Component {
                                     this.setState({open: newOpen});
                                 } else
                                     this.setState({open: [...open, category._id]})
+                            }} onDragEnter={() => {
+                                this.setState({
+                                    onDragTarget: category._id
+                                })
                             }}>{category.name}</span>
                             {(category.slug !== 'root') &&
                             <span onClick={() => this.deleteCategory(category._id)} className='icon remove-button'/>}
@@ -72,7 +86,8 @@ export default class Layout extends React.Component {
                         {open.includes(category._id) && (
                             <div>
                                 {category.products && category.products.map(product => (
-                                    <div key={product._id}>
+                                    <div key={product._id} draggable={true}
+                                         onDragEnd={e => this.changeParentCategory(product)}>
                                         <span>{product.name}</span>
                                         <span onClick={() => this.deleteProduct(product._id)}
                                               className='icon remove-button'/>
