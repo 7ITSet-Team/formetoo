@@ -19,7 +19,8 @@ export default db => {
         isTab: {
             type: Boolean,
             required: true
-        }
+        },
+        unit: String
     }, {collection: __modelName, autoIndex: false});
 
     schema.statics.getAll = async function () {
@@ -37,7 +38,15 @@ export default db => {
         const isExist = await this.findOne({_id: new mongoose.Types.ObjectId(attribute._id)});
         if (isExist)
             if (attribute.changes) {
-                const ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(attribute._id)}, {$set: attribute.changes})).ok;
+                const query = {};
+                if (attribute.changes.unit === '') {
+                    query.$unset = {unit: ''};
+                    delete attribute.changes.unit;
+                }
+                query.$set = attribute.changes;
+                if (!Object.keys(query.$set).length)
+                    delete query.$set;
+                const ok = (await this.updateOne({_id: new mongoose.Types.ObjectId(attribute._id)}, query)).ok;
                 if (!ok)
                     return false;
             } else {
