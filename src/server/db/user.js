@@ -110,6 +110,7 @@ export default db => {
             const newUser = await this.create(data);
             return {newUser, error: !newUser};
         }
+        return {error: false};
     };
 
     schema.set('autoIndex', false);
