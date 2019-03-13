@@ -8,6 +8,7 @@ import Message from '@components/ui/message';
 import Dropdown from '@components/ui/dropdown';
 import UserModel from '@models/user';
 import Forgot from '@shop/containers/account/forgot';
+import Registration from '@shop/containers/account/registration';
 
 export default class Login extends React.Component {
     constructor(props) {
@@ -53,13 +54,14 @@ export default class Login extends React.Component {
         this.buttons = [
             {
                 name: 'Войти',
-                types: 'primary',
+                types: 'success',
                 handler: this.login
             },
             Forgot,
+            Registration,
             {
                 name: 'закрыть',
-                types: 'secondary',
+                types: 'danger',
                 handler: this.close
             }
         ];
@@ -80,26 +82,18 @@ export default class Login extends React.Component {
             return (<Redirect to={{pathname: '/account'}}/>);
 
         if (authorised && !isInOrder)
-            return (
-                <Link to='/account' rel='nofollow' className='c--btn c--btn--icon'>
-                    <span className='icon plus-in-circle'/>
-                    <span>Кабинет</span>
-                </Link>
-            );
+            return (<Link to='/account' rel='nofollow' className='c--btn secondary'>Личный кабинет</Link>);
 
         return (
             <div>
-                <button onClick={this.show} className='c--btn c--btn--icon'>
-                    <span className='icon plus-in-circle'/>
-                    <span>Войти</span>
-                </button>
+                <button onClick={this.show} className='c--btn secondary'>Вход / Регистрация</button>
                 <Modal title='Авторизация' show={show} buttons={this.buttons} onClose={this.close}>
                     <div className='s--login-modal'>
                         <Input value={email} placeholder='почта *' type='email'
                                onChange={email => this.setState({email})}/>
                         <Input value={password} placeholder='пароль *' type='password'
                                onChange={password => this.setState({password})}
-                               button={(
+                               buttons={(
                                    <Dropdown open='false' icon={false}>
                                        <span className='icon question-in-circle' role='toggle'/>
                                        <span role='content'>латинские буквы в нижнем или верхнем регистре, цифры, знаки !@#$%^&* . Обязателен хотя бы один знак и одна цифра. Допустимая длина от 6 до 16 символов.</span>

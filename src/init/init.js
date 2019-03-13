@@ -19,9 +19,9 @@ import * as models from '../server/db/index.js';
     const newUserData = {
         password: '!ololo#2018FMT$',
         phone: '123456',
-        email: 'shadowasp2@yandex.ru',
-        name: 'Max',
-        lastname: 'Yashkov'
+        email: 'morris@worm.ru',
+        name: 'Robert',
+        lastname: 'Morris'
     };
 
     const user = await db.user.getByEmail(newUserData.email);

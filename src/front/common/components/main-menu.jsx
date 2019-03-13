@@ -1,45 +1,23 @@
 import React from 'react';
-
-import API from '@common/core/api';
 import {NavLink} from 'react-router-dom';
 
 export default class MainMenu extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            menu: undefined
-        };
-    };
-
-    componentWillMount() {
-        this.getInitialDataFromSrv();
-    };
-
-    async getInitialDataFromSrv() {
-        const {error, data: menu} = await API.request('content', 'main-menu');
-        if (!error) {
-            this.setState({menu});
-        }
-    };
-
-    data = {
-        menu: [
-            {title: 'Главная', to: '/', exact: true},
-            {title: 'Каталог', to: '/catalog'},
-            {title: 'Акции', to: '/promotion'},
-            {title: 'Доставка и оплата', to: '/delivery'},
-            {title: 'О компании', to: '/about'},
-            {title: 'Контакты', to: '/contacts'},
-        ]
     };
 
     render() {
-        const {menu} = this.state;
+        const {title = '', menu = []} = this.props;
         return (
             <nav className='c--main-menu'>
+                <div className='title'>
+                    <span>{title}</span>
+                    <span className='icon menu'/>
+                </div>
                 {menu ? menu.map((item, key) => (
-                    <NavLink key={key} to={`/${item.slug}`} exact={item.slug === ''} activeClassName='active'>
-                        {item.name}
+                    <NavLink key={key} to={item.to} exact={item.to === '/'} activeClassName='active'>
+                        <div>{item.title}</div>
+                        <div>{item.label || ''}</div>
                     </NavLink>
                 )) : null}
             </nav>

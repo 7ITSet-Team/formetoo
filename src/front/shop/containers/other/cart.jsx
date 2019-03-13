@@ -4,11 +4,10 @@ import {Link} from 'react-router-dom';
 import Modal from '@components/ui/modal';
 import NumberInput from '@components/ui/number-input';
 import Message from '@components/ui/message';
-import Dropdown from '@components/ui/dropdown';
 import CartModel from '@models/cart';
 import UserModel from '@models/user';
 import Login from '@shop/containers/account/login';
-import Input from "./ui/input";
+import Input from "../../../common/components/ui/input";
 
 export default class Cart extends React.Component {
     constructor(props) {
@@ -35,7 +34,7 @@ export default class Cart extends React.Component {
         this.buttons = [
             {
                 name: 'Оформить заказ',
-                types: 'primary',
+                types: 'success',
                 handler: e => {
                     this.close();
                     this.setState({orderReplacement: true});
@@ -43,7 +42,7 @@ export default class Cart extends React.Component {
             },
             {
                 name: 'закрыть',
-                types: 'secondary',
+                types: 'danger',
                 handler: this.close
             }
         ];
@@ -104,66 +103,20 @@ export default class Cart extends React.Component {
         const {products, count, sum, show, orderReplacement} = this.state;
         return (
             <>
-                <Dropdown className="c--cart" open='false' icon={false}>
-                    <div className='brief btn-group' role='toggle'>
+                <div className={`s--cart ${(products.length > 0) ? 'active' : ''}`} onClick={this.show}>
+                    <div>
                         <span className='icon cart'/>
+                        {(products.length > 0) ? (<span className='c--badge'>{count}</span>) : null}
+                    </div>
+                    <div>
                         <div>
-                            {(products.length > 0) ? (
-                                <>
-                                    <div>
-                                        <span className='icon gift-box'/>
-                                        <span>{count}</span>
-                                    </div>
-                                    <div>
-                                        <span className='icon money'/>
-                                        <span>{sum}</span>
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    <div>
-                                        Корзина
-                                    </div>
-                                    <div>
-                                        пуста
-                                    </div>
-                                </>
-                            )}
+                            Корзина
+                        </div>
+                        <div>
+                            {(products.length > 0) ? sum : 'пуста'}
                         </div>
                     </div>
-                    <div className='about' role='content'>
-                        {(products.length > 0) ? (
-                            <>
-                                <div className='c--link' onClick={this.show}>
-                                    Подробнее
-                                </div>
-                                {products.map((item, key) => (
-                                    <div key={key} className='item'>
-                                        <span>{item.count}</span>
-                                        <Link className='c--link'
-                                              to={`/catalog/product/${item.slug}`}>{item.name}</Link>
-                                        <span>{`* ${item.price} р.`}</span>
-                                        <span>{`= ${item.count * item.price}`}</span>
-                                    </div>
-                                ))}
-                                <div className='summary'>
-                                    <span>Итого:</span>
-                                    <span>{count} товаров</span>
-                                    <span> на сумму {sum}</span>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <div>
-                                    Корзина
-                                </div>
-                                <div>
-                                    пуста
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </Dropdown>
+                </div>
                 <Modal title='Корзина' show={show} buttons={this.buttons} onClose={this.close}>
                     <div className='s--cart-modal'>
                         {products.map((item, key) => (

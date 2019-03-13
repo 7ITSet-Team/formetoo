@@ -1,0 +1,21 @@
+.s--deffered {
+    cursor: pointer;
+
+    > * {
+        margin-right: 5px;
+
+        &:last-child {
+            color: @var--first-font-color;
+        }
+    }
+
+    > .icon {
+        color: darken(@var--color-ui-secondary, 20%);
+        font-size: 36px;
+        line-height: 36px;
+    }
+
+    &.active > .icon {
+        color: @var--first-font-color;
+    }
+}

@@ -1,34 +1,39 @@
-@var--main-background: #eaeaea;
+@var--main-background: #fefefe;
 @var--main-panel-background: #4caf50;
-@var--second-panel-background:#dedede;
 
-@var--ui-color-main: #4caf50;
-@var--ui-color-second: #565656;
+@var--ui-color-main: #ff4002;
+@var--ui-color-second: #f3f3f3;
+@var--ui-color-third: #60c0aa;
+@var--ui-color-fourth: #f9c22d;
+@var--color-ui-fifth: #4A90E2;
+@var--ui-color-neutral: #808080;
 
-@var--main-padding-fields-s: 10px;
-@var--main-padding-fields-m: 40px;
-@var--main-padding-fields-l: 100px;
+@var--first-font-color: #1a1c27;
 
-@var--ui-border-radius:4px;
+@var--main-padding-fields-s: 5px;
+@var--main-padding-fields-m: 20px;
+@var--main-padding-fields-l: 50px;
 
-@var--color-ui-primary: @var--ui-color-main;
+@var--sidebar-width: 350px;
+
+@var--ui-border-radius: 2px;
+
+/*@var--color-ui-primary: @var--ui-color-main;
 @var--color-ui-primary--active: darken(@var--color-ui-primary, 5%);
 @var--color-ui-secondary: @var--ui-color-second;
-@var--color-ui-secondary--active: darken(@var--color-ui-secondary, 5%);
-@var--color-ui-disable: #909090;
-@var--color-ui-static: #D1D1D1;
-@var--color-ui-success: #AFD777;
-@var--color-ui-danger: #F69EA2;
-@var--color-ui-warning: #f6da54;
-@var--color-ui-info: #4A90E2;
-@var--color-ui-light: @var--color-ui-static;
-@var--color-ui-dark: #343434;
+@var--color-ui-secondary--active: darken(@var--color-ui-secondary, 5%);*/
 
-@var--color-ui-buttons: primary @var--color-ui-primary white,
-secondary @var--color-ui-secondary white,
-success @var--color-ui-success white,
-danger @var--color-ui-danger white,
-warning @var--color-ui-warning white,
-info @var--color-ui-info white,
-light @var--color-ui-light black,
-dark @var--color-ui-dark white;
+@var--color-ui-primary: #02643D;
+@var--color-ui-secondary: lighten(@var--ui-color-neutral, 45%);
+@var--color-ui-success: @var--ui-color-third;
+@var--color-ui-danger: @var--ui-color-main;
+@var--color-ui-warning: @var--ui-color-fourth;
+@var--color-ui-info: @var--color-ui-fifth;
+@var--color-ui-disable: @var--ui-color-neutral;
+
+@var--color-ui-buttons: primary @var--color-ui-primary darken(@var--color-ui-primary,10%) white,
+secondary @var--color-ui-secondary darken(@var--color-ui-secondary,10%) @var--first-font-color,
+success @var--color-ui-success @var--color-ui-success white,
+danger @var--color-ui-danger @var--color-ui-danger white,
+warning @var--color-ui-warning @var--color-ui-warning white,
+info @var--color-ui-info @var--color-ui-info white;

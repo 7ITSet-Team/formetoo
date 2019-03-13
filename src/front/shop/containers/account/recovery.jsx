@@ -51,7 +51,7 @@ export default class Recovery extends React.Component {
                 <div className='s--recovery-modal'>
                     <Input value={password} placeholder='пароль *' type='password'
                            onChange={password => this.setState({password})}
-                           button={(
+                           buttons={(
                                <Dropdown open='false' icon={false}>
                                    <span className='icon question-in-circle' role='toggle'/>
                                    <span role='content'>латинские буквы в нижнем или верхнем регистре, цифры, знаки !@#$%^&* . Обязателен хотя бы один знак и одна цифра. Допустимая длина от 6 до 16 символов.</span>

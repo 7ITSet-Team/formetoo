@@ -1,0 +1,12 @@
+.s--layout-container {
+  min-width: 0;
+  .flex(row, flex-start, stretch);
+  > *:first-child {
+    min-width: 350px;
+    width: 350px;
+    flex-basis: 350px;
+  }
+  > *:last-child {
+    flex: 1 1 auto;
+  }
+}

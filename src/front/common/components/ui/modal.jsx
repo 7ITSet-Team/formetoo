@@ -7,8 +7,8 @@ export default class Modal extends React.Component {
     };
 
     static registerRootID(id) {
-        if(typeof window !== 'undefined')
-        this.root = document.getElementById(id);
+        if (typeof window !== 'undefined')
+            this.root = document.getElementById(id);
     };
 
     render() {
@@ -34,10 +34,10 @@ export default class Modal extends React.Component {
                                 else if (typeof item === 'function') {
                                     const Item = item;//React warning about small first letter )))
                                     return (<Item key={key}/>);
-                                }else
+                                } else
                                     return (
                                         <button onClick={e => item.handler && item.handler()} key={key}
-                                                className={`c--btn ${item.types.split(' ').map(type => 'c--btn--' + type).join(' ')}`}>
+                                                className={`c--btn ${item.types}`}>
                                             {item.name.toUpperCase()}
                                         </button>
                                     )

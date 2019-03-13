@@ -1,44 +1,69 @@
 .c--input {
-    position: relative;
-    .flex(row, flex-start, stretch);
+    min-width: 250px;
+    border: 1px solid darken(@var--color-ui-secondary, 10%);
+    border-radius: @var--ui-border-radius;
+    background-color: white;
+    .flex(row, flex-start, center);
+
     > input, > input:focus {
-        color: @var--ui-color-second;
         flex: 1 1 auto;
-        padding: 5px;
+        color: @var--first-font-color;
+        height: 40px;
+        line-height: 20px;
+        font-size: 16px;
+        padding: 10px 20px;
         border: none;
-        background-color: inherit;
+        border-radius: @var--ui-border-radius;
+        background-color: white;
         outline: none;
-        min-width: 250px;
+        width: 100%;
     }
-    > .button {
-        flex: 0 0 auto;
+
+    > .buttons {
+        padding-right: 20px;
         .flex();
-        background: inherit;
+        background: transparent;
         border: none;
-        cursor: pointer;
-    }
-    > .line {
-        position: absolute;
-        right: 50%;
-        left: 50%;
-        bottom: 0;
-        height: 2px;
-        z-index: 100;
-        background-color: @var--main-panel-background;
-        transition: all 1000ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-        &.focused {
-            right: 0;
-            left: 0;
+        font-size: 18px;
+
+        > *:not(:first-child) {
+            margin-left: 10px;
+
+        }
+
+        > *, > *:hover, > *:active, > *:link, > *:visited {
+            cursor: pointer;
+            color: @var--first-font-color;
+            text-decoration: none;
         }
     }
-    > .static-line {
-        position: absolute;
-        right: 0;
-        left: 0;
-        bottom: 0;
-        height: 2px;
-        z-index: 90;
-        background-color: lighten(@var--ui-color-second, 10%);
+
+    &.lg {
+        > input, > input:focus {
+            height: 60px;
+            line-height: 20px;
+            padding: 20px 30px;
+        }
+
+        > .buttons {
+            padding-right: 30px;
+            font-size: 24px;
+        }
+    }
+
+    &.negative {
+        background-color: @var--color-ui-secondary;
+
+        > input, > input:focus {
+            background-color: @var--color-ui-secondary;
+        }
+
+        > .buttons {
+            > *, > *:hover, > *:active, > *:link, > *:visited {
+                color: darken(@var--color-ui-secondary, 30%);
+                text-decoration: none;
+            }
+        }
     }
 }
 

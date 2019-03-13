@@ -61,12 +61,12 @@ export default class Registration extends React.Component {
         this.buttons = [
             {
                 name: 'зарегистрироваться',
-                types: 'primary',
+                types: 'success',
                 handler: this.register
             },
             {
                 name: 'закрыть',
-                types: 'secondary',
+                types: 'danger',
                 handler: this.close
             }
         ];
@@ -75,18 +75,15 @@ export default class Registration extends React.Component {
     render() {
         const {show, email, phone, name, lastname, password, confirm} = this.state;
         return (
-            <div>
-                <button onClick={this.show} className='c--btn c--btn--icon'>
-                    <span className='icon plus-in-circle'/>
-                    <span>Регистрация</span>
-                </button>
+            <>
+                <button onClick={this.show} className='c--btn secondary'>Регистрация</button>
                 <Modal title='Регистрация' show={show} buttons={this.buttons} onClose={this.close}>
                     <div className='s--registration-modal'>
                         <Input value={email} placeholder='почта *' type='email'
                                onChange={email => this.setState({email})}/>
                         <Input value={phone} placeholder='телефон *' type='tel'
                                onChange={phone => this.setState({phone})}
-                               button={(
+                               buttons={(
                                    <Dropdown open='false' icon={false}>
                                        <span className='icon question-in-circle' role='toggle'/>
                                        <span role='content'>только цифры</span>
@@ -98,7 +95,7 @@ export default class Registration extends React.Component {
                                onChange={lastname => this.setState({lastname})}/>
                         <Input value={password} placeholder='пароль *' type='password'
                                onChange={password => this.setState({password})}
-                               button={(
+                               buttons={(
                                    <Dropdown open='false' icon={false}>
                                        <span className='icon question-in-circle' role='toggle'/>
                                        <span role='content'>латинские буквы в нижнем или верхнем регистре, цифры, знаки !@#$%^&* . Обязателен хотя бы один знак и одна цифра. Допустимая длина от 6 до 16 символов.</span>
@@ -108,7 +105,7 @@ export default class Registration extends React.Component {
                                onChange={confirm => this.setState({confirm})}/>
                     </div>
                 </Modal>
-            </div>
+            </>
         );
     };
 };

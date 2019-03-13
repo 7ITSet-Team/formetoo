@@ -2,6 +2,7 @@
     box-sizing: border-box;
     font-size: 16px;
     line-height: normal;
+    color: @var--first-font-color;
 }
 
 html, body {
@@ -25,12 +26,15 @@ html, body {
     overflow-y: auto;
     background-color: @var--main-background;
     .flex(column, flex-start, stretch);
+
     > header {
         flex: 0 0 auto;
     }
-    > main {
-        flex: 1 1 auto;
+
+    > .s--layout-container {
+        flex: 1 0 auto;
     }
+
     > footer {
         flex: 0 0 auto;
     }

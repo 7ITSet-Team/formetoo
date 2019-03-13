@@ -1,17 +1,56 @@
 .c--main-menu {
-	.flex(row, center, stretch);
-	position: relative;
-	a, a:hover, a:visited, a:focus {
-		.flex();
-		padding: 0 25px;
-		text-decoration: none;
-		text-transform: uppercase;
-		color: white;
-		font-size: 14px;
-		line-height: 14px;
-		border-bottom: 2px solid inherit;
-	}
-	a.active {
-		border-bottom: 2px solid white;
-	}
+    .flex(column, flex-start, stretch);
+    border: 1px solid darken(@var--color-ui-secondary, 5%);
+    border-radius: @var--ui-border-radius;
+    margin-bottom: 20px;
+
+    > .title {
+        height: 60px;
+        .flex(row, space-between, center);
+        padding: 0 15px;
+        font-size: 16px;
+        line-height: 16px;
+        font-weight: bold;
+        background-color: @var--ui-color-third;
+        border-top-left-radius: @var--ui-border-radius;
+        border-top-right-radius: @var--ui-border-radius;
+
+        > span {
+            text-transform: uppercase;
+            color: white;
+        }
+
+        > .icon {
+            font-size: 32px;
+            line-height: 32px;
+        }
+    }
+
+    > a, > a:hover, > a:active, > a:link, > a:visited {
+        height: 50px;
+        .flex(row, space-between, center);
+        padding: 0 15px;
+        text-decoration: none;
+        color: @var--first-font-color;
+        font-size: 14px;
+        line-height: 14px;
+        cursor: pointer;
+
+        > div:last-child {
+            color: darken(@var--color-ui-secondary, 30%);
+        }
+    }
+
+    > a:not(:last-child) {
+        border-bottom: 1px solid darken(@var--color-ui-secondary, 5%);
+    }
+
+    > a:last-child {
+        border-bottom-left-radius: @var--ui-border-radius;
+        border-bottom-right-radius: @var--ui-border-radius;
+    }
+
+    > a.active {
+        background-color: @var--color-ui-secondary;
+    }
 }

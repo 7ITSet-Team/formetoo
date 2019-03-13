@@ -4,14 +4,15 @@
     //user-select: none;
     text-decoration: none;
     cursor: pointer;
-    font-size: 17px;
+    font-size: 14px;
     background-color: transparent;
     border: 1px solid transparent;
     color: @var--ui-color-main;
     border-radius: @var--ui-border-radius;
-    line-height: 17px;
+    height: 40px;
+    line-height: 20px;
+    padding: 10px 20px;
     white-space: nowrap;
-    padding: 10px 16px;
     margin: 0;
     display: inline-block;
     vertical-align: middle;
@@ -21,57 +22,65 @@
         text-decoration: none;
         color: @var--ui-color-main;
     }
+
     &:hover {
-        &:not(:disabled) {
-            text-decoration: none;
-            background-color: rgba(0, 0, 0, 0.05);
-            color: @var--ui-color-main;
-        }
+        text-decoration: none;
+        background-color: rgba(0, 0, 0, 0.05);
+        color: @var--ui-color-main;
     }
+
     &.icon, & .icon {
         color: @var--ui-color-main;
     }
+
     //===================size classes
-    &--sm {
+    &.sm {
         height: 20px;
         line-height: 13px;
         padding: 2px;
     }
-    &--lg {
-        height: 40px;
+
+    &.lg {
+        height: 50px;
         line-height: 20px;
-        padding: 10px 20px;
+        padding: 15px 20px;
     }
-    &--max {
+
+    &.max {
         height: 100%;
         .flex();
         padding: 0;
     }
+
     &:disabled {
         opacity: 0.3;
     }
+
     //===================main buttons
     .make-main-buttons(@var--color-ui-buttons);
     //===================disabled classes
-    &--disabled {
-        background-color: @var--ui-color-second;
-        border-color: @var--ui-color-second;
+    &.disabled {
+        background-color: @var--color-ui-disable;
+        border-color: @var--color-ui-disable;
         color: white;
         cursor: not-allowed;
+
         &:visited, &:active, &:focus, &:hover {
             &:not(:disabled) {
                 color: white;
-                background-color: @var--ui-color-second;
-                border-color: @var--ui-color-second;
+                background-color: @var--color-ui-disable;
+                border-color: @var--color-ui-disable;
             }
 
         }
     }
-    &--disabled&--empty {
-        color: @var--ui-color-second;
+
+    &.disabled.empty {
+        color: @var--color-ui-disable;
         background-color: transparent;
+
         &.icon, & .icon {
-            color: @var--ui-color-second;
+            color: @var--color-ui-disable;
         }
     }
 }
@@ -83,37 +92,44 @@
         @data: extract(@list, @i);
         @type: extract(@data, 1);
         @bd-color: extract(@data, 2);
-        @color: extract(@data, 3);
+        @br-color: extract(@data, 3);
+        @color: extract(@data, 4);
 
-        &--@{type} {
+        &.@{type} {
             background-color: @bd-color;
-            border-color: @bd-color;
+            border-color: @br-color;
             color: @color;
+
             &:visited, &:active, &:focus {
                 color: @color;
             }
+
             &:hover {
                 &:not(:disabled) {
                     color: @color;
                     background-color: darken(@bd-color, 5%);
-                    border-color: darken(@bd-color, 5%);
+                    border-color: @br-color;
                 }
             }
+
             &.icon, & .icon {
                 color: @color;
             }
         }
-        &--@{type}&--empty {
+        &.@{type}.empty {
             background-color: transparent;
             color: @bd-color;
-            & .icon{
+
+            & .icon {
                 color: @bd-color;
             }
+
             &:hover {
                 &:not(:disabled) {
                     color: @color;
                     background-color: darken(@bd-color, 5%);
-                    & .icon{
+
+                    & .icon {
                         color: @color;
                     }
                 }

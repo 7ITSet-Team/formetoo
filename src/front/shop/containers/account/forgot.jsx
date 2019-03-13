@@ -39,12 +39,12 @@ export default class Forgot extends React.Component {
         this.buttons = [
             {
                 name: 'восстановить пароль',
-                types: 'primary',
+                types: 'success',
                 handler: this.sendEmailOnForgot
             },
             {
                 name: 'закрыть',
-                types: 'secondary',
+                types: 'danger',
                 handler: this.close
             }
         ];
@@ -63,15 +63,15 @@ export default class Forgot extends React.Component {
 
         return (
             <>
-            <button onClick={this.show} className='c--btn c--btn--info'>Забыли пароль?</button>
-            <Modal title='Восстановление пароля' show={show} buttons={this.buttons} onClose={this.close}>
-                <div className='s--forgot-modal'>
-                    <div>
-                        Введите номер телефона или адрес электронной почты, указанный при регистрации.
+                <button onClick={this.show} className='c--btn secondary'>Забыли пароль?</button>
+                <Modal title='Восстановление пароля' show={show} buttons={this.buttons} onClose={this.close}>
+                    <div className='s--forgot-modal'>
+                        <div>
+                            Введите номер телефона или адрес электронной почты, указанный при регистрации.
+                        </div>
+                        <Input value={any} placeholder='почта * или телефон *' onChange={any => this.setState({any})}/>
                     </div>
-                    <Input value={any} placeholder='почта * или телефон *' onChange={any => this.setState({any})}/>
-                </div>
-            </Modal>
+                </Modal>
             </>
         );
     };

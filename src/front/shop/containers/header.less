@@ -1,54 +1,233 @@
 .s--header {
-    min-height: 190px;
-    height: 190px;
-    max-height: 190px;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
     .flex(column, flex-start, stretch);
 
-    > .actions {
-        height: 40px;
-        background-color: @var--second-panel-background;
-        border-bottom: 1px solid darken(@var--second-panel-background, 3%);
+    > .firstline {
+        height: 80px;
+        border-bottom: 1px solid lighten(@var--ui-color-neutral, 35%);
         .flex(row, space-between, center);
-        padding: 0 @var--main-padding-fields-l;
-        color: black;
-        > div {
-            &:nth-child(1) > span {
-                &:last-child {
-                    font-weight: bold;
-                    color: @var--ui-color-main;
-                    vertical-align: middle;
+        padding: 0;
+
+        > .region {
+            padding-left: @var--main-padding-fields-l;
+            min-width: @var--sidebar-width;
+            width: @var--sidebar-width;
+            max-width: @var--sidebar-width;
+
+            > div {
+                &:first-child > span {
                     cursor: pointer;
+                    padding-bottom: 5px;
+
+                    &:nth-child(1) {
+                        color: @var--ui-color-main;
+                        font-size: 16px;
+                        line-height: 16px;
+                        vertical-align: middle;
+                    }
+
+                    &:nth-child(2) {
+                        font-size: 22px;
+                        line-height: 22px;
+                        color: @var--first-font-color;
+                        font-weight: bold;
+                        border-bottom: 1px dotted @var--ui-color-neutral;
+                        padding: 0 5px;
+                        vertical-align: middle;
+                    }
+
+                    &:nth-child(3) {
+                        font-size: 22px;
+                        line-height: 22px;
+                        vertical-align: middle;
+                        color: @var--ui-color-neutral;
+                    }
+                }
+
+                &:last-child > span {
+                    cursor: pointer;
+
+                    &:first-child {
+                        font-size: 14px;
+                        line-height: 14px;
+                        padding-left: 21px;
+                        color: @var--ui-color-neutral;
+                        padding-right: 5px;
+                    }
+
+                    &:last-child {
+                        color: @var--ui-color-main;
+                    }
                 }
             }
-            &:nth-child(4) {
-                color: @var--ui-color-main;
+        }
+
+        > .actions {
+            .flex(row, space-between, center);
+            flex: 1 1 auto;
+            padding: 0 @var--main-padding-fields-l;
+
+            > .communication {
+                .flex(row, flex-start, center);
+                flex: 1 1 auto;
+
+                > * {
+                    margin-right: 20px;
+                    cursor: pointer;
+                    text-decoration: none;
+                }
+
+                > .base {
+                    .flex(column, center, flex-end);
+
+                    > div:first-child {
+                        font-size: 22px;
+                        line-height: 22px;
+                        color: @var--first-font-color;
+                        font-weight: bold;
+                        padding-bottom: 5px;
+                    }
+
+                    > div:last-child {
+                        font-size: 14px;
+                        line-height: 14px;
+                        color: @var--ui-color-neutral;
+                    }
+                }
+
+                > .whatsapp {
+                    width: 40px;
+                    height: 40px;
+                    padding: 8px;
+                    .flex();
+                    border: 1px solid lighten(@var--ui-color-neutral, 35%);
+                    border-radius: @var--ui-border-radius;
+
+                    > .icon {
+                        font-size: 22px;
+                        line-height: 22px;
+                        color: #48C694;
+                    }
+
+                    &:hover {
+                        background-color: #48C694;
+
+                        > .icon {
+                            color: white;
+                        }
+                    }
+                }
+
+                > .viber {
+                    width: 40px;
+                    height: 40px;
+                    padding: 8px;
+                    .flex();
+                    border: 1px solid lighten(@var--ui-color-neutral, 35%);
+                    border-radius: @var--ui-border-radius;
+
+                    > .icon {
+                        font-size: 22px;
+                        line-height: 22px;
+                        color: #8469D4;
+                    }
+
+                    &:hover {
+                        background-color: #8469D4;
+
+                        > .icon {
+                            color: white;
+                        }
+                    }
+                }
+
+                > .email {
+                    min-width: 40px;
+                    height: 40px;
+                    padding: 8px;
+                    .flex();
+                    color: @var--first-font-color;
+                    border: 1px solid lighten(@var--ui-color-neutral, 35%);
+                    border-radius: @var--ui-border-radius;
+
+                    > .icon {
+                        font-size: 22px;
+                        line-height: 22px;
+                        color: @var--ui-color-main;
+                        margin-right: 10px;
+                    }
+
+                    &:hover {
+                        background-color: @var--ui-color-main;
+
+                        > span {
+                            color: white;
+                        }
+                    }
+                }
+            }
+
+            > .main {
                 .flex();
+
+                > * {
+                    margin-left: 20px;
+                }
+
+                > .currency {
+                    cursor: pointer;
+
+                    > span:nth-child(1) {
+                        font-size: 22px;
+                        line-height: 22px;
+                        color: @var--first-font-color;
+                        vertical-align: middle;
+                        padding-right: 10px;
+                    }
+
+                    > span:nth-child(2) {
+                        font-size: 22px;
+                        line-height: 22px;
+                        color: @var--first-font-color;
+                        font-weight: bold;
+                        border-bottom: 1px dotted @var--ui-color-neutral;
+                        vertical-align: middle;
+                    }
+
+                    .icon {
+                        font-size: 22px;
+                        line-height: 22px;
+                        color: @var--ui-color-neutral;
+                        vertical-align: middle;
+                    }
+                }
             }
         }
-        a, a:hover, a:visited, a:focus {
-            padding: 0 5px;
-            color: @var--ui-color-main;
-            text-decoration: none;
-        }
     }
 
-    > .search {
+    > .secondline {
         height: 100px;
         .flex(row, space-between, center);
-        padding: 0 @var--main-padding-fields-l;
-        & > *:nth-child(2) {
-            min-width: 40%;
-        }
-    }
 
-    > .menu {
-        height: 50px;
-        .flex(row, center, stretch);
-        padding: 0 @var--main-padding-fields-l;
-        background-color: @var--main-panel-background;
-        border-bottom: 1px solid darken(@var--main-panel-background, 3%);
-        border-top: 1px solid darken(@var--main-panel-background, 3%);
-        .shadow();
+        > .logo {
+            padding-left: @var--main-padding-fields-l;
+            min-width: @var--sidebar-width;
+            width: @var--sidebar-width;
+            max-width: @var--sidebar-width;
+        }
+
+        > .actions {
+            .flex();
+            flex: 1 1 auto;
+            padding: 0 @var--main-padding-fields-l;
+
+            > *:not(:last-child) {
+                margin-right: 20px;
+            }
+
+            > *:first-child {
+                flex: 1 1 auto;
+            }
+        }
     }
 }
