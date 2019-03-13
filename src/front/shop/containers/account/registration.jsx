@@ -57,6 +57,9 @@ export default class Registration extends React.Component {
                     password: '',
                     confirm: ''
                 });
+            const {onRegister} = this.props;
+            if (onRegister)
+                onRegister();
         };
         this.buttons = [
             {

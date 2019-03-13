@@ -96,8 +96,9 @@ export default class List extends React.Component {
                 title: 'Диапазон'
             }
         ];
+        this.units = ['мм', 'см', 'м', 'г', 'кг'];
         this.requiredFields = ['type', 'name', 'title', 'isTab'];
-        this.fields = this.requiredFields;
+        this.fields = [...this.requiredFields, 'unit'];
     };
 
     componentWillMount() {
@@ -157,11 +158,37 @@ export default class List extends React.Component {
         )
     };
 
+    renderUnitDropDown(prop, key) {
+        const {changes = {}, currentAttribute, show} = this.state;
+        return (
+            <div key={key}>
+                {prop}
+                <select onChange={e => {
+                    const newChanges = {
+                        ...changes,
+                        [prop]: e.target.value
+                    };
+                    if (show === 'editPage')
+                        this.setState({changes: newChanges});
+                    else
+                        this.setState({currentAttribute: {...currentAttribute, ...newChanges}});
+                }} value={changes.unit || currentAttribute.unit || ''}>
+                    <option value=''>Нет единицы измерения</option>
+                    {this.units.map((unit, index) => (
+                        <option value={unit} key={index}>{unit}</option>
+                    ))}
+                </select>
+            </div>
+        )
+    };
+
     renderProp(prop, key) {
         if (prop === 'type')
             return this.renderTypeDropDown(prop, key);
         if (prop === 'isTab')
             return this.renderTabCheckBox(prop, key);
+        if (prop === 'unit')
+            return this.renderUnitDropDown(prop, key);
         const {currentAttribute, show, changes = {}} = this.state;
         return (
             <div key={key}>

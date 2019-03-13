@@ -29,6 +29,8 @@ export default class DBGenerator {
             item.name = 'Продукт ' + artCounter;
             item.slug = 'product' + artCounter;
             item.price = 1000 * artCounter;
+            item.description = 'some description';
+            item.shortDescription = 'some short description';
             await new collection(item).save()
         });
         await DBGenerator.setData('role', roles, async (item, collection) => await new collection(item).save());

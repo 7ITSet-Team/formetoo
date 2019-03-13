@@ -37,9 +37,12 @@ export default async (db, req, res, data) => {
         subject: 'Account activation',
         html: registrationTemplate({link})
     };
-    transporter.sendMail(mailOptions, err => {
-        if (err) throw err
-    });
 
-    return;
+    let result = {};
+    transporter.sendMail(mailOptions, err => {
+        if (err)
+            console.error(err);
+        return result = {result: undefined, error: 'ошибка при регистрации, повторите попытку позже'};
+    });
+    return result;
 };

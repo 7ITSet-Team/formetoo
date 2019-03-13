@@ -3,6 +3,7 @@ import React from 'react';
 import API from '@common/core/api';
 import Loading from '@components/ui/loading';
 import Message from '@components/ui/message';
+import Registration from '@shop/containers/account/registration';
 
 export default class List extends React.Component {
     constructor(props) {
@@ -72,7 +73,7 @@ export default class List extends React.Component {
         return (
             <>
                 <div className='c--items-group'>
-                    <button className='c--btn c--btn--primary' onClick={() => this.show('createPage')}>add new</button>
+                    <Registration onRegister={this.updateUsers}/>
                 </div>
                 {users.map((user, key) => (
                     <div key={key}>
