@@ -30,11 +30,13 @@ export default class Header extends React.Component {
             <header className='a--header'>
                 <div className='info'>
                     <Logo/>
-                    <div className='about'>{`${about.name} ${about.lastname}`}</div>
                 </div>
                 <div className='actions'>
-                    <Link to='/'>на главную</Link>
-                    <button className='c--btn c--btn--danger' onClick={this.logout}>Выход</button>
+                    <div className='about'>{`${about.name} ${about.lastname}`}</div>
+                    <div className='c--items-group'>
+                        <Link className='c--btn secondary' to='/'>На главную</Link>
+                        <button className='c--btn danger' onClick={this.logout}>Выход</button>
+                    </div>
                 </div>
             </header>
         );

@@ -1,17 +1,12 @@
 import React from 'react';
-import {NavLink} from 'react-router-dom';
 
 import UserModel from '@models/user';
+import MainMenu from '@components/main-menu';
 
 export default class Sections extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            permissions: UserModel.permissions
-        };
-
-        this.update = user => this.setState({permissions: user.permissions});
         this.translate = {
             client: 'Текущий пользователь',
             media: 'Медиа',
@@ -27,6 +22,17 @@ export default class Sections extends React.Component {
             logs: 'Логи',
             tree: 'Дерево'
         };
+
+        this.permissionsToMenu = permissions => (permissions || []).map(permission => ({
+            to: `/account/${permission}`,
+            title: this.translate[permission] || permission
+        }));
+
+        this.state = {
+            permissions: this.permissionsToMenu(UserModel.permissions)
+        };
+
+        this.update = user => this.setState({permissions: this.permissionsToMenu(user.permissions)});
     };
 
     componentWillMount() {
@@ -41,11 +47,7 @@ export default class Sections extends React.Component {
         const {permissions} = this.state;
         return (
             <div className='a--sections'>
-                {permissions.map((permission, key) => (
-                    <NavLink to={`/account/${permission}`} key={key}>
-                        {this.translate[permission] || permission}
-                    </NavLink>
-                ))}
+                <MainMenu title='Разделы' menu={permissions}/>
             </div>
         );
     };

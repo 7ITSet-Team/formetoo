@@ -19,6 +19,14 @@
         width: 100%;
     }
 
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 40px white inset !important;
+        -webkit-text-fill-color: @var--first-font-color !important;
+    }
+
     > .buttons {
         padding-right: 20px;
         .flex();
@@ -56,6 +64,13 @@
 
         > input, > input:focus {
             background-color: @var--color-ui-secondary;
+        }
+
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 40px @var--color-ui-secondary inset !important;
         }
 
         > .buttons {

@@ -1,0 +1,15 @@
+.a--layout-container {
+    min-width: 0;
+    .flex(row, flex-start, stretch);
+
+    > *:first-child {
+        min-width: @var--sidebar-width;
+        width: @var--sidebar-width;
+        max-width: @var--sidebar-width;
+        flex-basis: @var--sidebar-width;
+    }
+
+    > *:last-child {
+        flex: 1 1 auto;
+    }
+}

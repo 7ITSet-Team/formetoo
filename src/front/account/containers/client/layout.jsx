@@ -1,6 +1,7 @@
 import React from 'react';
 
 import Info from '@account/containers/client/info';
+import Orders from '@account/containers/client/orders';
 import Tabs from '@components/ui/tabs';
 
 export default class Layout extends React.Component {
@@ -8,7 +9,8 @@ export default class Layout extends React.Component {
         super(props);
         this.rootPath = '/account/client';
         this.links = [
-            {path: this.rootPath + '/info', title: 'Профиль', component: Info}
+            {path: this.rootPath + '/info', title: 'Профиль', component: Info},
+            {path: this.rootPath + '/orders', title: 'Заказы', component: Orders}
         ];
     };
 

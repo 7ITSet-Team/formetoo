@@ -83,6 +83,14 @@
             color: @var--color-ui-disable;
         }
     }
+
+    &.pusher, &.pusher:hover {
+        flex: 1 1 auto;
+        background-color: lighten(@var--color-ui-disable, 15%);
+        border-color: lighten(@var--color-ui-disable, 15%);
+        color: white;
+        cursor: default;
+    }
 }
 
 .make-main-buttons( @list) {

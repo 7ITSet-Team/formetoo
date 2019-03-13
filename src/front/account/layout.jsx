@@ -1,6 +1,7 @@
 import React from 'react';
 import {Link, Redirect} from 'react-router-dom';
 
+import Sections from '@account/containers/sections';
 import Loading from '@components/ui/loading';
 import Header from '@account/containers/header';
 import Main from '@account/containers/main';
@@ -58,8 +59,11 @@ export default class Layout extends React.Component {
 
         return (
             <>
-            <Header/>
-            <Main/>
+                <Header/>
+                <div className='a--layout-container'>
+                    {(permissions.length > 1) ? (<Sections/>) : null}
+                    <Main defaultURI={`/account/${permissions[0]}`}/>
+                </div>
             </>
         );
     };

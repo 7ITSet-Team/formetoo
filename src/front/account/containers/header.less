@@ -2,15 +2,25 @@
     min-height: 80px;
     height: 80px;
     max-height: 80px;
-    padding: 10px;
+    padding: 0;
     margin: 0;
     .flex(row, space-between, center);
 
-    >.info{
+    > .info {
+        min-width: @var--sidebar-width;
+        width: @var--sidebar-width;
+        max-width: @var--sidebar-width;
+        flex-basis: @var--sidebar-width;
         .flex();
     }
 
     > .actions {
-        .flex();
+        padding: 0 @var--main-padding-fields-l;
+        .flex(row, flex-end, center);
+        flex: 1 1 auto;
+
+        > * {
+            margin-left: 15px;
+        }
     }
 }
